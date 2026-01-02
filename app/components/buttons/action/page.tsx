@@ -11,7 +11,7 @@ import ColorsSection from "./_section/ColorsSection";
 import BorderSection from "./_section/BorderSection";
 import RadiusSection from "./_section/RadiusSection";
 import ShadowSection from "./_section/ShadowSection";
-import TypographySection, { type FontStyleKey, type FontWeightKey, type TextTransformKey, type SystemFontItem } from "./_section/TypographySection";
+import TypographySection, { type FontStyleKey, type FontWeightKey, type TextTransformKey } from "./_section/TypographySection";
 import TextPositionSection, { type AlignKey } from "./_section/TextPositionSection";
 import TextShadowSection from "./_section/TextShadowSection";
 import IconSection, { type IconName, type IconSource } from "./_section/IconSection";
@@ -27,172 +27,12 @@ import DisabledSection from "./_section/DisabledSection";
 import AccessibilitySection, { type MinTouchMode } from "./_section/AccessibilitySection";
 import StatePreviewSection from "./_section/StatePreviewSection";
 
-// --- Constants & Helpers ---
-
-const PALETTE = [
-  "#111827", "#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#0ea5e9", "#ffffff"
-] as const;
+import { PALETTE, SYSTEM_FONTS, GOOGLE_FONTS, ICONS_SVG } from "./_data/buttonConstants";
+import { buildGradient, clamp, contrastHex, contrastRatio, hexWithAlpha, norm } from "./_utils/colorUtils";
+import { buildExportPayload } from "./_utils/exportUtils";
+import { PREVIEW_SRC_DOC } from "./_utils/previewDoc";
 
 type TransitionEasing = "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
-
-// Full System Fonts List
-const SYSTEM_FONTS: SystemFontItem[] = [
-  { label: "Arial", css: "Arial, system-ui" },
-  { label: "Consolas", css: 'Consolas, "Liberation Mono", "Courier New", ui-monospace, monospace' },
-  { label: "Courier New", css: '"Courier New", ui-monospace, monospace' },
-  { label: "Georgia", css: "Georgia, ui-serif, serif" },
-  { label: "Helvetica", css: "Helvetica, Arial, system-ui" },
-  { label: "Menlo", css: 'Menlo, Monaco, Consolas, "Liberation Mono", ui-monospace, monospace' },
-  { label: "Monaco", css: 'Monaco, Menlo, Consolas, "Liberation Mono", ui-monospace, monospace' },
-  { label: "Roboto (system if installed)", css: "Roboto, system-ui, -apple-system, Arial" },
-  { label: "Segoe UI", css: '"Segoe UI", system-ui, -apple-system, Arial' },
-  { label: "System UI", css: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" },
-  { label: "Times New Roman", css: '"Times New Roman", Times, ui-serif, serif' },
-  { label: "ui-monospace", css: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' },
-  { label: "ui-sans-serif", css: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" },
-  { label: "ui-serif", css: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif' },
-].sort((a, b) => a.label.localeCompare(b.label));
-
-// Full Google Fonts List
-const GOOGLE_FONTS = [
-  "Abril Fatface", "Alegreya", "Alegreya Sans", "Archivo", "Archivo Narrow", "Arimo", "Assistant", "Bebas Neue", "Bitter", "Cabin", "Catamaran", 
-  "Cormorant Garamond", "Crimson Text", "DM Sans", "DM Serif Display", "Dosis", "EB Garamond", "Figtree", "Fira Sans", "IBM Plex Mono", 
-  "IBM Plex Sans", "Inconsolata", "Inter", "Josefin Sans", "Karla", "Lato", "Libre Baskerville", "Libre Franklin", "Lora", "Manrope", 
-  "Merriweather", "Montserrat", "Mukta", "Mulish", "Noto Sans", "Noto Serif", "Nunito", "Nunito Sans", "Open Sans", "Oswald", "Overpass", 
-  "Playfair Display", "Plus Jakarta Sans", "Poppins", "PT Sans", "PT Serif", "Quicksand", "Raleway", "Recursive", "Red Hat Display", 
-  "Roboto", "Roboto Condensed", "Roboto Mono", "Rubik", "Source Code Pro", "Source Sans 3", "Space Grotesk", "Space Mono", "Spectral", 
-  "Syne", "Titillium Web", "Urbanist", "Work Sans",
-].sort((a, b) => a.localeCompare(b));
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function toHex2(n: number) {
-  const s = clamp(Math.round(n), 0, 255).toString(16);
-  return s.length === 1 ? `0${s}` : s;
-}
-
-function hexWithAlpha(hex: string, alpha: number) {
-  const h = (hex || "").trim().toLowerCase();
-  if (!/^#[0-9a-f]{6}$/.test(h)) return `rgba(0,0,0,${clamp(alpha, 0, 1)})`;
-  const r = parseInt(h.slice(1, 3), 16);
-  const g = parseInt(h.slice(3, 5), 16);
-  const b = parseInt(h.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${clamp(alpha, 0, 1)})`;
-}
-
-function sanitizeFilenameBase(input: string) {
-  const trimmed = (input || "").trim();
-  if (!trimmed) return "";
-  const noWhitespace = trimmed.replace(/\s+/g, "-");
-  const safe = noWhitespace.replace(/[^a-zA-Z0-9._-]/g, "");
-  return safe.replace(/^\.+/, "");
-}
-
-function norm(input: string): { ok: boolean; hex: string; rgb: string } {
-  const raw = (input || "").trim();
-
-  if (/^#([0-9a-fA-F]{3})$/.test(raw)) {
-    const m = raw.slice(1);
-    const r = m[0] + m[0];
-    const g = m[1] + m[1];
-    const b = m[2] + m[2];
-    const hex = `#${r}${g}${b}`.toLowerCase();
-    const rr = parseInt(r, 16);
-    const gg = parseInt(g, 16);
-    const bb = parseInt(b, 16);
-    return { ok: true, hex, rgb: `rgb(${rr}, ${gg}, ${bb})` };
-  }
-
-  if (/^#([0-9a-fA-F]{6})$/.test(raw)) {
-    const hex = raw.toLowerCase();
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return { ok: true, hex, rgb: `rgb(${r}, ${g}, ${b})` };
-  }
-
-  const rgbFn = raw.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
-  if (rgbFn) {
-    const r = clamp(Number(rgbFn[1]), 0, 255);
-    const g = clamp(Number(rgbFn[2]), 0, 255);
-    const b = clamp(Number(rgbFn[3]), 0, 255);
-    const hex = `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`;
-    return { ok: true, hex, rgb: `rgb(${r}, ${g}, ${b})` };
-  }
-
-  const csv = raw.match(/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/);
-  if (csv) {
-    const r = clamp(Number(csv[1]), 0, 255);
-    const g = clamp(Number(csv[2]), 0, 255);
-    const b = clamp(Number(csv[3]), 0, 255);
-    const hex = `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`;
-    return { ok: true, hex, rgb: `rgb(${r}, ${g}, ${b})` };
-  }
-
-  return { ok: false, hex: "#2563eb", rgb: "rgb(37, 99, 235)" };
-}
-
-function buildGradient(angleText: string, startInput: string, midEnabled: boolean, midInput: string, endInput: string) {
-  const angle = Number(angleText);
-  const safeAngle = Number.isFinite(angle) ? angle : 90;
-  const safeStart = norm(startInput).ok ? norm(startInput).hex : startInput;
-  const safeMid = norm(midInput).ok ? norm(midInput).hex : midInput;
-  const safeEnd = norm(endInput).ok ? norm(endInput).hex : endInput;
-  return midEnabled
-    ? `linear-gradient(${safeAngle}deg, ${safeStart}, ${safeMid}, ${safeEnd})`
-    : `linear-gradient(${safeAngle}deg, ${safeStart}, ${safeEnd})`;
-}
-
-function contrastHex(bgHex: string) {
-  const h = (bgHex || "").trim().toLowerCase();
-  if (!/^#[0-9a-f]{6}$/.test(h)) return "#111827";
-  const r = parseInt(h.slice(1, 3), 16) / 255;
-  const g = parseInt(h.slice(3, 5), 16) / 255;
-  const b = parseInt(h.slice(5, 7), 16) / 255;
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return lum > 0.6 ? "#111827" : "#ffffff";
-}
-
-function hexToRgb(hex: string) {
-  const h = (hex || "").trim().toLowerCase();
-  if (!/^#[0-9a-f]{6}$/.test(h)) return null;
-  return {
-    r: parseInt(h.slice(1, 3), 16) / 255,
-    g: parseInt(h.slice(3, 5), 16) / 255,
-    b: parseInt(h.slice(5, 7), 16) / 255,
-  };
-}
-
-function relativeLuminance(rgb: { r: number; g: number; b: number }) {
-  const transform = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
-  const r = transform(rgb.r);
-  const g = transform(rgb.g);
-  const b = transform(rgb.b);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrastRatio(a: string, b: string) {
-  const rgbA = hexToRgb(a);
-  const rgbB = hexToRgb(b);
-  if (!rgbA || !rgbB) return null;
-  const l1 = relativeLuminance(rgbA);
-  const l2 = relativeLuminance(rgbB);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-const ICONS_SVG: Record<string, string> = {
-  none: "",
-  arrowRight: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  check: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  plus: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-  x: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-  info: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="2"/><path d="M12 10v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 7h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
-  star: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.3l-5.7 3 1.1-6.3L2.8 9.7l6.3-.9L12 3l2.9 5.8 6.3.9-4.6 4.3 1.1 6.3-5.7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
-};
 
 export default function ActionButtonPage() {
   const mounted = useHydrated();
@@ -454,6 +294,9 @@ export default function ActionButtonPage() {
   const letterSpacingDisplay = `${letterSpacingValue}${letterSpacingUnit}`;
 
   const lHeight = Number(lineHeightText)||1;
+  const fontFamily = fontBucket === "system"
+    ? (SYSTEM_FONTS[Math.min(systemFontIdx, SYSTEM_FONTS.length - 1)]?.css || "sans-serif")
+    : googleFontFamily;
   const radiusVal = clamp(Number(radiusText)||0, 0, 60);
   const rTL = linkRadius ? radiusVal : clamp(Number(radiusTLText)||0, 0, 60);
   const rTR = linkRadius ? radiusVal : clamp(Number(radiusTRText)||0, 0, 60);
@@ -688,9 +531,7 @@ export default function ActionButtonPage() {
     shColor: hexWithAlpha(shColorInput, Number(shOpacityText)||0.1),
 
     // typography
-    fontFamily: fontBucket === "system" 
-      ? (SYSTEM_FONTS[Math.min(systemFontIdx, SYSTEM_FONTS.length -1)]?.css || "sans-serif")
-      : googleFontFamily,
+    fontFamily,
     fontSizeValue,
     fontSizeUnit,
     fontWeight,
@@ -770,7 +611,7 @@ export default function ActionButtonPage() {
     cssDisabledBg, cssDisabledText, cssDisabledBorder, disabledOpacity, disabledCursor, disabledBorderWidthPx, disabledHoverSuppressed, disabledTextShadowCss,
     borderWidthPx, hoverBorderWidthPx, activeBorderWidthPx, borderStyle, rTL, rTR, rBR, rBL,
     shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shColorInput,
-    fontBucket, systemFontIdx, googleFontFamily, fontSizeValue, fontSizeUnit, fontWeight, letterSpacingValue, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
+    fontFamily, fontSizeValue, fontSizeUnit, fontWeight, letterSpacingValue, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
     align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsColor,
     iconName, iconSource, iconCustomSvg, hoverIconEnabled, hoverIconSource, hoverIconName, hoverIconCustomSvg,
     activeIconEnabled, activeIconSource, activeIconName, activeIconCustomSvg,
@@ -787,1106 +628,111 @@ export default function ActionButtonPage() {
     iframeRef.current.contentWindow.postMessage(previewPayload, "*");
   }, [previewPayload]);
 
-  const initialSrcDoc = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  /* Base Reset */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    display: flex; align-items: center; justify-content: center;
-    min-height: 100vh; font-family: sans-serif; transition: background 0.2s;
-  }
-
-  .preview-root { width: 100%; display: flex; justify-content: center; }
-  .preview-single.is-hidden { display: none; }
-  .preview-group {
-    display: flex; flex-wrap: wrap;
-    gap: var(--group-gap, 12px);
-    justify-content: var(--group-justify, center);
-  }
-  .preview-group.is-hidden { display: none; }
-  
-  /* CSS Variables handled by JS */
-  .btn {
-    appearance: none; outline: none; 
-    cursor: pointer; position: relative; display: inline-flex;
-    transition:
-      background var(--btn-color-duration) var(--btn-color-ease),
-      color var(--btn-color-duration) var(--btn-color-ease),
-      border-color var(--btn-color-duration) var(--btn-color-ease),
-      filter var(--btn-color-duration) var(--btn-color-ease),
-      box-shadow var(--btn-color-duration) var(--btn-color-ease),
-      transform var(--btn-transform-duration) var(--btn-transform-ease),
-      border-width var(--btn-transform-duration) var(--btn-transform-ease);
-    
-    /* Dynamic Props */
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border-color: var(--btn-border);
-    border-width: var(--btn-border-width);
-    filter: none;
-    box-shadow: var(--btn-shadow);
-  }
-  
-  /* Robust CSS Hover */
-  .btn:hover:not(:disabled),
-  .btn.force-hover {
-    background: var(--btn-hover-bg);
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    border-width: var(--btn-hover-border-width);
-    filter: var(--btn-hover-filter);
-  }
-
-  .btn:active:not(:disabled),
-  .btn.force-active {
-    background: var(--btn-active-bg);
-    color: var(--btn-active-text);
-    border-color: var(--btn-active-border);
-    border-width: var(--btn-active-border-width);
-    filter: var(--btn-active-filter);
-    transform: translateY(var(--btn-active-ty)) scale(var(--btn-active-scale));
-  }
-
-  .btn:disabled {
-    cursor: var(--btn-disabled-cursor);
-    opacity: var(--btn-disabled-opacity);
-    background: var(--btn-disabled-bg);
-    color: var(--btn-disabled-text);
-    border-color: var(--btn-disabled-border);
-    border-width: var(--btn-disabled-border-width);
-    text-shadow: var(--btn-disabled-text-shadow);
-  }
-
-  .btn.suppress-hover:hover,
-  .btn.suppress-hover:disabled:hover {
-    background: var(--btn-disabled-bg);
-    color: var(--btn-disabled-text);
-    border-color: var(--btn-disabled-border);
-    border-width: var(--btn-disabled-border-width);
-    filter: none;
-  }
-
-  .icon-svg { flex-shrink: 0; display: inline-flex; }
-  .icon-svg svg { width: 100%; height: 100%; display: block; }
-  
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .anim-spin { animation: spin 0.8s linear infinite; }
-  
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; transform: scale(0.98); } }
-  .anim-pulse { animation: pulse 2s infinite; }
-  
-  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-  .anim-float { animation: float 3s ease-in-out infinite; }
-  
-  @keyframes subtle-pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  .anim-subtle-pop { animation: subtle-pop 0.3s ease-out backwards; }
-
-  .btn:focus-visible {
-    box-shadow: var(--btn-shadow), 0 0 0 var(--ring-offset) var(--preview-bg), 0 0 0 calc(var(--ring-offset) + var(--ring-width)) var(--ring-color);
-  }
-  .btn.force-focus-ring {
-    box-shadow: var(--btn-shadow), 0 0 0 var(--ring-offset) var(--preview-bg), 0 0 0 calc(var(--ring-offset) + var(--ring-width)) var(--ring-color);
-  }
-</style>
-</head>
-<body>
-
-<div id="preview-root" class="preview-root">
-  <div id="single-wrap" class="preview-single">
-    <button class="btn" data-role="single">
-      <span class="icon-svg icon-left"></span>
-      <span class="label"></span>
-      <span class="icon-svg icon-right"></span>
-    </button>
-  </div>
-  <div id="group-wrap" class="preview-group" aria-hidden="true">
-    <button class="btn" data-role="group">
-      <span class="icon-svg icon-left"></span>
-      <span class="label"></span>
-      <span class="icon-svg icon-right"></span>
-    </button>
-    <button class="btn" data-role="group">
-      <span class="icon-svg icon-left"></span>
-      <span class="label"></span>
-      <span class="icon-svg icon-right"></span>
-    </button>
-    <button class="btn" data-role="group">
-      <span class="icon-svg icon-left"></span>
-      <span class="label"></span>
-      <span class="icon-svg icon-right"></span>
-    </button>
-  </div>
-</div>
-
-<script>
-  const body = document.body;
-  const singleWrap = document.getElementById('single-wrap');
-  const groupWrap = document.getElementById('group-wrap');
-  const buttons = Array.from(document.querySelectorAll('.btn'));
-  const defaultSpinnerSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
-
-  function renderSpinner(target, svg) {
-    if (!target || !svg) return;
-    target.innerHTML = svg;
-    const svgEl = target.querySelector('svg');
-    if (svgEl) svgEl.classList.add('anim-spin');
-  }
-  function getParts(btn){
-    return {
-      labelSpan: btn.querySelector('.label'),
-      iconL: btn.querySelector('.icon-left'),
-      iconR: btn.querySelector('.icon-right'),
-    };
-  }
-
-  function clearIconSlot(slot){
-    if (!slot) return;
-    slot.innerHTML = '';
-    slot.style.display = 'none';
-    slot.style.marginRight = '0';
-    slot.style.marginLeft = '0';
-  }
-
-  function showIcon(slot, svg, size, color, gap, position){
-    if (!slot || !svg) return;
-    slot.innerHTML = svg;
-    slot.style.display = 'inline-flex';
-    slot.style.width = size;
-    slot.style.height = size;
-    slot.style.color = color;
-    if (position === 'left') slot.style.marginRight = gap;
-    else slot.style.marginLeft = gap;
-  }
-
-  function pickIconSvg(d, state){
-    if (state === 'active' && d.activeIconSvg) return d.activeIconSvg;
-    if (state === 'hover' && d.hoverIconSvg) return d.hoverIconSvg;
-    return d.baseIconSvg || '';
-  }
-
-  function getVisualState(btn, d){
-    if (d.loading) return 'loading';
-    if (d.forceActive && d.activeEnabled) return 'active';
-    if (d.forceHover && d.hoverEnabled) return 'hover';
-    const isActive = btn.dataset.active === 'true';
-    const isHover = btn.dataset.hover === 'true';
-    return isActive ? 'active' : (isHover ? 'hover' : 'base');
-  }
-
-  function applyIconState(btn, d){
-    const parts = getParts(btn);
-    const iconGap = d.iconGap + "px";
-    const iconSize = d.iconSize + "px";
-    const iconColor = d.iconColor;
-    const loadingMode = d.loadingSpinnerMode || "default";
-    const loadingSpinnerSvg = loadingMode === "custom"
-      ? (d.loadingSpinnerSvg || "")
-      : (loadingMode === "none" ? "" : defaultSpinnerSvg);
-    const spinnerPosition = d.loadingSpinnerPosition === "right" ? "right" : "left";
-
-    clearIconSlot(parts.iconL);
-    clearIconSlot(parts.iconR);
-
-    if (d.loading) {
-      if (d.loadingIconSvg) {
-        const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
-        showIcon(target, d.loadingIconSvg, iconSize, iconColor, iconGap, d.iconPosition);
-      } else if (loadingSpinnerSvg) {
-        const target = spinnerPosition === 'right' ? parts.iconR : parts.iconL;
-        renderSpinner(target, loadingSpinnerSvg);
-        if (target) {
-          target.style.display = 'inline-flex';
-          target.style.width = iconSize;
-          target.style.height = iconSize;
-          target.style.color = iconColor;
-          if (spinnerPosition === 'left') target.style.marginRight = iconGap;
-          else target.style.marginLeft = iconGap;
-        }
-      }
-      return;
-    }
-
-    const state = getVisualState(btn, d);
-    const svg = pickIconSvg(d, state);
-    if (svg) {
-      const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
-      showIcon(target, svg, iconSize, iconColor, iconGap, d.iconPosition);
-    }
-  }
-
-  buttons.forEach((btn) => {
-    btn.addEventListener('blur', () => {
-      btn.classList.remove('force-focus-ring');
-    });
-  });
-
-  function ensureFontLink(family){
-      if(!family) return;
-      const id = 'gf-preview';
-      let link = document.getElementById(id);
-      if(!link){
-          link = document.createElement('link');
-          link.id = id;
-          link.rel = 'stylesheet';
-          document.head.appendChild(link);
-      }
-      const href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@100..900&display=swap';
-      if(link.getAttribute('href') !== href) link.setAttribute('href', href);
-  }
-
-  let lastGroupEnabled = false;
-
-  window.addEventListener('message', (e) => {
-    const d = e.data;
-    if(!d) return;
-    if (d.type === 'focus-button') {
-      const candidates = lastGroupEnabled
-        ? buttons.filter((b) => b.getAttribute('data-role') === 'group')
-        : buttons.filter((b) => b.getAttribute('data-role') === 'single');
-      const target = candidates[0] || buttons[0];
-      if (target) {
-        target.classList.add('force-focus-ring');
-        target.focus();
-      }
-      return;
-    }
-
-    const loadingLabel = d.loadingLabel || "Loading...";
-    lastGroupEnabled = Boolean(d.groupEnabled);
-    if (singleWrap) {
-      singleWrap.classList.toggle('is-hidden', lastGroupEnabled);
-      singleWrap.setAttribute('aria-hidden', String(lastGroupEnabled));
-    }
-    if (groupWrap) {
-      groupWrap.classList.toggle('is-hidden', !lastGroupEnabled);
-      groupWrap.setAttribute('aria-hidden', String(!lastGroupEnabled));
-      const gMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
-      groupWrap.style.setProperty('--group-gap', d.groupGap + "px");
-      groupWrap.style.setProperty('--group-justify', gMap[d.groupAlign] || 'center');
-    }
-
-    body.style.background = d.previewBg;
-    
-    // Update Fonts
-    if(d.fontFamily && !d.fontFamily.includes('system-ui')){
-        const fam = d.fontFamily.split(',')[0].replace(/['"]/g, '');
-        ensureFontLink(fam);
-    }
-
-    // Alignment Map
-    const map = {
-      'top-left':      ['flex-end',   'flex-start'],
-      'top-center':    ['flex-end',   'center'],
-      'top-right':     ['flex-end',   'flex-end'],
-      'middle-left':   ['center',     'flex-start'],
-      'middle-center': ['center',     'center'],
-      'middle-right':  ['center',     'flex-end'],
-      'bottom-left':   ['flex-start', 'flex-start'],
-      'bottom-center': ['flex-start', 'center'],
-      'bottom-right':  ['flex-start', 'flex-end'],
-    };
-    const [alignItems, justify] = map[d.align] || ['center','center'];
-
-    const activeButtons = lastGroupEnabled
-      ? buttons.filter((b) => b.getAttribute('data-role') === 'group')
-      : buttons.filter((b) => b.getAttribute('data-role') === 'single');
-
-    activeButtons.forEach((btn) => {
-      const parts = getParts(btn);
-      if (parts.labelSpan) parts.labelSpan.textContent = d.loading ? loadingLabel : d.label;
-
-      // Set Dimensions & Radius
-      btn.style.width = d.width + "px";
-      btn.style.height = d.height + "px";
-      btn.style.padding = d.padY + "px " + d.padX + "px";
-      btn.style.borderRadius = d.radiusTL + "px " + d.radiusTR + "px " + d.radiusBR + "px " + d.radiusBL + "px";
-      btn.disabled = d.disabled || d.loading;
-      if (d.ariaLabel) btn.setAttribute('aria-label', d.ariaLabel);
-      else btn.removeAttribute('aria-label');
-      if (d.ariaPressedMode && d.ariaPressedMode !== 'off') {
-        btn.setAttribute('aria-pressed', d.ariaPressedMode);
-      } else {
-        btn.removeAttribute('aria-pressed');
-      }
-      let ariaBusyValue = null;
-      if (d.ariaBusyMode === 'auto') {
-        ariaBusyValue = d.loading ? 'true' : null;
-      } else if (d.ariaBusyMode && d.ariaBusyMode !== 'off') {
-        ariaBusyValue = d.ariaBusyMode;
-      }
-      if (ariaBusyValue) {
-        btn.setAttribute('aria-busy', ariaBusyValue);
-      } else {
-        btn.removeAttribute('aria-busy');
-      }
-      
-      // Set Border Width/Style
-      btn.style.setProperty('--btn-border-width', d.borderWidth + "px");
-      btn.style.setProperty('--btn-hover-border-width', d.borderHoverWidth + "px");
-      btn.style.setProperty('--btn-active-border-width', d.borderActiveWidth + "px");
-      btn.style.borderStyle = d.borderStyle;
-
-      // Set CSS Variables for Colors & Hover
-      btn.style.setProperty('--btn-bg', d.cssBg);
-      btn.style.setProperty('--btn-text', d.cssText);
-      btn.style.setProperty('--btn-border', d.cssBorder);
-      
-      btn.style.setProperty('--btn-hover-bg', d.cssHoverBg);
-      btn.style.setProperty('--btn-hover-text', d.cssHoverText);
-      btn.style.setProperty('--btn-hover-border', d.cssHoverBorder);
-      btn.style.setProperty('--btn-hover-filter', d.cssHoverFilter);
-
-      btn.style.setProperty('--btn-active-bg', d.cssActiveBg);
-      btn.style.setProperty('--btn-active-text', d.cssActiveText);
-      btn.style.setProperty('--btn-active-border', d.cssActiveBorder);
-      btn.style.setProperty('--btn-active-filter', d.cssActiveFilter);
-      btn.style.setProperty('--btn-active-ty', d.activeTy + "px");
-      btn.style.setProperty('--btn-active-scale', d.activeScale);
-      
-      btn.style.setProperty('--btn-disabled-bg', d.cssDisabledBg);
-      btn.style.setProperty('--btn-disabled-text', d.cssDisabledText);
-      btn.style.setProperty('--btn-disabled-border', d.cssDisabledBorder);
-      btn.style.setProperty('--btn-disabled-opacity', d.disabledOpacity);
-      btn.style.setProperty('--btn-disabled-cursor', d.disabledCursor);
-      btn.style.setProperty('--btn-disabled-border-width', d.disabledBorderWidth + "px");
-      btn.style.setProperty('--btn-disabled-text-shadow', d.disabledTextShadow);
-
-      btn.style.setProperty('--btn-color-duration', d.transitionColorMs + "ms");
-      btn.style.setProperty('--btn-color-ease', d.transitionColorEasing);
-      btn.style.setProperty('--btn-transform-duration', d.transitionTransformMs + "ms");
-      btn.style.setProperty('--btn-transform-ease', d.transitionTransformEasing);
-
-      // Box Shadow
-      if (d.shadowEnabled && d.variant !== 'ghost') {
-        btn.style.setProperty('--btn-shadow', \`\${d.shX}px \${d.shY}px \${d.shBlur}px \${d.shSpread}px \${d.shColor}\`);
-      } else {
-        btn.style.setProperty('--btn-shadow', 'none');
-      }
-
-      // Typography & Alignment
-      btn.style.fontFamily = d.fontFamily;
-      btn.style.fontSize = d.fontSizeValue + d.fontSizeUnit;
-      btn.style.fontWeight = d.fontWeight;
-      btn.style.letterSpacing = d.letterSpacingValue + d.letterSpacingUnit;
-      btn.style.lineHeight = d.lineHeight;
-      btn.style.fontStyle = d.fontStyle;
-      btn.style.textTransform = d.textTransform;
-      btn.style.textDecoration = d.underline ? 'underline' : 'none';
-      btn.style.alignItems = alignItems;
-      btn.style.justifyContent = justify;
-
-      // Text Shadow
-      if (d.textShadowEnabled) {
-        btn.style.textShadow = \`\${d.tsX}px \${d.tsY}px \${d.tsBlur}px \${d.tsColor}\`;
-      } else {
-        btn.style.textShadow = 'none';
-      }
-      if (d.disabled || d.loading) {
-        btn.style.textShadow = d.disabledTextShadow || 'none';
-      }
-
-      // Icons
-      if (!btn.dataset.hover) btn.dataset.hover = 'false';
-      if (!btn.dataset.active) btn.dataset.active = 'false';
-      applyIconState(btn, d);
-
-      // Animation Class
-      btn.className = 'btn';
-      if (d.animation === 'pulse') btn.classList.add('anim-pulse');
-      if (d.animation === 'float') btn.classList.add('anim-float');
-      if (d.animation === 'subtle-pop') btn.classList.add('anim-subtle-pop');
-      const allowForceHover = d.forceHover && d.hoverEnabled && !d.disabled && !d.loading;
-      const allowForceActive = d.forceActive && d.activeEnabled && !d.disabled && !d.loading;
-      if (allowForceHover) btn.classList.add('force-hover');
-      if (allowForceActive) btn.classList.add('force-active');
-      if (d.forceFocus) btn.classList.add('force-focus-ring');
-      btn.classList.toggle('suppress-hover', d.disabledHoverSuppressed && (d.disabled || d.loading));
-
-      // Hover/Active icon state hooks
-      btn.onmouseenter = () => {
-        if (!d.hoverEnabled || d.forceHover || d.forceActive || d.disabled || d.loading) return;
-        btn.dataset.hover = 'true';
-        applyIconState(btn, d);
-      };
-      btn.onmouseleave = () => {
-        if (!d.hoverEnabled || d.forceHover || d.forceActive) return;
-        btn.dataset.hover = 'false';
-        btn.dataset.active = 'false';
-        applyIconState(btn, d);
-      };
-      btn.onmousedown = () => {
-        if (!d.activeEnabled || d.disabled || d.loading || d.forceActive) return;
-        btn.dataset.active = 'true';
-        applyIconState(btn, d);
-      };
-      btn.onmouseup = () => {
-        if (d.forceActive) return;
-        btn.dataset.active = 'false';
-        applyIconState(btn, d);
-      };
-    });
-    
-    // Focus vars
-    document.documentElement.style.setProperty('--ring-width', d.focusRingWidth + "px");
-    document.documentElement.style.setProperty('--ring-offset', d.focusRingOffset + "px");
-    document.documentElement.style.setProperty('--ring-color', d.focusRingColor);
-    document.documentElement.style.setProperty('--preview-bg', d.previewBg);
-  });
-</script>
-</body>
-</html>`;
+  const initialSrcDoc = PREVIEW_SRC_DOC;
 
   // --- Export Logic ---
   const handleDownload = () => {
-    let content = "";
-    const ext = downloadFormat === "react"
-      ? "jsx"
-      : downloadFormat === "css-vars"
-        ? "css"
-        : downloadFormat === "tailwind-config"
-          ? "js"
-          : downloadFormat === "figma-tokens"
-            ? "json"
-            : downloadFormat;
-    const rawBase = sanitizeFilenameBase(downloadName);
-    const base = rawBase.replace(/\.(html|jsx|tailwind|css|scss|js|json)$/i, "") || "button";
-    const filename = `${base}.${ext}`;
-    const exportWidth = touchWidth;
-    const exportHeight = touchHeight;
-    const fontSizeCss = `${fontSizeValue}${fontSizeUnit}`;
-    const letterSpacingCss = `${letterSpacingValue}${letterSpacingUnit}`;
-    const ariaLabelAttr = ariaLabel ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"` : "";
-    const ariaPressedAttr = ariaPressedMode !== "off" ? ` aria-pressed="${ariaPressedMode}"` : "";
-    const ariaBusyAttr = ariaBusyMode === "auto"
-      ? (loading ? ` aria-busy="true"` : "")
-      : (ariaBusyMode !== "off" ? ` aria-busy="${ariaBusyMode}"` : "");
-    const ariaAttr = `${ariaLabelAttr}${ariaPressedAttr}${ariaBusyAttr}`;
-    const tsX = Number(tsXText)||0;
-    const tsY = Number(tsYText)||0;
-    const tsBlur = Number(tsBlurText)||0;
-    const textShadowCss = textShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
-    const transitionCss = `background ${transitionColorMs}ms ${transitionColorEasing}, color ${transitionColorMs}ms ${transitionColorEasing}, border-color ${transitionColorMs}ms ${transitionColorEasing}, filter ${transitionColorMs}ms ${transitionColorEasing}, box-shadow ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}, border-width ${transitionTransformMs}ms ${transitionTransformEasing}`;
-    const exportShadowColor = hexWithAlpha(shColorInput, Number(shOpacityText)||0.1);
-    const exportShadow = shadowEnabled && variant !== "ghost"
-      ? `${Number(shXText)||0}px ${Number(shYText)||0}px ${Number(shBlurText)||0}px ${Number(shSpreadText)||0}px ${exportShadowColor}`
-      : "none";
-    const loadingLabelText = loadingLabel || "Loading...";
-    const spinnerSize = Number(iconSizeText) || 18;
-    const spinnerGap = Number(iconGapText) || 10;
-    const defaultSpinnerSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-    const exportSpinnerSvg = loadingSpinnerMode === "custom" && loadingSpinnerSvg
-      ? loadingSpinnerSvg
-      : (loadingSpinnerMode === "none" ? "" : defaultSpinnerSvg);
-    const spinnerWrap = exportSpinnerSvg
-      ? `<span class="uf-spinner-wrap" style="width:${spinnerSize}px;height:${spinnerSize}px;${loadingSpinnerPosition === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}">${exportSpinnerSvg}</span>`
-      : "";
-    const labelHtml = `<span class="uf-label">${loading ? loadingLabelText : label}</span>`;
-    const exportBaseIconSvg = baseIconSvg;
-    const exportHoverIconSvg = hoverIconSvg;
-    const exportActiveIconSvg = activeIconSvg;
-    const exportLoadingIconSvg = loadingIconSvg;
-    const hasBaseIcon = iconSource === "custom" ? Boolean(exportBaseIconSvg.trim()) : iconName !== "none";
-    const hasHoverIcon = Boolean(exportHoverIconSvg && exportHoverIconSvg.trim());
-    const hasActiveIcon = Boolean(exportActiveIconSvg && exportActiveIconSvg.trim());
-    const hasLoadingIcon = Boolean(exportLoadingIconSvg && exportLoadingIconSvg.trim());
-    const iconColor = iconColorMode === "custom" ? iconColorInput : "currentColor";
-    const renderIconSpan = (state: string, svg: string, position: "left" | "right") =>
-      svg
-        ? `<span class="uf-icon-wrap uf-icon-${state} ${position}" style="width:${spinnerSize}px;height:${spinnerSize}px;${position === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}color:${iconColor};">${svg}</span>`
-        : "";
-    const iconWrapLeft = iconPosition === "left"
-      ? `${renderIconSpan("base", exportBaseIconSvg, "left")}${renderIconSpan("hover", exportHoverIconSvg, "left")}${renderIconSpan("active", exportActiveIconSvg, "left")}`
-      : "";
-    const iconWrapRight = iconPosition === "right"
-      ? `${renderIconSpan("base", exportBaseIconSvg, "right")}${renderIconSpan("hover", exportHoverIconSvg, "right")}${renderIconSpan("active", exportActiveIconSvg, "right")}`
-      : "";
-    const loadingIconWrap = hasLoadingIcon ? renderIconSpan("loading", exportLoadingIconSvg, iconPosition === "right" ? "right" : "left") : "";
-    const useLoadingIcon = loading && hasLoadingIcon;
-    const buttonInnerHtml = loading
-      ? (useLoadingIcon
-          ? (iconPosition === "right" ? `${labelHtml}${loadingIconWrap}` : `${loadingIconWrap}${labelHtml}`)
-          : (loadingSpinnerPosition === "right" ? `${labelHtml}${spinnerWrap}` : `${spinnerWrap}${labelHtml}`))
-      : `${iconWrapLeft}${labelHtml}${iconWrapRight}`;
-    const exportDisabled = disabled || loading;
-    const exportSpinnerSvgLiteral = JSON.stringify(exportSpinnerSvg);
-    const exportLoadingLabelLiteral = JSON.stringify(loadingLabelText);
-    const exportBaseIconSvgLiteral = JSON.stringify(exportBaseIconSvg);
-    const exportHoverIconSvgLiteral = JSON.stringify(exportHoverIconSvg);
-    const exportActiveIconSvgLiteral = JSON.stringify(exportActiveIconSvg);
-    const exportLoadingIconSvgLiteral = JSON.stringify(exportLoadingIconSvg);
-    const exportHasIconLiteral = JSON.stringify(hasBaseIcon);
-    const exportHasHoverIconLiteral = JSON.stringify(hasHoverIcon);
-    const exportHasActiveIconLiteral = JSON.stringify(hasActiveIcon);
-    const exportHasLoadingIconLiteral = JSON.stringify(hasLoadingIcon);
-    const exportIconColorLiteral = JSON.stringify(iconColor);
-
-    // Radius string for export
-    const rCSS = `${rTL}px ${rTR}px ${rBR}px ${rBL}px`;
-
-    // Map Alignment
-    const exportMap: Record<string, [string, string]> = {
-      'top-left':      ['flex-end',   'flex-start'],
-      'top-center':    ['flex-end',   'center'],
-      'top-right':     ['flex-end',   'flex-end'],
-      'middle-left':   ['center',     'flex-start'],
-      'middle-center': ['center',     'center'],
-      'middle-right':  ['center',     'flex-end'],
-      'bottom-left':   ['flex-start', 'flex-start'],
-      'bottom-center': ['flex-start', 'center'],
-      'bottom-right':  ['flex-start', 'flex-end'],
-    };
-    const [alignItems, justify] = exportMap[align] || ['center', 'center'];
-
-    // Construct Hover CSS
-    const hoverCSS = hoverEnabled ? `
-.uf-btn:hover {
-  ${hoverBgMode === 'auto' ? `filter: brightness(95%);` : `background: ${cssHoverBg}; filter: none;`}
-  ${hoverTextMode === 'custom' ? `color: ${hoverTextInput};` : ''}
-  ${hoverBorderMode === 'custom' ? `border-color: ${hoverBorderInput};` : ''}
-  border-width: ${hoverBorderWidthPx}px;
-}`.trim() : "";
-    const activeCSS = activeEnabled ? `
-.uf-btn:active {
-  background: ${cssActiveBg};
-  color: ${cssActiveText};
-  border-color: ${cssActiveBorder};
-  border-width: ${activeBorderWidthPx}px;
-  filter: ${cssActiveFilter};
-  transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
-}`.trim() : "";
-    const disabledHoverCSS = disabledHoverSuppressed ? `
-.uf-btn.suppress-hover:hover {
-  background: ${cssDisabledBg};
-  color: ${cssDisabledText};
-  border-color: ${cssDisabledBorder};
-  border-width: ${disabledBorderWidthPx}px;
-  filter: none;
-}`.trim() : "";
-
-    if (downloadFormat === "html") {
-      content = `
-<button class="uf-btn${useLoadingIcon ? " is-loading" : ""}${disabledHoverSuppressed && exportDisabled ? " suppress-hover" : ""}"${exportDisabled ? " disabled" : ""}${ariaAttr}>
-  ${buttonInnerHtml}
-</button>
-
-<style>
-.uf-btn {
-  width: ${exportWidth}px; height: ${exportHeight}px;
-  padding: ${padY}px ${padX}px;
-  border-radius: ${rCSS};
-  display: inline-flex;
-  align-items: ${alignItems}; justify-content: ${justify};
-  background: ${cssBg};
-  color: ${textInput};
-  border: ${borderWidthPx}px ${borderStyle} ${borderInput};
-  font-family: ${fontBucket === "system" ? "sans-serif" : googleFontFamily};
-  font-size: ${fontSizeCss};
-  font-weight: ${fontWeight};
-  letter-spacing: ${letterSpacingCss};
-  line-height: ${lHeight};
-  text-shadow: ${textShadowCss};
-  cursor: pointer;
-  transition: ${transitionCss};
-  text-decoration: ${underline ? "underline" : "none"};
-}
-.uf-btn:disabled {
-  background: ${cssDisabledBg};
-  color: ${cssDisabledText};
-  border-color: ${cssDisabledBorder};
-  border-width: ${disabledBorderWidthPx}px;
-  text-shadow: ${disabledTextShadowCss};
-  opacity: ${disabledOpacity};
-  cursor: ${disabledCursor};
-}
-.uf-spinner-wrap svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  animation: spin 0.8s linear infinite;
-}
-.uf-icon-wrap svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.uf-icon-hover,
-.uf-icon-active,
-.uf-icon-loading {
-  display: none;
-}
-.uf-btn:hover .uf-icon-base { display: none; }
-.uf-btn:hover .uf-icon-hover { display: inline-flex; }
-.uf-btn:active .uf-icon-hover { display: none; }
-.uf-btn:active .uf-icon-base { display: none; }
-.uf-btn:active .uf-icon-active { display: inline-flex; }
-.uf-btn.is-loading .uf-icon-base,
-.uf-btn.is-loading .uf-icon-hover,
-.uf-btn.is-loading .uf-icon-active { display: none; }
-.uf-btn.is-loading .uf-icon-loading { display: inline-flex; }
-@keyframes spin { to { transform: rotate(360deg); } }
-${hoverCSS}
-${disabledHoverCSS}
-${activeCSS}
-</style>`;
-    } else if (downloadFormat === "react") {
-      content = `
-import React, { useState } from 'react';
-
-export const CustomButton = ({ onClick, disabled = false, loading = false }) => {
-  const [hover, setHover] = useState(false);
-  const [active, setActive] = useState(false);
-  const isDisabled = disabled || loading;
-  const defaultLabel = ${JSON.stringify(label)};
-  const loadingLabel = ${exportLoadingLabelLiteral};
-  const spinnerSvg = ${exportSpinnerSvgLiteral};
-  const spinnerPosition = "${loadingSpinnerPosition}";
-  const spinnerGap = ${spinnerGap};
-  const spinnerSize = ${spinnerSize};
-  const baseIconSvg = ${exportBaseIconSvgLiteral};
-  const hoverIconSvg = ${exportHoverIconSvgLiteral};
-  const activeIconSvg = ${exportActiveIconSvgLiteral};
-  const loadingIconSvg = ${exportLoadingIconSvgLiteral};
-  const iconPosition = "${iconPosition}";
-  const iconColor = ${exportIconColorLiteral};
-  const hasBaseIcon = ${exportHasIconLiteral};
-  const hasHoverIcon = ${exportHasHoverIconLiteral};
-  const hasActiveIcon = ${exportHasActiveIconLiteral};
-  const hasLoadingIcon = ${exportHasLoadingIconLiteral};
-  const ariaLabel = ${JSON.stringify(ariaLabel)};
-  const ariaPressedMode = ${JSON.stringify(ariaPressedMode)};
-  const ariaBusyMode = ${JSON.stringify(ariaBusyMode)};
-  const hoverEnabled = ${JSON.stringify(hoverEnabled)};
-  const activeEnabled = ${JSON.stringify(activeEnabled)};
-
-  const baseStyle = {
-    width: '${exportWidth}px', height: '${exportHeight}px',
-    padding: '${padY}px ${padX}px',
-    borderRadius: '${rCSS}',
-    background: '${cssBg}',
-    color: '${textInput}',
-    border: '${borderWidthPx}px ${borderStyle} ${borderInput}',
-    fontSize: '${fontSizeCss}',
-    fontWeight: ${fontWeight},
-    letterSpacing: '${letterSpacingCss}',
-    lineHeight: ${lHeight},
-    textShadow: '${textShadowCss}',
-    textDecoration: '${underline ? "underline" : "none"}',
-    display: 'inline-flex',
-    alignItems: '${alignItems}',
-    justifyContent: '${justify}',
-    cursor: 'pointer',
-    transition: '${transitionCss}',
-  };
-
-  const ariaPressedValue = ariaPressedMode !== 'off' ? ariaPressedMode : undefined;
-  const ariaBusyValue = ariaBusyMode === 'auto'
-    ? (loading ? 'true' : undefined)
-    : (ariaBusyMode !== 'off' ? ariaBusyMode : undefined);
-
-  const disabledStyle = {
-    background: '${cssDisabledBg}',
-    color: '${cssDisabledText}',
-    borderColor: '${cssDisabledBorder}',
-    borderWidth: '${disabledBorderWidthPx}px',
-    textShadow: '${disabledTextShadowCss}',
-    opacity: ${disabledOpacity},
-    cursor: '${disabledCursor}',
-  };
-
-  const hoverStyle = {
-    ${hoverBgMode === 'auto' ? `filter: 'brightness(95%)',` : `background: '${cssHoverBg}', filter: 'none',`}
-    ${hoverTextMode === 'custom' ? `color: '${hoverTextInput}',` : ''}
-    ${hoverBorderMode === 'custom' ? `borderColor: '${hoverBorderInput}',` : ''}
-    borderWidth: '${hoverBorderWidthPx}px',
-  };
-
-  const activeStyle = {
-    background: '${cssActiveBg}',
-    color: '${cssActiveText}',
-    borderColor: '${cssActiveBorder}',
-    filter: '${cssActiveFilter}',
-    transform: 'translateY(${activeTranslateYText}px) scale(${activeScaleText})',
-    borderWidth: '${activeBorderWidthPx}px',
-  };
-
-  const spinnerWrapStyle = {
-    width: spinnerSize,
-    height: spinnerSize,
-    display: 'inline-flex',
-    ...(spinnerPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
-  };
-
-  const useLoadingIcon = loading && hasLoadingIcon && loadingIconSvg;
-  const spinnerNode = !useLoadingIcon && spinnerSvg ? (
-    <span className="uf-spinner-wrap" style={spinnerWrapStyle} dangerouslySetInnerHTML={{ __html: spinnerSvg }} />
-  ) : null;
-  const labelNode = <span className="uf-label">{loading ? loadingLabel : defaultLabel}</span>;
-  const iconWrapStyle = {
-    width: spinnerSize,
-    height: spinnerSize,
-    display: 'inline-flex',
-    color: iconColor,
-    ...(iconPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
-  };
-  const resolveIconSvg = () => {
-    if (useLoadingIcon) return loadingIconSvg;
-    if (active && hasActiveIcon && activeIconSvg) return activeIconSvg;
-    if (hover && hasHoverIcon && hoverIconSvg) return hoverIconSvg;
-    if (hasBaseIcon && baseIconSvg) return baseIconSvg;
-    return "";
-  };
-  const resolvedIconSvg = resolveIconSvg();
-  const iconNode = resolvedIconSvg ? (
-    <span className="uf-icon-wrap" style={iconWrapStyle} dangerouslySetInnerHTML={{ __html: resolvedIconSvg }} />
-  ) : null;
-
-  return (
-    <>
-      <style>{\`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .uf-spinner-wrap svg { display: block; width: 100%; height: 100%; animation: spin 0.8s linear infinite; }
-        .uf-icon-wrap svg { display: block; width: 100%; height: 100%; }
-      \`}</style>
-      <button 
-      onClick={onClick}
-      onMouseEnter={() => hoverEnabled && setHover(true)}
-      onMouseLeave={() => hoverEnabled && setHover(false)}
-      onMouseDown={() => activeEnabled && setActive(true)}
-      onMouseUp={() => activeEnabled && setActive(false)}
-      disabled={isDisabled}
-      aria-label={ariaLabel || undefined}
-      aria-pressed={ariaPressedValue}
-      aria-busy={ariaBusyValue}
-      style={{
-        ...baseStyle,
-        ...(hoverEnabled && hover ? hoverStyle : {}),
-        ...(activeEnabled && active ? activeStyle : {}),
-        ...(isDisabled ? disabledStyle : {}),
-      }}
-    >
-      {loading ? (
-        useLoadingIcon ? (
-          iconPosition === 'right' ? (
-            <>
-              {labelNode}
-              {iconNode}
-            </>
-          ) : (
-            <>
-              {iconNode}
-              {labelNode}
-            </>
-          )
-        ) : (
-          spinnerPosition === 'right' ? (
-            <>
-              {labelNode}
-              {spinnerNode}
-            </>
-          ) : (
-            <>
-              {spinnerNode}
-              {labelNode}
-            </>
-          )
-        )
-      ) : (
-        iconPosition === 'right' ? (
-          <>
-            {labelNode}
-            {iconNode}
-          </>
-        ) : (
-          <>
-            {iconNode}
-            {labelNode}
-          </>
-        )
-      )}
-    </button>
-    </>
-  );
-};
-`;
-    } else if (downloadFormat === "tailwind") {
-      const uniformRadius = rTL === rTR && rTR === rBR && rBR === rBL;
-      const radiusClasses = uniformRadius
-        ? [`rounded-[${rTL}px]`]
-        : [
-            `rounded-tl-[${rTL}px]`,
-            `rounded-tr-[${rTR}px]`,
-            `rounded-br-[${rBR}px]`,
-            `rounded-bl-[${rBL}px]`,
-          ];
-      const borderStyleClass =
-        borderStyle === "dashed"
-          ? "border-dashed"
-          : borderStyle === "dotted"
-            ? "border-dotted"
-            : borderStyle === "double"
-              ? "border-double"
-              : borderStyle === "none"
-                ? "border-none"
-                : "border-solid";
-      const transformClasses = activeEnabled
-        ? [
-            `active:translate-y-[${activeTranslateYText}px]`,
-            `active:scale-[${activeScaleText}]`,
-            `active:border-[${activeBorderWidthPx}px]`,
-            `active:bg-[${cssActiveBg}]`,
-            `active:text-[${cssActiveText}]`,
-            `active:border-[${cssActiveBorder}]`,
-          ]
-        : [];
-      const hoverClasses = hoverEnabled
-        ? [
-            hoverBgMode === "auto" ? "hover:brightness-[0.92]" : `hover:bg-[${cssHoverBg}]`,
-            hoverTextMode === "custom" ? `hover:text-[${hoverTextInput}]` : "",
-            hoverBorderMode === "custom" ? `hover:border-[${hoverBorderInput}]` : "",
-            `hover:border-[${hoverBorderWidthPx}px]`,
-          ]
-        : [];
-      const focusClasses = focusRingEnabled
-        ? [
-            "focus-visible:outline-none",
-            `focus-visible:ring-[${focusRingWidthText}px]`,
-            `focus-visible:ring-offset-[${focusRingOffsetText}px]`,
-            `focus-visible:ring-[${focusRingInput}]`,
-          ]
-        : ["focus-visible:outline-none"];
-
-      const tailwindClasses = [
-        "inline-flex",
-        "items-center",
-        "justify-center",
-        `font-[${fontWeight}]`,
-        `w-[${exportWidth}px]`,
-        `h-[${exportHeight}px]`,
-        `px-[${padX}px]`,
-        `py-[${padY}px]`,
-        `border-[${borderWidthPx}px]`,
-        borderStyleClass,
-        `border-[${borderInput}]`,
-        cssBg !== "transparent" ? `bg-[${cssBg}]` : "bg-transparent",
-        `text-[${textInput}]`,
-        `text-[${fontSizeCss}]`,
-        `tracking-[${letterSpacingCss}]`,
-        `leading-[${lHeight}]`,
-        underline ? "underline" : "no-underline",
-        fontStyle === "italic" ? "italic" : "",
-        textTransform === "uppercase"
-          ? "uppercase"
-          : textTransform === "lowercase"
-            ? "lowercase"
-            : textTransform === "capitalize"
-              ? "capitalize"
-              : "normal-case",
-        exportShadow !== "none" ? `shadow-[${exportShadow}]` : "shadow-none",
-        `disabled:opacity-[${disabledOpacity}]`,
-        `disabled:cursor-${disabledCursor}`,
-        `disabled:bg-[${cssDisabledBg}]`,
-        `disabled:text-[${cssDisabledText}]`,
-        `disabled:border-[${cssDisabledBorder}]`,
-        `disabled:border-[${disabledBorderWidthPx}px]`,
-        ...radiusClasses,
-        ...hoverClasses,
-        ...transformClasses,
-        ...focusClasses,
-      ]
-        .filter(Boolean)
-        .join(" ");
-
-      const inlineStyleParts = [`transition: ${transitionCss};`];
-      if (!uniformRadius) inlineStyleParts.push(`border-radius: ${rCSS};`);
-      if (textShadowCss !== "none") inlineStyleParts.push(`text-shadow: ${textShadowCss};`);
-      const inlineStyle = inlineStyleParts.join(" ");
-
-      content = `
-<button class="${tailwindClasses}"${ariaAttr}${inlineStyle ? ` style="${inlineStyle}"` : ""}>
-  ${loading ? loadingLabelText : label}
-</button>
-`.trim();
-    } else if (downloadFormat === "css-vars") {
-      content = `
-:root {
-  --uf-btn-bg: ${cssBg};
-  --uf-btn-text: ${textInput};
-  --uf-btn-border: ${borderInput};
-  --uf-btn-radius: ${rCSS};
-  --uf-btn-font-size: ${fontSizeCss};
-  --uf-btn-letter-spacing: ${letterSpacingCss};
-  --uf-btn-line-height: ${lHeight};
-  --uf-btn-shadow: ${exportShadow};
-  --uf-btn-hover-bg: ${cssHoverBg};
-  --uf-btn-hover-text: ${cssHoverText};
-  --uf-btn-hover-border: ${cssHoverBorder};
-  --uf-btn-active-bg: ${cssActiveBg};
-  --uf-btn-active-text: ${cssActiveText};
-  --uf-btn-active-border: ${cssActiveBorder};
-  --uf-btn-disabled-bg: ${cssDisabledBg};
-  --uf-btn-disabled-text: ${cssDisabledText};
-  --uf-btn-disabled-border: ${cssDisabledBorder};
-  --uf-btn-disabled-border-width: ${disabledBorderWidthPx}px;
-  --uf-btn-disabled-text-shadow: ${disabledTextShadowCss};
-}
-
-.uf-btn {
-  width: ${exportWidth}px; height: ${exportHeight}px;
-  padding: ${padY}px ${padX}px;
-  border-radius: var(--uf-btn-radius);
-  display: inline-flex;
-  align-items: ${alignItems}; justify-content: ${justify};
-  background: var(--uf-btn-bg);
-  color: var(--uf-btn-text);
-  border: ${borderWidthPx}px ${borderStyle} var(--uf-btn-border);
-  font-size: var(--uf-btn-font-size);
-  letter-spacing: var(--uf-btn-letter-spacing);
-  line-height: var(--uf-btn-line-height);
-  box-shadow: var(--uf-btn-shadow);
-  transition: ${transitionCss};
-}
-.uf-btn:hover {
-  background: var(--uf-btn-hover-bg);
-  color: var(--uf-btn-hover-text);
-  border-color: var(--uf-btn-hover-border);
-  border-width: ${hoverBorderWidthPx}px;
-  ${hoverEnabled && hoverBgMode === 'auto' ? `filter: brightness(95%);` : `filter: none;`}
-}
-.uf-btn:active {
-  background: var(--uf-btn-active-bg);
-  color: var(--uf-btn-active-text);
-  border-color: var(--uf-btn-active-border);
-  border-width: ${activeBorderWidthPx}px;
-  transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
-}
-.uf-btn:disabled {
-  background: var(--uf-btn-disabled-bg);
-  color: var(--uf-btn-disabled-text);
-  border-color: var(--uf-btn-disabled-border);
-  border-width: var(--uf-btn-disabled-border-width);
-  text-shadow: var(--uf-btn-disabled-text-shadow);
-  opacity: ${disabledOpacity};
-  cursor: ${disabledCursor};
-}
-`.trim();
-    } else if (downloadFormat === "scss") {
-      content = `
-$uf-btn-bg: ${cssBg};
-$uf-btn-text: ${textInput};
-$uf-btn-border: ${borderInput};
-$uf-btn-radius: ${rCSS};
-$uf-btn-font-size: ${fontSizeCss};
-$uf-btn-letter-spacing: ${letterSpacingCss};
-$uf-btn-line-height: ${lHeight};
-$uf-btn-shadow: ${exportShadow};
-$uf-btn-hover-bg: ${cssHoverBg};
-$uf-btn-hover-text: ${cssHoverText};
-$uf-btn-hover-border: ${cssHoverBorder};
-$uf-btn-active-bg: ${cssActiveBg};
-$uf-btn-active-text: ${cssActiveText};
-$uf-btn-active-border: ${cssActiveBorder};
-$uf-btn-disabled-bg: ${cssDisabledBg};
-$uf-btn-disabled-text: ${cssDisabledText};
-$uf-btn-disabled-border: ${cssDisabledBorder};
-
-@mixin uf-button {
-  width: ${exportWidth}px; height: ${exportHeight}px;
-  padding: ${padY}px ${padX}px;
-  border-radius: $uf-btn-radius;
-  display: inline-flex;
-  align-items: ${alignItems}; justify-content: ${justify};
-  background: $uf-btn-bg;
-  color: $uf-btn-text;
-  border: ${borderWidthPx}px ${borderStyle} $uf-btn-border;
-  font-size: $uf-btn-font-size;
-  letter-spacing: $uf-btn-letter-spacing;
-  line-height: $uf-btn-line-height;
-  box-shadow: $uf-btn-shadow;
-  transition: ${transitionCss};
-
-  &:hover {
-    background: $uf-btn-hover-bg;
-    color: $uf-btn-hover-text;
-    border-color: $uf-btn-hover-border;
-    border-width: ${hoverBorderWidthPx}px;
-    ${hoverEnabled && hoverBgMode === 'auto' ? `filter: brightness(95%);` : `filter: none;`}
-  }
-
-  &:active {
-    background: $uf-btn-active-bg;
-    color: $uf-btn-active-text;
-    border-color: $uf-btn-active-border;
-    border-width: ${activeBorderWidthPx}px;
-    transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
-  }
-
-  &:disabled {
-    background: $uf-btn-disabled-bg;
-    color: $uf-btn-disabled-text;
-    border-color: $uf-btn-disabled-border;
-    border-width: ${disabledBorderWidthPx}px;
-    text-shadow: ${disabledTextShadowCss};
-    opacity: ${disabledOpacity};
-    cursor: ${disabledCursor};
-  }
-}
-`.trim();
-    } else if (downloadFormat === "tailwind-config") {
-      content = `
-// tailwind.config.js (snippet)
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        "uf-btn-bg": "${cssBg}",
-        "uf-btn-text": "${textInput}",
-        "uf-btn-border": "${borderInput}",
-      },
-      borderRadius: {
-        "uf-btn": "${rCSS}",
-      },
-      boxShadow: {
-        "uf-btn": "${exportShadow}",
-      },
-    },
-  },
-};
-`.trim();
-    } else if (downloadFormat === "figma-tokens") {
-      content = JSON.stringify(
-        {
-          button: {
-            color: {
-              background: { value: cssBg },
-              text: { value: textInput },
-              border: { value: borderInput },
-            },
-            size: {
-              width: { value: exportWidth },
-              height: { value: exportHeight },
-              paddingX: { value: padX },
-              paddingY: { value: padY },
-              radius: { value: rCSS },
-            },
-            typography: {
-              fontFamily: { value: fontBucket === "system" ? "sans-serif" : googleFontFamily },
-              fontSize: { value: fontSizeCss },
-              fontWeight: { value: fontWeight },
-              letterSpacing: { value: letterSpacingCss },
-              lineHeight: { value: lHeight },
-            },
-          },
-        },
-        null,
-        2
-      );
-    } else {
-      content = "// Tailwind export coming next iteration!";
-    }
-
+    const { filename, content } = buildExportPayload({
+      downloadFormat,
+      downloadName,
+      touchWidth,
+      touchHeight,
+      fontSizeValue,
+      fontSizeUnit,
+      letterSpacingValue,
+      letterSpacingUnit,
+      ariaLabel,
+      ariaPressedMode,
+      ariaBusyMode,
+      loading,
+      tsXText,
+      tsYText,
+      tsBlurText,
+      textShadowEnabled,
+      tsColor,
+      transitionColorMs,
+      transitionColorEasing,
+      transitionTransformMs,
+      transitionTransformEasing,
+      shColorInput,
+      shOpacityText,
+      shadowEnabled,
+      variant,
+      shXText,
+      shYText,
+      shBlurText,
+      shSpreadText,
+      loadingLabel,
+      animation,
+      iconSizeText,
+      iconGapText,
+      loadingSpinnerMode,
+      loadingSpinnerSvg,
+      loadingSpinnerPosition,
+      label,
+      baseIconSvg,
+      hoverIconSvg,
+      activeIconSvg,
+      loadingIconSvg,
+      iconSource,
+      iconName,
+      iconColorMode,
+      iconColorInput,
+      iconPosition,
+      disabled,
+      hoverEnabled,
+      hoverBgMode,
+      hoverTextMode,
+      hoverTextInput,
+      hoverBorderMode,
+      hoverBorderInput,
+      hoverBorderWidthPx,
+      activeEnabled,
+      cssActiveBg,
+      cssActiveText,
+      cssActiveBorder,
+      activeBorderWidthPx,
+      cssActiveFilter,
+      activeTranslateYText,
+      activeScaleText,
+      disabledHoverSuppressed,
+      cssDisabledBg,
+      cssDisabledText,
+      cssDisabledBorder,
+      disabledBorderWidthPx,
+      disabledTextShadowCss,
+      disabledOpacity,
+      disabledCursor,
+      align,
+      cssBg,
+      textInput,
+      borderInput,
+      cssHoverBg,
+      cssHoverText,
+      cssHoverBorder,
+      cssHoverFilter,
+      borderStyle,
+      borderWidthPx,
+      padX,
+      padY,
+      rTL,
+      rTR,
+      rBR,
+      rBL,
+      fontBucket,
+      googleFontFamily,
+      fontFamily,
+      fontWeight,
+      lHeight,
+      underline,
+      focusRingEnabled,
+      focusRingWidthText,
+      focusRingOffsetText,
+      focusRingInput,
+      previewBgHex,
+      fontStyle,
+      textTransform,
+    });
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1894,6 +740,206 @@ module.exports = {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const iconColorNorm = norm(iconColorInput);
+  const hoverBgNorm = norm(hoverBgInput);
+  const hoverGradStartNorm = norm(hoverGradStartInput);
+  const hoverGradMidNorm = norm(hoverGradMidInput);
+  const hoverGradEndNorm = norm(hoverGradEndInput);
+  const hoverTextNorm = norm(hoverTextInput);
+  const hoverBorderNorm = norm(hoverBorderInput);
+  const activeBgNorm = norm(activeBgInput);
+  const activeGradStartNorm = norm(activeGradStartInput);
+  const activeGradMidNorm = norm(activeGradMidInput);
+  const activeGradEndNorm = norm(activeGradEndInput);
+  const activeTextNorm = norm(activeTextInput);
+  const activeBorderNorm = norm(activeBorderInput);
+  const disabledBgNorm = norm(disabledBgInput);
+  const disabledTextNorm = norm(disabledTextInput);
+  const disabledBorderNorm = norm(disabledBorderInput);
+
+  const iconSectionProps = {
+    PALETTE,
+    iconName,
+    setIconName,
+    iconSource,
+    setIconSource,
+    iconCustomSvg,
+    setIconCustomSvg,
+    iconPosition,
+    setIconPosition,
+    iconSizeText,
+    setIconSizeText,
+    iconSize: Number(iconSizeText),
+    iconGapText,
+    setIconGapText,
+    iconGap: Number(iconGapText),
+    iconColorMode,
+    setIconColorMode,
+    iconColorInput,
+    setIconColorInput,
+    iconColorNorm,
+    baseTextHex: textInput,
+    hoverIconEnabled,
+    setHoverIconEnabled,
+    hoverIconSource,
+    setHoverIconSource,
+    hoverIconName,
+    setHoverIconName,
+    hoverIconCustomSvg,
+    setHoverIconCustomSvg,
+    activeIconEnabled,
+    setActiveIconEnabled,
+    activeIconSource,
+    setActiveIconSource,
+    activeIconName,
+    setActiveIconName,
+    activeIconCustomSvg,
+    setActiveIconCustomSvg,
+    loadingIconEnabled,
+    setLoadingIconEnabled,
+    loadingIconSource,
+    setLoadingIconSource,
+    loadingIconName,
+    setLoadingIconName,
+    loadingIconCustomSvg,
+    setLoadingIconCustomSvg,
+  };
+
+  const disabledSectionProps = {
+    PALETTE,
+    disabledOpacityText,
+    setDisabledOpacityText,
+    disabledCursor,
+    setDisabledCursor,
+    disabledUseCustomColors,
+    setDisabledUseCustomColors,
+    disabledBgInput,
+    setDisabledBgInput,
+    disabledBgNorm,
+    disabledTextInput,
+    setDisabledTextInput,
+    disabledTextNorm,
+    disabledBorderInput,
+    setDisabledBorderInput,
+    disabledBorderNorm,
+    disabledBorderWidthText,
+    setDisabledBorderWidthText,
+    disabledBorderWidthPx,
+    disabledHoverSuppressed,
+    setDisabledHoverSuppressed,
+    disabledTextShadowEnabled,
+    setDisabledTextShadowEnabled,
+  };
+
+  const hoverSectionProps = {
+    PALETTE,
+    hoverEnabled,
+    setHoverEnabled,
+    hoverBgMode,
+    setHoverBgMode,
+    hoverBgInput,
+    setHoverBgInput,
+    hoverBgOk: hoverBgNorm.ok,
+    hoverBgHex: hoverBgNorm.hex,
+    hoverBgRgb: hoverBgNorm.rgb,
+    hoverGradAngleText,
+    setHoverGradAngleText,
+    hoverGradStartInput,
+    setHoverGradStartInput,
+    hoverGradStartNorm,
+    hoverGradMidEnabled,
+    setHoverGradMidEnabled,
+    hoverGradMidInput,
+    setHoverGradMidInput,
+    hoverGradMidNorm,
+    hoverGradEndInput,
+    setHoverGradEndInput,
+    hoverGradEndNorm,
+    hoverTextMode,
+    setHoverTextMode,
+    hoverTextInput,
+    setHoverTextInput,
+    hoverTextOk: hoverTextNorm.ok,
+    hoverTextHex: hoverTextNorm.hex,
+    hoverTextRgb: hoverTextNorm.rgb,
+    hoverBorderMode,
+    setHoverBorderMode,
+    hoverBorderInput,
+    setHoverBorderInput,
+    hoverBorderOk: hoverBorderNorm.ok,
+    hoverBorderHex: hoverBorderNorm.hex,
+    hoverBorderRgb: hoverBorderNorm.rgb,
+    transitionColorDurationText,
+    setTransitionColorDurationText,
+    transitionColorMs,
+    transitionColorEasing,
+    setTransitionColorEasing,
+  };
+
+  const activeSectionProps = {
+    idActive: "active-check",
+    activeEnabled,
+    setActiveEnabled,
+    activeTranslateYText,
+    setActiveTranslateYText,
+    activeTranslateY: Number(activeTranslateYText),
+    activeScaleText,
+    setActiveScaleText,
+    activeScale: Number(activeScaleText),
+    PALETTE,
+    activeBgMode,
+    setActiveBgMode,
+    activeBgInput,
+    setActiveBgInput,
+    activeBgNorm,
+    activeGradAngleText,
+    setActiveGradAngleText,
+    activeGradStartInput,
+    setActiveGradStartInput,
+    activeGradStartNorm,
+    activeGradMidEnabled,
+    setActiveGradMidEnabled,
+    activeGradMidInput,
+    setActiveGradMidInput,
+    activeGradMidNorm,
+    activeGradEndInput,
+    setActiveGradEndInput,
+    activeGradEndNorm,
+    activeTextMode,
+    setActiveTextMode,
+    activeTextInput,
+    setActiveTextInput,
+    activeTextNorm,
+    activeBorderMode,
+    setActiveBorderMode,
+    activeBorderInput,
+    setActiveBorderInput,
+    activeBorderNorm,
+    transitionTransformDurationText,
+    setTransitionTransformDurationText,
+    transitionTransformMs,
+    transitionTransformEasing,
+    setTransitionTransformEasing,
+  };
+
+  const accessibilitySectionProps = {
+    ariaLabel,
+    setAriaLabel,
+    ariaPressedMode,
+    setAriaPressedMode,
+    ariaBusyMode,
+    setAriaBusyMode,
+    minTouchMode,
+    setMinTouchMode,
+    minTouchSizeText,
+    setMinTouchSizeText,
+    minTouchSizePx,
+    minTouchWarning,
+    contrastRatioText,
+    contrastOk,
+    contrastNote,
   };
 
   const sectionItems = [
@@ -2068,30 +1114,7 @@ module.exports = {
       id: "icon",
       label: "Icon",
       content: (
-        <IconSection
-          PALETTE={PALETTE}
-          iconName={iconName} setIconName={setIconName}
-          iconSource={iconSource} setIconSource={setIconSource}
-          iconCustomSvg={iconCustomSvg} setIconCustomSvg={setIconCustomSvg}
-          iconPosition={iconPosition} setIconPosition={setIconPosition}
-          iconSizeText={iconSizeText} setIconSizeText={setIconSizeText} iconSize={Number(iconSizeText)}
-          iconGapText={iconGapText} setIconGapText={setIconGapText} iconGap={Number(iconGapText)}
-          iconColorMode={iconColorMode} setIconColorMode={setIconColorMode}
-          iconColorInput={iconColorInput} setIconColorInput={setIconColorInput}
-          iconColorNorm={norm(iconColorInput)} baseTextHex={textInput}
-          hoverIconEnabled={hoverIconEnabled} setHoverIconEnabled={setHoverIconEnabled}
-          hoverIconSource={hoverIconSource} setHoverIconSource={setHoverIconSource}
-          hoverIconName={hoverIconName} setHoverIconName={setHoverIconName}
-          hoverIconCustomSvg={hoverIconCustomSvg} setHoverIconCustomSvg={setHoverIconCustomSvg}
-          activeIconEnabled={activeIconEnabled} setActiveIconEnabled={setActiveIconEnabled}
-          activeIconSource={activeIconSource} setActiveIconSource={setActiveIconSource}
-          activeIconName={activeIconName} setActiveIconName={setActiveIconName}
-          activeIconCustomSvg={activeIconCustomSvg} setActiveIconCustomSvg={setActiveIconCustomSvg}
-          loadingIconEnabled={loadingIconEnabled} setLoadingIconEnabled={setLoadingIconEnabled}
-          loadingIconSource={loadingIconSource} setLoadingIconSource={setLoadingIconSource}
-          loadingIconName={loadingIconName} setLoadingIconName={setLoadingIconName}
-          loadingIconCustomSvg={loadingIconCustomSvg} setLoadingIconCustomSvg={setLoadingIconCustomSvg}
-        />
+        <IconSection {...iconSectionProps} />
       ),
     },
     {
@@ -2122,91 +1145,21 @@ module.exports = {
       id: "disabled",
       label: "Disabled",
       content: (
-        <DisabledSection
-          PALETTE={PALETTE}
-          disabledOpacityText={disabledOpacityText} setDisabledOpacityText={setDisabledOpacityText}
-          disabledCursor={disabledCursor} setDisabledCursor={setDisabledCursor}
-          disabledUseCustomColors={disabledUseCustomColors} setDisabledUseCustomColors={setDisabledUseCustomColors}
-          disabledBgInput={disabledBgInput} setDisabledBgInput={setDisabledBgInput}
-          disabledBgNorm={norm(disabledBgInput)}
-          disabledTextInput={disabledTextInput} setDisabledTextInput={setDisabledTextInput}
-          disabledTextNorm={norm(disabledTextInput)}
-          disabledBorderInput={disabledBorderInput} setDisabledBorderInput={setDisabledBorderInput}
-          disabledBorderNorm={norm(disabledBorderInput)}
-          disabledBorderWidthText={disabledBorderWidthText} setDisabledBorderWidthText={setDisabledBorderWidthText}
-          disabledBorderWidthPx={disabledBorderWidthPx}
-          disabledHoverSuppressed={disabledHoverSuppressed} setDisabledHoverSuppressed={setDisabledHoverSuppressed}
-          disabledTextShadowEnabled={disabledTextShadowEnabled} setDisabledTextShadowEnabled={setDisabledTextShadowEnabled}
-        />
+        <DisabledSection {...disabledSectionProps} />
       ),
     },
     {
       id: "hover",
       label: "Hover",
       content: (
-        <HoverSection
-          PALETTE={PALETTE}
-          hoverEnabled={hoverEnabled} setHoverEnabled={setHoverEnabled}
-          hoverBgMode={hoverBgMode} setHoverBgMode={setHoverBgMode}
-          hoverBgInput={hoverBgInput} setHoverBgInput={setHoverBgInput}
-          hoverBgOk={norm(hoverBgInput).ok} hoverBgHex={norm(hoverBgInput).hex} hoverBgRgb={norm(hoverBgInput).rgb}
-          hoverGradAngleText={hoverGradAngleText} setHoverGradAngleText={setHoverGradAngleText}
-          hoverGradStartInput={hoverGradStartInput} setHoverGradStartInput={setHoverGradStartInput}
-          hoverGradStartNorm={norm(hoverGradStartInput)}
-          hoverGradMidEnabled={hoverGradMidEnabled} setHoverGradMidEnabled={setHoverGradMidEnabled}
-          hoverGradMidInput={hoverGradMidInput} setHoverGradMidInput={setHoverGradMidInput}
-          hoverGradMidNorm={norm(hoverGradMidInput)}
-          hoverGradEndInput={hoverGradEndInput} setHoverGradEndInput={setHoverGradEndInput}
-          hoverGradEndNorm={norm(hoverGradEndInput)}
-          
-          hoverTextMode={hoverTextMode} setHoverTextMode={setHoverTextMode}
-          hoverTextInput={hoverTextInput} setHoverTextInput={setHoverTextInput}
-          hoverTextOk={norm(hoverTextInput).ok} hoverTextHex={norm(hoverTextInput).hex} hoverTextRgb={norm(hoverTextInput).rgb}
-          
-          hoverBorderMode={hoverBorderMode} setHoverBorderMode={setHoverBorderMode}
-          hoverBorderInput={hoverBorderInput} setHoverBorderInput={setHoverBorderInput}
-          hoverBorderOk={norm(hoverBorderInput).ok} hoverBorderHex={norm(hoverBorderInput).hex} hoverBorderRgb={norm(hoverBorderInput).rgb}
-          transitionColorDurationText={transitionColorDurationText}
-          setTransitionColorDurationText={setTransitionColorDurationText}
-          transitionColorMs={transitionColorMs}
-          transitionColorEasing={transitionColorEasing}
-          setTransitionColorEasing={setTransitionColorEasing}
-        />
+        <HoverSection {...hoverSectionProps} />
       ),
     },
     {
       id: "active",
       label: "Active",
       content: (
-        <ActiveStateSection
-          idActive="active-check"
-          activeEnabled={activeEnabled} setActiveEnabled={setActiveEnabled}
-          activeTranslateYText={activeTranslateYText} setActiveTranslateYText={setActiveTranslateYText} activeTranslateY={Number(activeTranslateYText)}
-          activeScaleText={activeScaleText} setActiveScaleText={setActiveScaleText} activeScale={Number(activeScaleText)}
-          PALETTE={PALETTE}
-          activeBgMode={activeBgMode} setActiveBgMode={setActiveBgMode}
-          activeBgInput={activeBgInput} setActiveBgInput={setActiveBgInput}
-          activeBgNorm={norm(activeBgInput)}
-          activeGradAngleText={activeGradAngleText} setActiveGradAngleText={setActiveGradAngleText}
-          activeGradStartInput={activeGradStartInput} setActiveGradStartInput={setActiveGradStartInput}
-          activeGradStartNorm={norm(activeGradStartInput)}
-          activeGradMidEnabled={activeGradMidEnabled} setActiveGradMidEnabled={setActiveGradMidEnabled}
-          activeGradMidInput={activeGradMidInput} setActiveGradMidInput={setActiveGradMidInput}
-          activeGradMidNorm={norm(activeGradMidInput)}
-          activeGradEndInput={activeGradEndInput} setActiveGradEndInput={setActiveGradEndInput}
-          activeGradEndNorm={norm(activeGradEndInput)}
-          activeTextMode={activeTextMode} setActiveTextMode={setActiveTextMode}
-          activeTextInput={activeTextInput} setActiveTextInput={setActiveTextInput}
-          activeTextNorm={norm(activeTextInput)}
-          activeBorderMode={activeBorderMode} setActiveBorderMode={setActiveBorderMode}
-          activeBorderInput={activeBorderInput} setActiveBorderInput={setActiveBorderInput}
-          activeBorderNorm={norm(activeBorderInput)}
-          transitionTransformDurationText={transitionTransformDurationText}
-          setTransitionTransformDurationText={setTransitionTransformDurationText}
-          transitionTransformMs={transitionTransformMs}
-          transitionTransformEasing={transitionTransformEasing}
-          setTransitionTransformEasing={setTransitionTransformEasing}
-        />
+        <ActiveStateSection {...activeSectionProps} />
       ),
     },
     {
@@ -2239,18 +1192,7 @@ module.exports = {
       id: "accessibility",
       label: "Accessibility",
       content: (
-        <AccessibilitySection
-          ariaLabel={ariaLabel} setAriaLabel={setAriaLabel}
-          ariaPressedMode={ariaPressedMode} setAriaPressedMode={setAriaPressedMode}
-          ariaBusyMode={ariaBusyMode} setAriaBusyMode={setAriaBusyMode}
-          minTouchMode={minTouchMode} setMinTouchMode={setMinTouchMode}
-          minTouchSizeText={minTouchSizeText} setMinTouchSizeText={setMinTouchSizeText}
-          minTouchSizePx={minTouchSizePx}
-          minTouchWarning={minTouchWarning}
-          contrastRatioText={contrastRatioText}
-          contrastOk={contrastOk}
-          contrastNote={contrastNote}
-        />
+        <AccessibilitySection {...accessibilitySectionProps} />
       ),
     },
     {
