@@ -1,0 +1,196 @@
+PROJECT NAME
+Customizable UI Component Studio (Web)
+
+PURPOSE (HIGH LEVEL)
+Build a website where users can:
+1) Pick a UI component category (loader/button/card/etc.)
+2) Customize it visually with controls (sliders, inputs, dropdowns)
+3) See a live preview
+4) Export/download generated templates in multiple frameworks/languages
+5) Optionally monetize exports via ads or subscriptions (configurable)
+
+IMPORTANT NOTE (FLEXIBILITY)
+This project is designed as a modular system.
+- Components, controls, export targets, and monetization rules are plug-in like modules.
+- Nothing is “fixed”; features can be added/removed without rewriting the whole system.
+
+========================================================
+CORE CONCEPTS
+========================================================
+
+1) COMPONENT DEFINITIONS
+Each UI component is defined by:
+- id, name, category, tags
+- default parameter set (props)
+- parameter schema (controls + validation rules)
+- renderer (how to preview)
+- code generators (how to export for each target)
+
+2) PARAMETER SCHEMA (CUSTOMIZATION MODEL)
+A unified schema describes what user can change.
+Example field types:
+- number (min/max/step)
+- color (hex/rgb/alpha)
+- select (dropdown)
+- toggle (boolean)
+- text
+- grouped controls (sections)
+- conditional controls (show/hide based on other settings)
+
+Goal:
+- Add a new component by writing a new schema + renderer + generators
+- Reuse common control types across all components
+
+3) LIVE PREVIEW SYSTEM
+Preview should update instantly when parameters change.
+Preview rendering options (choose one; can change later):
+- CSS/HTML preview (DOM-based)
+- SVG-based preview
+- Canvas-based preview (for complex animations)
+
+Preview engine should be component-agnostic:
+- It receives (component_id + params)
+- It calls the correct renderer
+- It displays output in a preview frame
+
+4) EXPORT SYSTEM (CODE GENERATION)
+Export targets are modular “generators”.
+Each generator:
+- input: (component definition + current params)
+- output: code files (one or many)
+- optional: assets (css, images, json)
+- optional: package/meta (README, usage instructions)
+
+Export outputs should be clean and readable:
+- avoid unnecessary dependencies by default
+- allow optional dependencies if needed (configurable)
+- consistent formatting
+
+========================================================
+PHASED DELIVERY (ADJUSTABLE)
+========================================================
+PHASE A: MINIMAL RUNNABLE MVP (SMALL AND EXTENDABLE)
+Goal: Prove the pipeline works end-to-end.
+- Component picker page (list + search/filter optional)
+- One component implemented fully (e.g., one loader type OR one button)
+- Customization panel driven by schema
+- Live preview rendering for that component
+- Export for one target (e.g., HTML/CSS)
+Everything else can be added later as modules.
+
+PHASE B: ADD MORE COMPONENTS (INCREMENTALLY)
+- Add more component definitions one by one
+- Reuse the same schema-driven control UI
+- Add new renderers if needed (SVG/CSS/Canvas)
+No need to “finish all components”; add based on demand.
+
+PHASE C: ADD MORE EXPORT TARGETS (INCREMENTALLY)
+- Add React generator
+- Add Next.js generator
+- Add more language/framework generators later (C#, etc.)
+Each generator should be independent so it can be added/removed.
+
+PHASE D: OPTIONAL USER FEATURES (ONLY IF NEEDED)
+These are optional modules:
+- Authentication
+- Save/load user projects
+- Presets library
+- Community sharing
+Implement only when useful; keep core MVP independent.
+
+PHASE E: OPTIONAL MONETIZATION MODULES
+Monetization should be toggleable and not block development.
+Possible gates (configurable):
+- export requires ad view OR subscription
+- rate limits for free users
+- premium export targets reserved for paid
+Implementation should be swappable:
+- ads module
+- subscription module
+- “no gate” mode for development/testing
+
+========================================================
+MODULE BREAKDOWN (FOR CODING AGENT)
+========================================================
+
+1) DATA / DEFINITIONS LAYER
+- components/
+  - component_registry (list of available components)
+  - component_definition format
+  - parameter_schema format (control types, defaults, validation)
+Goal: Add new components by adding new definition files.
+
+2) UI LAYER (FRONTEND)
+Pages (minimal):
+- Home / Gallery page (component browsing)
+- Component Studio page:
+  - left: controls panel (auto-generated from schema)
+  - center: live preview
+  - right/bottom: export panel (choose target + download/copy)
+
+Reusable UI:
+- Control builders:
+  - SliderControl, ColorControl, SelectControl, ToggleControl, TextControl
+- Group/Section UI for controls
+- Reset to defaults
+- Randomize (optional) — can be added later
+
+3) PREVIEW LAYER
+- PreviewFrame component:
+  - receives component_id + params
+  - calls renderer based on component_id
+Renderer patterns:
+- CSS-based renderer returns DOM + CSS
+- SVG renderer returns SVG markup
+- Canvas renderer draws in canvas loop (optional)
+
+4) GENERATION / EXPORT LAYER
+- generators/
+  - html_css_generator
+  - react_generator
+  - next_generator
+  - (future) csharp_generator
+Each generator:
+- takes params
+- returns file map: { "index.html": "...", "styles.css": "...", ... }
+Export packer:
+- create ZIP (optional)
+- or single file download
+- copy to clipboard option
+
+5) MONETIZATION LAYER (OPTIONAL)
+Design as a wrapper around export action:
+- before_export_hook():
+  - check if monetization is enabled
+  - check if user is paid
+  - if free: show ad modal / wait requirement
+  - then allow export
+This layer must be easy to disable (dev mode).
+
+========================================================
+TECH STACK (SUGGESTION, CHANGEABLE)
+========================================================
+- Frontend: Next.js or React (choose one for MVP)
+- Styling: CSS Modules or Tailwind (either is fine)
+- State: simple store (Context/Zustand) for MVP
+- Hosting: Vercel/Netlify (can change)
+- Backend: optional (only needed for auth/subscription/save projects)
+
+========================================================
+QUALITY GOALS (NOT HARD REQUIREMENTS)
+========================================================
+- Fast preview updates
+- Clean generated code
+- Easy to add new components and export targets
+- Simple architecture and clear folder structure
+
+========================================================
+DELIVERABLES FOR MVP (MINIMAL)
+========================================================
+1) Working Component Studio for 1 component
+2) Schema-driven customization controls
+3) Live preview working
+4) Export working for 1 target
+5) Clean code structure that supports extension
+
+END OF PLAN

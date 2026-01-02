@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export type DownloadFormat = "html" | "react" | "tailwind";
+export type DownloadFormat = "html" | "react" | "tailwind" | "css-vars" | "scss" | "tailwind-config" | "figma-tokens";
 
 export default function PreviewDownloadPanel(props: {
   mounted: boolean;
@@ -47,10 +47,11 @@ export default function PreviewDownloadPanel(props: {
 
           <div className="flex flex-wrap items-center gap-2">
             <input
+              type="text"
               value={downloadName}
               onChange={(e) => setDownloadName(e.target.value)}
               placeholder="File name"
-              className="min-w-[160px] flex-1 rounded-xl border px-3 py-2 text-sm font-semibold outline-none uf-clickable"
+              className="min-w-[160px] flex-1 rounded-xl border px-3 py-2 text-sm font-semibold outline-none"
               style={{
                 borderColor: "var(--border)",
                 background: "color-mix(in oklab, var(--card) 70%, transparent)",
@@ -73,6 +74,10 @@ export default function PreviewDownloadPanel(props: {
               <option value="html">HTML</option>
               <option value="react">React</option>
               <option value="tailwind">Tailwind</option>
+              <option value="css-vars">CSS Variables</option>
+              <option value="scss">SCSS</option>
+              <option value="tailwind-config">Tailwind Config</option>
+              <option value="figma-tokens">Figma Tokens</option>
             </select>
 
             <button

@@ -1,4 +1,4 @@
-export type ThemeId = "navy" | "forest" | "lavender" | "sunset";
+export type ThemeId = "navy" | "forest" | "lavender" | "sunset" | "ocean" | "citrus" | "ink" | "sand" | "custom";
 
 export type ThemeDef = {
   id: ThemeId;
@@ -11,4 +11,9 @@ export const THEMES: ThemeDef[] = [
   { id: "forest", name: "Forest", description: "Green + earthy neutrals" },
   { id: "lavender", name: "Lavender", description: "Purple + soft contrast" },
   { id: "sunset", name: "Sunset", description: "Warm orange + pink accents" },
+  { id: "ocean", name: "Ocean", description: "Teal + deep sea contrast" },
+  { id: "citrus", name: "Citrus", description: "Bright lime + warm highlights" },
+  { id: "ink", name: "Ink", description: "High-contrast grayscale" },
+  { id: "sand", name: "Sand", description: "Warm beige + deep blue" },
+  { id: "custom", name: "Custom", description: "Your colors" },
 ];

@@ -31,7 +31,12 @@ export default function TypographySection(props: {
   // style numbers
   fontSizeText: string;
   setFontSizeText: (v: string) => void;
-  fontSizePx: number;
+  fontSizeDisplay: string;
+  fontSizeUnit: "px" | "rem";
+  setFontSizeUnit: (v: "px" | "rem") => void;
+  fontSizeMin: number;
+  fontSizeMax: number;
+  fontSizeStep: number;
 
   fontWeight: FontWeightKey;
   setFontWeight: (v: FontWeightKey) => void;
@@ -47,7 +52,12 @@ export default function TypographySection(props: {
 
   letterSpacingText: string;
   setLetterSpacingText: (v: string) => void;
-  letterSpacing: number;
+  letterSpacingDisplay: string;
+  letterSpacingUnit: "px" | "em";
+  setLetterSpacingUnit: (v: "px" | "em") => void;
+  letterSpacingMin: number;
+  letterSpacingMax: number;
+  letterSpacingStep: number;
 
   lineHeightText: string;
   setLineHeightText: (v: string) => void;
@@ -150,12 +160,24 @@ export default function TypographySection(props: {
             FONT STYLE
           </div>
 
+          <LabeledField label="Font size unit">
+            <Segmented
+              value={props.fontSizeUnit}
+              onChange={(v) => props.setFontSizeUnit(v as "px" | "rem")}
+              items={[
+                { value: "px", label: "px" },
+                { value: "rem", label: "rem" },
+              ]}
+            />
+          </LabeledField>
+
           <SizeControl
-            label={`Font size (${props.fontSizePx}px)`}
+            label={`Font size (${props.fontSizeDisplay})`}
             valueText={props.fontSizeText}
             setValueText={props.setFontSizeText}
-            min={8}
-            max={96}
+            min={props.fontSizeMin}
+            max={props.fontSizeMax}
+            step={props.fontSizeStep}
           />
 
           <LabeledField label="Weight">
@@ -228,13 +250,24 @@ export default function TypographySection(props: {
           </div>
 
           <div className="space-y-4">
+            <LabeledField label="Letter spacing unit">
+              <Segmented
+                value={props.letterSpacingUnit}
+                onChange={(v) => props.setLetterSpacingUnit(v as "px" | "em")}
+                items={[
+                  { value: "px", label: "px" },
+                  { value: "em", label: "em" },
+                ]}
+              />
+            </LabeledField>
+
             <SizeControl
-              label={`Letter spacing (${props.letterSpacing}px)`}
+              label={`Letter spacing (${props.letterSpacingDisplay})`}
               valueText={props.letterSpacingText}
               setValueText={props.setLetterSpacingText}
-              min={-2}
-              max={10}
-              step={0.1}
+              min={props.letterSpacingMin}
+              max={props.letterSpacingMax}
+              step={props.letterSpacingStep}
             />
             <SizeControl
               label={`Line height (${props.lineHeight})`}

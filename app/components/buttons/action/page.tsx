@@ -15,6 +15,7 @@ import TextPositionSection, { type AlignKey } from "./_section/TextPositionSecti
 import TextShadowSection from "./_section/TextShadowSection";
 import IconSection from "./_section/IconSection";
 import OutlineGhostPresetsSection from "./_section/OutlineGhostPresetsSection";
+import GroupPreviewSection, { type GroupAlign } from "./_section/GroupPreviewSection";
 import HoverSection from "./_section/HoverSection";
 import ActiveStateSection from "./_section/ActiveStateSection";
 import FocusRingSection from "./_section/FocusRingSection";
@@ -22,6 +23,8 @@ import PreviewBackgroundSection, { type PreviewBgMode } from "./_section/Preview
 import PreviewDownloadPanel, { type DownloadFormat } from "./_section/PreviewDownloadPanel";
 import LoadingSection, { type LoadingSpinnerMode, type LoadingSpinnerPosition } from "./_section/LoadingSection";
 import DisabledSection from "./_section/DisabledSection";
+import AccessibilitySection, { type MinTouchMode } from "./_section/AccessibilitySection";
+import StatePreviewSection from "./_section/StatePreviewSection";
 
 // --- Constants & Helpers ---
 
@@ -138,6 +141,35 @@ function contrastHex(bgHex: string) {
   return lum > 0.6 ? "#111827" : "#ffffff";
 }
 
+function hexToRgb(hex: string) {
+  const h = (hex || "").trim().toLowerCase();
+  if (!/^#[0-9a-f]{6}$/.test(h)) return null;
+  return {
+    r: parseInt(h.slice(1, 3), 16) / 255,
+    g: parseInt(h.slice(3, 5), 16) / 255,
+    b: parseInt(h.slice(5, 7), 16) / 255,
+  };
+}
+
+function relativeLuminance(rgb: { r: number; g: number; b: number }) {
+  const transform = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  const r = transform(rgb.r);
+  const g = transform(rgb.g);
+  const b = transform(rgb.b);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(a: string, b: string) {
+  const rgbA = hexToRgb(a);
+  const rgbB = hexToRgb(b);
+  if (!rgbA || !rgbB) return null;
+  const l1 = relativeLuminance(rgbA);
+  const l2 = relativeLuminance(rgbB);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 const ICONS_SVG: Record<string, string> = {
   none: "",
   arrowRight: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -223,8 +255,10 @@ export default function ActionButtonPage() {
   const [googleFontFamily, setGoogleFontFamily] = useState("Inter");
   
   const [fontSizeText, setFontSizeText] = useState("14");
+  const [fontSizeUnit, setFontSizeUnit] = useState<"px"|"rem">("px");
   const [fontWeight, setFontWeight] = useState<FontWeightKey>(700);
   const [letterSpacingText, setLetterSpacingText] = useState("0.2");
+  const [letterSpacingUnit, setLetterSpacingUnit] = useState<"px"|"em">("px");
   const [lineHeightText, setLineHeightText] = useState("1");
   const [fontStyle, setFontStyle] = useState<FontStyleKey>("normal");
   const [textTransform, setTextTransform] = useState<TextTransformKey>("none");
@@ -245,6 +279,7 @@ export default function ActionButtonPage() {
 
   // --- Text Shadow ---
   const [textShadowEnabled, setTextShadowEnabled] = useState(false);
+  const [tsColorMode, setTsColorMode] = useState<"custom"|"auto"|"contrast">("custom");
   const [tsXText, setTsXText] = useState("0");
   const [tsYText, setTsYText] = useState("1");
   const [tsBlurText, setTsBlurText] = useState("2");
@@ -260,6 +295,11 @@ export default function ActionButtonPage() {
   const [iconGapText, setIconGapText] = useState("10");
   const [iconColorMode, setIconColorMode] = useState<"text"|"custom">("text");
   const [iconColorInput, setIconColorInput] = useState("#ffffff");
+
+  // --- Group Preview ---
+  const [groupEnabled, setGroupEnabled] = useState(false);
+  const [groupAlign, setGroupAlign] = useState<GroupAlign>("center");
+  const [groupGapText, setGroupGapText] = useState("12");
 
   // --- Hover ---
   const [hoverEnabled, setHoverEnabled] = useState(true);
@@ -280,6 +320,16 @@ export default function ActionButtonPage() {
   const [focusRingWidthText, setFocusRingWidthText] = useState("4");
   const [focusRingOffsetText, setFocusRingOffsetText] = useState("2");
   const [focusRingInput, setFocusRingInput] = useState("#60a5fa");
+
+  // --- Accessibility ---
+  const [ariaLabel, setAriaLabel] = useState("");
+  const [minTouchMode, setMinTouchMode] = useState<MinTouchMode>("off");
+  const [minTouchSizeText, setMinTouchSizeText] = useState("44");
+
+  // --- State Preview ---
+  const [forceHover, setForceHover] = useState(false);
+  const [forceActive, setForceActive] = useState(false);
+  const [forceFocus, setForceFocus] = useState(false);
 
   // --- Preview & Export ---
   const [previewBgMode, setPreviewBgMode] = useState<PreviewBgMode>("white");
@@ -342,10 +392,19 @@ export default function ActionButtonPage() {
   const padX = clamp(Number(paddingXText)||14, 0, 80);
   const padY = clamp(Number(paddingYText)||0, 0, 40);
   
-  const fSize = clamp(Number(fontSizeText)||14, 8, 96);
-  const lSpacing = Number(letterSpacingText)||0;
+  const fontSizeMin = fontSizeUnit === "rem" ? 0.5 : 8;
+  const fontSizeMax = fontSizeUnit === "rem" ? 6 : 96;
+  const fontSizeStep = fontSizeUnit === "rem" ? 0.05 : 1;
+  const fontSizeValue = clamp(Number(fontSizeText)||14, fontSizeMin, fontSizeMax);
+  const fontSizeDisplay = `${fontSizeValue}${fontSizeUnit}`;
+
+  const letterSpacingMin = letterSpacingUnit === "em" ? -0.1 : -2;
+  const letterSpacingMax = letterSpacingUnit === "em" ? 0.6 : 10;
+  const letterSpacingStep = letterSpacingUnit === "em" ? 0.01 : 0.1;
+  const letterSpacingValue = clamp(Number(letterSpacingText)||0, letterSpacingMin, letterSpacingMax);
+  const letterSpacingDisplay = `${letterSpacingValue}${letterSpacingUnit}`;
+
   const lHeight = Number(lineHeightText)||1;
-  
   const radiusVal = clamp(Number(radiusText)||0, 0, 60);
   const rTL = linkRadius ? radiusVal : clamp(Number(radiusTLText)||0, 0, 60);
   const rTR = linkRadius ? radiusVal : clamp(Number(radiusTRText)||0, 0, 60);
@@ -355,6 +414,9 @@ export default function ActionButtonPage() {
   const borderWidthPx = clamp(Number(borderWidthText)||0, 0, 12);
   const borderHoverWidthPx = clamp(Number(borderHoverWidthText)||borderWidthPx, 0, 12);
   const borderActiveWidthPx = clamp(Number(borderActiveWidthText)||borderHoverWidthPx, 0, 12);
+
+  const groupGapPx = clamp(Number(groupGapText)||12, 0, 32);
+  const minTouchSizePx = clamp(Number(minTouchSizeText)||44, 24, 80);
 
   // --- IDs ---
   const idItalic = "ab-italic";
@@ -435,6 +497,26 @@ export default function ActionButtonPage() {
       ? "#000000"
       : (norm(previewBgInput).ok ? norm(previewBgInput).hex : "#0b1220");
 
+  const minTouchWarning = minTouchMode !== "off" && (wPx < minTouchSizePx || hPx < minTouchSizePx);
+  const touchWidth = minTouchMode === "enforce" ? Math.max(wPx, minTouchSizePx) : wPx;
+  const touchHeight = minTouchMode === "enforce" ? Math.max(hPx, minTouchSizePx) : hPx;
+
+  const contrastTextHex = norm(textInput).ok ? norm(textInput).hex : "#ffffff";
+  const contrastBgHex = variant === "solid"
+    ? (useGradient ? (gradMidEnabled ? safeGradMid : safeGradStart) : safeBg)
+    : previewBgHex;
+  const contrastRatioValue = contrastRatio(contrastTextHex, contrastBgHex);
+  const contrastRatioText = contrastRatioValue ? `${contrastRatioValue.toFixed(2)}:1` : "n/a";
+  const contrastOk = contrastRatioValue ? contrastRatioValue >= 4.5 : true;
+  const contrastNote = variant === "solid"
+    ? (useGradient ? "Estimated using gradient start/middle." : "Estimated using background color.")
+    : "Estimated using preview background.";
+
+  let tsBaseColor = tsColorInput;
+  if (tsColorMode === "auto") tsBaseColor = contrastTextHex;
+  if (tsColorMode === "contrast") tsBaseColor = contrastHex(previewBgHex);
+  const tsColor = hexWithAlpha(tsBaseColor, Number(tsOpacityText)||0.25);
+
   const applyOutlinePreset = () => {
     const contrast = contrastHex(previewBgHex);
     setUseGradient(false);
@@ -469,8 +551,8 @@ export default function ActionButtonPage() {
     loadingSpinnerPosition,
     loadingSpinnerSvg,
     animation,
-    width: wPx,
-    height: hPx,
+    width: touchWidth,
+    height: touchHeight,
     padX, padY,
     
     // Pass PRE-CALCULATED CSS variables
@@ -506,9 +588,11 @@ export default function ActionButtonPage() {
     fontFamily: fontBucket === "system" 
       ? (SYSTEM_FONTS[Math.min(systemFontIdx, SYSTEM_FONTS.length -1)]?.css || "sans-serif")
       : googleFontFamily,
-    fontSize: fSize,
+    fontSizeValue,
+    fontSizeUnit,
     fontWeight,
-    letterSpacing: lSpacing,
+    letterSpacingValue,
+    letterSpacingUnit,
     lineHeight: lHeight,
     fontStyle,
     textTransform,
@@ -521,7 +605,7 @@ export default function ActionButtonPage() {
     textShadowEnabled,
     tsX: Number(tsXText)||0, tsY: Number(tsYText)||0, 
     tsBlur: Number(tsBlurText)||0, 
-    tsColor: hexWithAlpha(tsColorInput, Number(tsOpacityText)||0.25),
+    tsColor,
 
     // icon
     iconName,
@@ -546,6 +630,13 @@ export default function ActionButtonPage() {
 
     // preview specific
     previewBg: previewBgHex,
+    ariaLabel,
+    groupEnabled,
+    groupAlign,
+    groupGap: groupGapPx,
+    forceHover,
+    forceActive,
+    forceFocus,
   };
 
   useEffect(() => {
@@ -554,18 +645,19 @@ export default function ActionButtonPage() {
   }, [
     label, variant, disabled, loading, animation, 
     loadingLabel, loadingSpinnerMode, loadingSpinnerPosition, loadingSpinnerSvg,
-    wPx, hPx, padX, padY, 
+    wPx, hPx, padX, padY, minTouchMode, minTouchSizeText,
     useGradient, gradAngleText, gradStartInput, gradMidEnabled, gradMidInput, gradEndInput, bgInput, textInput,
     borderWidthText, borderHoverWidthText, borderActiveWidthText, borderStyle, borderInput, rTL, rTR, rBR, rBL,
     disabledOpacityText, disabledCursor, disabledUseCustomColors, disabledBgInput, disabledTextInput, disabledBorderInput,
     shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shColorInput,
-    fontBucket, systemFontIdx, googleFontFamily, fSize, fontWeight, lSpacing, lHeight, fontStyle, textTransform, underline,
+    fontBucket, systemFontIdx, googleFontFamily, fontSizeText, fontSizeUnit, fontWeight, letterSpacingText, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
     align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsOpacityText, tsColorInput,
     iconName, iconSource, iconCustomSvg, iconPosition, iconSizeText, iconGapText, iconColorMode, iconColorInput,
+    groupEnabled, groupAlign, groupGapText,
     hoverEnabled, hoverBgMode, hoverBgInput, hoverTextMode, hoverTextInput, hoverBorderMode, hoverBorderInput,
     activeEnabled, activeTranslateYText, activeScaleText,
     focusRingEnabled, focusRingWidthText, focusRingOffsetText, focusRingInput,
-    previewBgMode, previewBgInput
+    previewBgMode, previewBgInput, ariaLabel, forceHover, forceActive, forceFocus, tsColorMode
   ]);
 
   const initialSrcDoc = `<!doctype html>
@@ -579,6 +671,15 @@ export default function ActionButtonPage() {
     display: flex; align-items: center; justify-content: center;
     min-height: 100vh; font-family: sans-serif; transition: background 0.2s;
   }
+
+  .preview-root { width: 100%; display: flex; justify-content: center; }
+  .preview-single.is-hidden { display: none; }
+  .preview-group {
+    display: flex; flex-wrap: wrap;
+    gap: var(--group-gap, 12px);
+    justify-content: var(--group-justify, center);
+  }
+  .preview-group.is-hidden { display: none; }
   
   /* CSS Variables handled by JS */
   .btn {
@@ -637,18 +738,38 @@ export default function ActionButtonPage() {
 </head>
 <body>
 
-<button id="btn" class="btn">
-  <span id="icon-left" class="icon-svg"></span>
-  <span id="label"></span>
-  <span id="icon-right" class="icon-svg"></span>
-</button>
+<div id="preview-root" class="preview-root">
+  <div id="single-wrap" class="preview-single">
+    <button class="btn" data-role="single">
+      <span class="icon-svg icon-left"></span>
+      <span class="label"></span>
+      <span class="icon-svg icon-right"></span>
+    </button>
+  </div>
+  <div id="group-wrap" class="preview-group" aria-hidden="true">
+    <button class="btn" data-role="group">
+      <span class="icon-svg icon-left"></span>
+      <span class="label"></span>
+      <span class="icon-svg icon-right"></span>
+    </button>
+    <button class="btn" data-role="group">
+      <span class="icon-svg icon-left"></span>
+      <span class="label"></span>
+      <span class="icon-svg icon-right"></span>
+    </button>
+    <button class="btn" data-role="group">
+      <span class="icon-svg icon-left"></span>
+      <span class="label"></span>
+      <span class="icon-svg icon-right"></span>
+    </button>
+  </div>
+</div>
 
 <script>
-  const btn = document.getElementById('btn');
-  const labelSpan = document.getElementById('label');
-  const iconL = document.getElementById('icon-left');
-  const iconR = document.getElementById('icon-right');
   const body = document.body;
+  const singleWrap = document.getElementById('single-wrap');
+  const groupWrap = document.getElementById('group-wrap');
+  const buttons = Array.from(document.querySelectorAll('.btn'));
   const defaultSpinnerSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
 
   function renderSpinner(target, svg) {
@@ -657,8 +778,17 @@ export default function ActionButtonPage() {
     const svgEl = target.querySelector('svg');
     if (svgEl) svgEl.classList.add('anim-spin');
   }
-  btn.addEventListener('blur', () => {
-    btn.classList.remove('force-focus-ring');
+  function getParts(btn){
+    return {
+      labelSpan: btn.querySelector('.label'),
+      iconL: btn.querySelector('.icon-left'),
+      iconR: btn.querySelector('.icon-right'),
+    };
+  }
+  buttons.forEach((btn) => {
+    btn.addEventListener('blur', () => {
+      btn.classList.remove('force-focus-ring');
+    });
   });
 
   function ensureFontLink(family){
@@ -675,17 +805,37 @@ export default function ActionButtonPage() {
       if(link.getAttribute('href') !== href) link.setAttribute('href', href);
   }
 
+  let lastGroupEnabled = false;
+
   window.addEventListener('message', (e) => {
     const d = e.data;
     if(!d) return;
     if (d.type === 'focus-button') {
-      btn.classList.add('force-focus-ring');
-      btn.focus();
+      const candidates = lastGroupEnabled
+        ? buttons.filter((b) => b.getAttribute('data-role') === 'group')
+        : buttons.filter((b) => b.getAttribute('data-role') === 'single');
+      const target = candidates[0] || buttons[0];
+      if (target) {
+        target.classList.add('force-focus-ring');
+        target.focus();
+      }
       return;
     }
 
     const loadingLabel = d.loadingLabel || "Loading...";
-    labelSpan.textContent = d.loading ? loadingLabel : d.label;
+    lastGroupEnabled = Boolean(d.groupEnabled);
+    if (singleWrap) {
+      singleWrap.classList.toggle('is-hidden', lastGroupEnabled);
+      singleWrap.setAttribute('aria-hidden', String(lastGroupEnabled));
+    }
+    if (groupWrap) {
+      groupWrap.classList.toggle('is-hidden', !lastGroupEnabled);
+      groupWrap.setAttribute('aria-hidden', String(!lastGroupEnabled));
+      const gMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+      groupWrap.style.setProperty('--group-gap', d.groupGap + "px");
+      groupWrap.style.setProperty('--group-justify', gMap[d.groupAlign] || 'center');
+    }
+
     body.style.background = d.previewBg;
     
     // Update Fonts
@@ -693,52 +843,6 @@ export default function ActionButtonPage() {
         const fam = d.fontFamily.split(',')[0].replace(/['"]/g, '');
         ensureFontLink(fam);
     }
-
-    // Set Dimensions & Radius
-    btn.style.width = d.width + "px";
-    btn.style.height = d.height + "px";
-    btn.style.padding = d.padY + "px " + d.padX + "px";
-    btn.style.borderRadius = d.radiusTL + "px " + d.radiusTR + "px " + d.radiusBR + "px " + d.radiusBL + "px";
-    btn.disabled = d.disabled || d.loading;
-    
-    // Set Border Width/Style
-    btn.style.setProperty('--btn-border-width', d.borderWidth + "px");
-    btn.style.setProperty('--btn-hover-border-width', d.borderHoverWidth + "px");
-    btn.style.setProperty('--btn-active-border-width', d.borderActiveWidth + "px");
-    btn.style.borderStyle = d.borderStyle;
-
-    // Set CSS Variables for Colors & Hover
-    btn.style.setProperty('--btn-bg', d.cssBg);
-    btn.style.setProperty('--btn-text', d.cssText);
-    btn.style.setProperty('--btn-border', d.cssBorder);
-    
-    btn.style.setProperty('--btn-hover-bg', d.cssHoverBg);
-    btn.style.setProperty('--btn-hover-text', d.cssHoverText);
-    btn.style.setProperty('--btn-hover-border', d.cssHoverBorder);
-    btn.style.setProperty('--btn-hover-filter', d.cssHoverFilter);
-    
-    btn.style.setProperty('--btn-disabled-bg', d.cssDisabledBg);
-    btn.style.setProperty('--btn-disabled-text', d.cssDisabledText);
-    btn.style.setProperty('--btn-disabled-border', d.cssDisabledBorder);
-    btn.style.setProperty('--btn-disabled-opacity', d.disabledOpacity);
-    btn.style.setProperty('--btn-disabled-cursor', d.disabledCursor);
-
-    // Box Shadow
-    if (d.shadowEnabled && d.variant !== 'ghost') {
-      btn.style.setProperty('--btn-shadow', \`\${d.shX}px \${d.shY}px \${d.shBlur}px \${d.shSpread}px \${d.shColor}\`);
-    } else {
-      btn.style.setProperty('--btn-shadow', 'none');
-    }
-
-    // Typography & Alignment
-    btn.style.fontFamily = d.fontFamily;
-    btn.style.fontSize = d.fontSize + "px";
-    btn.style.fontWeight = d.fontWeight;
-    btn.style.letterSpacing = d.letterSpacing + "px";
-    btn.style.lineHeight = d.lineHeight;
-    btn.style.fontStyle = d.fontStyle;
-    btn.style.textTransform = d.textTransform;
-    btn.style.textDecoration = d.underline ? 'underline' : 'none';
 
     // Alignment Map
     const map = {
@@ -753,73 +857,166 @@ export default function ActionButtonPage() {
       'bottom-right':  ['flex-start', 'flex-end'],
     };
     const [alignItems, justify] = map[d.align] || ['center','center'];
-    btn.style.alignItems = alignItems;
-    btn.style.justifyContent = justify;
 
-    // Text Shadow
-    if (d.textShadowEnabled) {
-      btn.style.textShadow = \`\${d.tsX}px \${d.tsY}px \${d.tsBlur}px \${d.tsColor}\`;
-    } else {
-      btn.style.textShadow = 'none';
-    }
+    const activeButtons = lastGroupEnabled
+      ? buttons.filter((b) => b.getAttribute('data-role') === 'group')
+      : buttons.filter((b) => b.getAttribute('data-role') === 'single');
 
-    // Icons
-    const iconGap = d.iconGap + "px";
-    const iconSize = d.iconSize + "px";
-    const iconColor = d.iconColor;
-    const loadingMode = d.loadingSpinnerMode || "default";
-    const loadingSpinnerSvg = loadingMode === "custom"
-      ? (d.loadingSpinnerSvg || "")
-      : (loadingMode === "none" ? "" : defaultSpinnerSvg);
-    const spinnerPosition = d.loadingSpinnerPosition === "right" ? "right" : "left";
-    
-    iconL.innerHTML = ''; iconR.innerHTML = '';
-    iconL.style.display = 'none'; iconR.style.display = 'none';
-    iconL.style.marginRight = '0'; iconL.style.marginLeft = '0';
-    iconR.style.marginRight = '0'; iconR.style.marginLeft = '0';
-    
-    if (d.loading) {
-        if (loadingSpinnerSvg) {
-          const target = spinnerPosition === 'right' ? iconR : iconL;
-          renderSpinner(target, loadingSpinnerSvg);
-          target.style.display = 'inline-flex';
-          target.style.width = iconSize; target.style.height = iconSize;
-          target.style.color = iconColor;
-          if (spinnerPosition === 'left') target.style.marginRight = iconGap;
-          else target.style.marginLeft = iconGap;
-        }
-    } else if ((d.iconSource === 'custom' && d.svgContent) || (d.iconSource !== 'custom' && d.iconName !== 'none' && d.svgContent)) {
-        const target = d.iconPosition === 'left' ? iconL : iconR;
-        target.innerHTML = d.svgContent;
-        target.style.display = 'inline-flex';
-        target.style.width = iconSize; target.style.height = iconSize;
-        target.style.color = iconColor;
-        
-        if (d.iconPosition === 'left') target.style.marginRight = iconGap;
-        else target.style.marginLeft = iconGap;
-    }
+    activeButtons.forEach((btn) => {
+      const parts = getParts(btn);
+      if (parts.labelSpan) parts.labelSpan.textContent = d.loading ? loadingLabel : d.label;
 
-    // Animation Class
-    btn.className = 'btn';
-    if (d.animation === 'pulse') btn.classList.add('anim-pulse');
-    if (d.animation === 'float') btn.classList.add('anim-float');
-    if (d.animation === 'subtle-pop') btn.classList.add('anim-subtle-pop');
+      // Set Dimensions & Radius
+      btn.style.width = d.width + "px";
+      btn.style.height = d.height + "px";
+      btn.style.padding = d.padY + "px " + d.padX + "px";
+      btn.style.borderRadius = d.radiusTL + "px " + d.radiusTR + "px " + d.radiusBR + "px " + d.radiusBL + "px";
+      btn.disabled = d.disabled || d.loading;
+      if (d.ariaLabel) btn.setAttribute('aria-label', d.ariaLabel);
+      else btn.removeAttribute('aria-label');
+      
+      // Set Border Width/Style
+      btn.style.setProperty('--btn-border-width', d.borderWidth + "px");
+      btn.style.setProperty('--btn-hover-border-width', d.borderHoverWidth + "px");
+      btn.style.setProperty('--btn-active-border-width', d.borderActiveWidth + "px");
+      btn.style.borderStyle = d.borderStyle;
 
-    // JS Active State (Transform Only)
-    btn.onmousedown = () => {
-       if(!d.activeEnabled || d.disabled || d.loading) return;
-       btn.style.transform = \`translateY(\${d.activeTy}px) scale(\${d.activeScale})\`;
-       btn.style.borderWidth = d.borderActiveWidth + "px";
-    };
-    btn.onmouseup = () => {
-       btn.style.transform = 'none';
-       btn.style.borderWidth = '';
-       if (d.animation === 'float') btn.classList.add('anim-float');
-    };
-    btn.onmouseleave = () => {
-       btn.style.transform = 'none';
-       btn.style.borderWidth = '';
-    };
+      // Set CSS Variables for Colors & Hover
+      btn.style.setProperty('--btn-bg', d.cssBg);
+      btn.style.setProperty('--btn-text', d.cssText);
+      btn.style.setProperty('--btn-border', d.cssBorder);
+      
+      btn.style.setProperty('--btn-hover-bg', d.cssHoverBg);
+      btn.style.setProperty('--btn-hover-text', d.cssHoverText);
+      btn.style.setProperty('--btn-hover-border', d.cssHoverBorder);
+      btn.style.setProperty('--btn-hover-filter', d.cssHoverFilter);
+      
+      btn.style.setProperty('--btn-disabled-bg', d.cssDisabledBg);
+      btn.style.setProperty('--btn-disabled-text', d.cssDisabledText);
+      btn.style.setProperty('--btn-disabled-border', d.cssDisabledBorder);
+      btn.style.setProperty('--btn-disabled-opacity', d.disabledOpacity);
+      btn.style.setProperty('--btn-disabled-cursor', d.disabledCursor);
+
+      // Box Shadow
+      if (d.shadowEnabled && d.variant !== 'ghost') {
+        btn.style.setProperty('--btn-shadow', \`\${d.shX}px \${d.shY}px \${d.shBlur}px \${d.shSpread}px \${d.shColor}\`);
+      } else {
+        btn.style.setProperty('--btn-shadow', 'none');
+      }
+
+      // Typography & Alignment
+      btn.style.fontFamily = d.fontFamily;
+      btn.style.fontSize = d.fontSizeValue + d.fontSizeUnit;
+      btn.style.fontWeight = d.fontWeight;
+      btn.style.letterSpacing = d.letterSpacingValue + d.letterSpacingUnit;
+      btn.style.lineHeight = d.lineHeight;
+      btn.style.fontStyle = d.fontStyle;
+      btn.style.textTransform = d.textTransform;
+      btn.style.textDecoration = d.underline ? 'underline' : 'none';
+      btn.style.alignItems = alignItems;
+      btn.style.justifyContent = justify;
+
+      // Text Shadow
+      if (d.textShadowEnabled) {
+        btn.style.textShadow = \`\${d.tsX}px \${d.tsY}px \${d.tsBlur}px \${d.tsColor}\`;
+      } else {
+        btn.style.textShadow = 'none';
+      }
+
+      // Icons
+      const iconGap = d.iconGap + "px";
+      const iconSize = d.iconSize + "px";
+      const iconColor = d.iconColor;
+      const loadingMode = d.loadingSpinnerMode || "default";
+      const loadingSpinnerSvg = loadingMode === "custom"
+        ? (d.loadingSpinnerSvg || "")
+        : (loadingMode === "none" ? "" : defaultSpinnerSvg);
+      const spinnerPosition = d.loadingSpinnerPosition === "right" ? "right" : "left";
+      
+      if (parts.iconL) {
+        parts.iconL.innerHTML = '';
+        parts.iconL.style.display = 'none';
+        parts.iconL.style.marginRight = '0';
+        parts.iconL.style.marginLeft = '0';
+      }
+      if (parts.iconR) {
+        parts.iconR.innerHTML = '';
+        parts.iconR.style.display = 'none';
+        parts.iconR.style.marginRight = '0';
+        parts.iconR.style.marginLeft = '0';
+      }
+      
+      if (d.loading) {
+          if (loadingSpinnerSvg) {
+            const target = spinnerPosition === 'right' ? parts.iconR : parts.iconL;
+            renderSpinner(target, loadingSpinnerSvg);
+            if (target) {
+              target.style.display = 'inline-flex';
+              target.style.width = iconSize; target.style.height = iconSize;
+              target.style.color = iconColor;
+              if (spinnerPosition === 'left') target.style.marginRight = iconGap;
+              else target.style.marginLeft = iconGap;
+            }
+          }
+      } else if ((d.iconSource === 'custom' && d.svgContent) || (d.iconSource !== 'custom' && d.iconName !== 'none' && d.svgContent)) {
+          const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
+          if (target) {
+            target.innerHTML = d.svgContent;
+            target.style.display = 'inline-flex';
+            target.style.width = iconSize; target.style.height = iconSize;
+            target.style.color = iconColor;
+            
+            if (d.iconPosition === 'left') target.style.marginRight = iconGap;
+            else target.style.marginLeft = iconGap;
+          }
+      }
+
+      // Animation Class
+      btn.className = 'btn';
+      if (d.animation === 'pulse') btn.classList.add('anim-pulse');
+      if (d.animation === 'float') btn.classList.add('anim-float');
+      if (d.animation === 'subtle-pop') btn.classList.add('anim-subtle-pop');
+      if (d.forceFocus) btn.classList.add('force-focus-ring');
+      else btn.classList.remove('force-focus-ring');
+
+      // JS Active State (Transform Only)
+      btn.onmousedown = () => {
+         if(!d.activeEnabled || d.disabled || d.loading) return;
+         btn.style.transform = \`translateY(\${d.activeTy}px) scale(\${d.activeScale})\`;
+         btn.style.borderWidth = d.borderActiveWidth + "px";
+      };
+      btn.onmouseup = () => {
+         btn.style.transform = 'none';
+         btn.style.borderWidth = '';
+         if (d.animation === 'float') btn.classList.add('anim-float');
+      };
+      btn.onmouseleave = () => {
+         btn.style.transform = 'none';
+         btn.style.borderWidth = '';
+      };
+
+      if (d.forceHover && !d.disabled && !d.loading) {
+        btn.style.background = d.cssHoverBg;
+        btn.style.color = d.cssHoverText;
+        btn.style.borderColor = d.cssHoverBorder;
+        btn.style.filter = d.cssHoverFilter;
+        btn.style.borderWidth = d.borderHoverWidth + "px";
+      } else {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.style.filter = '';
+        if (!d.forceActive) btn.style.borderWidth = '';
+      }
+
+      if (d.forceActive && d.activeEnabled && !d.disabled && !d.loading) {
+        btn.style.transform = \`translateY(\${d.activeTy}px) scale(\${d.activeScale})\`;
+        btn.style.borderWidth = d.borderActiveWidth + "px";
+      } else if (!d.forceActive) {
+        btn.style.transform = '';
+        if (!d.forceHover) btn.style.borderWidth = '';
+      }
+    });
     
     // Focus vars
     document.documentElement.style.setProperty('--ring-width', d.focusRingWidth + "px");
@@ -834,10 +1031,31 @@ export default function ActionButtonPage() {
   // --- Export Logic ---
   const handleDownload = () => {
     let content = "";
-    const ext = downloadFormat === "react" ? "jsx" : downloadFormat;
+    const ext = downloadFormat === "react"
+      ? "jsx"
+      : downloadFormat === "css-vars"
+        ? "css"
+        : downloadFormat === "tailwind-config"
+          ? "js"
+          : downloadFormat === "figma-tokens"
+            ? "json"
+            : downloadFormat;
     const rawBase = sanitizeFilenameBase(downloadName);
-    const base = rawBase.replace(/\.(html|jsx|tailwind)$/i, "") || "button";
+    const base = rawBase.replace(/\.(html|jsx|tailwind|css|scss|js|json)$/i, "") || "button";
     const filename = `${base}.${ext}`;
+    const exportWidth = touchWidth;
+    const exportHeight = touchHeight;
+    const fontSizeCss = `${fontSizeValue}${fontSizeUnit}`;
+    const letterSpacingCss = `${letterSpacingValue}${letterSpacingUnit}`;
+    const ariaAttr = ariaLabel ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"` : "";
+    const tsX = Number(tsXText)||0;
+    const tsY = Number(tsYText)||0;
+    const tsBlur = Number(tsBlurText)||0;
+    const textShadowCss = textShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
+    const exportShadowColor = hexWithAlpha(shColorInput, Number(shOpacityText)||0.1);
+    const exportShadow = shadowEnabled && variant !== "ghost"
+      ? `${Number(shXText)||0}px ${Number(shYText)||0}px ${Number(shBlurText)||0}px ${Number(shSpreadText)||0}px ${exportShadowColor}`
+      : "none";
     const loadingLabelText = loadingLabel || "Loading...";
     const spinnerSize = Number(iconSizeText) || 18;
     const spinnerGap = Number(iconGapText) || 10;
@@ -896,13 +1114,13 @@ export default function ActionButtonPage() {
 
     if (downloadFormat === "html") {
       content = `
-<button class="uf-btn"${exportDisabled ? " disabled" : ""}>
+<button class="uf-btn"${exportDisabled ? " disabled" : ""}${ariaAttr}>
   ${buttonInnerHtml}
 </button>
 
 <style>
 .uf-btn {
-  width: ${wPx}px; height: ${hPx}px;
+  width: ${exportWidth}px; height: ${exportHeight}px;
   padding: ${padY}px ${padX}px;
   border-radius: ${rCSS};
   display: inline-flex;
@@ -911,8 +1129,11 @@ export default function ActionButtonPage() {
   color: ${textInput};
   border: ${borderWidthPx}px ${borderStyle} ${borderInput};
   font-family: ${fontBucket === "system" ? "sans-serif" : googleFontFamily};
-  font-size: ${fSize}px;
+  font-size: ${fontSizeCss};
   font-weight: ${fontWeight};
+  letter-spacing: ${letterSpacingCss};
+  line-height: ${lHeight};
+  text-shadow: ${textShadowCss};
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: ${underline ? "underline" : "none"};
@@ -957,16 +1178,20 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   const iconPosition = "${iconPosition}";
   const iconColor = ${exportIconColorLiteral};
   const hasIcon = ${exportHasIconLiteral};
+  const ariaLabel = ${JSON.stringify(ariaLabel)};
 
   const baseStyle = {
-    width: '${wPx}px', height: '${hPx}px',
+    width: '${exportWidth}px', height: '${exportHeight}px',
     padding: '${padY}px ${padX}px',
     borderRadius: '${rCSS}',
     background: '${cssBg}',
     color: '${textInput}',
     border: '${borderWidthPx}px ${borderStyle} ${borderInput}',
-    fontSize: '${fSize}px',
+    fontSize: '${fontSizeCss}',
     fontWeight: ${fontWeight},
+    letterSpacing: '${letterSpacingCss}',
+    lineHeight: ${lHeight},
+    textShadow: '${textShadowCss}',
     textDecoration: '${underline ? "underline" : "none"}',
     display: 'inline-flex',
     alignItems: '${alignItems}',
@@ -1031,6 +1256,7 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       onMouseDown={() => setActive(true)}
       onMouseUp={() => setActive(false)}
       disabled={isDisabled}
+      aria-label={ariaLabel || undefined}
       style={{
         ...baseStyle,
         ...(hover ? hoverStyle : {}),
@@ -1068,6 +1294,112 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   );
 };
 `;
+    } else if (downloadFormat === "css-vars") {
+      content = `
+:root {
+  --uf-btn-bg: ${cssBg};
+  --uf-btn-text: ${textInput};
+  --uf-btn-border: ${borderInput};
+  --uf-btn-radius: ${rCSS};
+  --uf-btn-font-size: ${fontSizeCss};
+  --uf-btn-letter-spacing: ${letterSpacingCss};
+  --uf-btn-line-height: ${lHeight};
+  --uf-btn-shadow: ${exportShadow};
+  --uf-btn-hover-bg: ${cssHoverBg};
+  --uf-btn-hover-text: ${cssHoverText};
+  --uf-btn-hover-border: ${cssHoverBorder};
+}
+
+.uf-btn {
+  width: ${exportWidth}px; height: ${exportHeight}px;
+  padding: ${padY}px ${padX}px;
+  border-radius: var(--uf-btn-radius);
+  display: inline-flex;
+  align-items: ${alignItems}; justify-content: ${justify};
+  background: var(--uf-btn-bg);
+  color: var(--uf-btn-text);
+  border: ${borderWidthPx}px ${borderStyle} var(--uf-btn-border);
+  font-size: var(--uf-btn-font-size);
+  letter-spacing: var(--uf-btn-letter-spacing);
+  line-height: var(--uf-btn-line-height);
+  box-shadow: var(--uf-btn-shadow);
+}
+`.trim();
+    } else if (downloadFormat === "scss") {
+      content = `
+$uf-btn-bg: ${cssBg};
+$uf-btn-text: ${textInput};
+$uf-btn-border: ${borderInput};
+$uf-btn-radius: ${rCSS};
+$uf-btn-font-size: ${fontSizeCss};
+$uf-btn-letter-spacing: ${letterSpacingCss};
+$uf-btn-line-height: ${lHeight};
+$uf-btn-shadow: ${exportShadow};
+
+@mixin uf-button {
+  width: ${exportWidth}px; height: ${exportHeight}px;
+  padding: ${padY}px ${padX}px;
+  border-radius: $uf-btn-radius;
+  display: inline-flex;
+  align-items: ${alignItems}; justify-content: ${justify};
+  background: $uf-btn-bg;
+  color: $uf-btn-text;
+  border: ${borderWidthPx}px ${borderStyle} $uf-btn-border;
+  font-size: $uf-btn-font-size;
+  letter-spacing: $uf-btn-letter-spacing;
+  line-height: $uf-btn-line-height;
+  box-shadow: $uf-btn-shadow;
+}
+`.trim();
+    } else if (downloadFormat === "tailwind-config") {
+      content = `
+// tailwind.config.js (snippet)
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        "uf-btn-bg": "${cssBg}",
+        "uf-btn-text": "${textInput}",
+        "uf-btn-border": "${borderInput}",
+      },
+      borderRadius: {
+        "uf-btn": "${rCSS}",
+      },
+      boxShadow: {
+        "uf-btn": "${exportShadow}",
+      },
+    },
+  },
+};
+`.trim();
+    } else if (downloadFormat === "figma-tokens") {
+      content = JSON.stringify(
+        {
+          button: {
+            color: {
+              background: { value: cssBg },
+              text: { value: textInput },
+              border: { value: borderInput },
+            },
+            size: {
+              width: { value: exportWidth },
+              height: { value: exportHeight },
+              paddingX: { value: padX },
+              paddingY: { value: padY },
+              radius: { value: rCSS },
+            },
+            typography: {
+              fontFamily: { value: fontBucket === "system" ? "sans-serif" : googleFontFamily },
+              fontSize: { value: fontSizeCss },
+              fontWeight: { value: fontWeight },
+              letterSpacing: { value: letterSpacingCss },
+              lineHeight: { value: lHeight },
+            },
+          },
+        },
+        null,
+        2
+      );
     } else {
       content = "// Tailwind export coming next iteration!";
     }
@@ -1208,10 +1540,16 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
           googleFonts={GOOGLE_FONTS} filteredGoogleFonts={filteredGoogleFonts}
           googleFontFamily={googleFontFamily} setGoogleFontFamily={setGoogleFontFamily}
           
-          fontSizeText={fontSizeText} setFontSizeText={setFontSizeText} fontSizePx={fSize}
-          fontWeight={fontWeight} setFontWeight={setFontWeight}
-          letterSpacing={lSpacing} letterSpacingText={letterSpacingText} setLetterSpacingText={setLetterSpacingText}
-          lineHeight={lHeight} lineHeightText={lineHeightText} setLineHeightText={setLineHeightText}
+            fontSizeText={fontSizeText} setFontSizeText={setFontSizeText}
+            fontSizeDisplay={fontSizeDisplay}
+            fontSizeUnit={fontSizeUnit} setFontSizeUnit={setFontSizeUnit}
+            fontSizeMin={fontSizeMin} fontSizeMax={fontSizeMax} fontSizeStep={fontSizeStep}
+            fontWeight={fontWeight} setFontWeight={setFontWeight}
+            letterSpacingDisplay={letterSpacingDisplay}
+            letterSpacingUnit={letterSpacingUnit} setLetterSpacingUnit={setLetterSpacingUnit}
+            letterSpacingMin={letterSpacingMin} letterSpacingMax={letterSpacingMax} letterSpacingStep={letterSpacingStep}
+            letterSpacingText={letterSpacingText} setLetterSpacingText={setLetterSpacingText}
+            lineHeight={lHeight} lineHeightText={lineHeightText} setLineHeightText={setLineHeightText}
           fontStyle={fontStyle} setFontStyle={setFontStyle}
           textTransform={textTransform} setTextTransform={setTextTransform}
           
@@ -1230,13 +1568,14 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       id: "text-shadow",
       label: "Text Shadow",
       content: (
-        <TextShadowSection
-          PALETTE={PALETTE}
-          textShadowEnabled={textShadowEnabled} setTextShadowEnabled={setTextShadowEnabled}
-          tsXText={tsXText} setTsXText={setTsXText}
-          tsYText={tsYText} setTsYText={setTsYText}
-          tsBlurText={tsBlurText} setTsBlurText={setTsBlurText}
-          tsOpacityText={tsOpacityText} setTsOpacityText={setTsOpacityText}
+          <TextShadowSection
+            PALETTE={PALETTE}
+            textShadowEnabled={textShadowEnabled} setTextShadowEnabled={setTextShadowEnabled}
+            tsColorMode={tsColorMode} setTsColorMode={setTsColorMode}
+            tsXText={tsXText} setTsXText={setTsXText}
+            tsYText={tsYText} setTsYText={setTsYText}
+            tsBlurText={tsBlurText} setTsBlurText={setTsBlurText}
+            tsOpacityText={tsOpacityText} setTsOpacityText={setTsOpacityText}
           tsColorInput={tsColorInput} setTsColorInput={setTsColorInput}
           tsColorOk={norm(tsColorInput).ok} tsColorHex={norm(tsColorInput).hex} tsColorRgb={norm(tsColorInput).rgb}
         />
@@ -1257,6 +1596,18 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
           iconColorMode={iconColorMode} setIconColorMode={setIconColorMode}
           iconColorInput={iconColorInput} setIconColorInput={setIconColorInput}
           iconColorNorm={norm(iconColorInput)} baseTextHex={textInput}
+        />
+      ),
+    },
+    {
+      id: "group",
+      label: "Group Preview",
+      content: (
+        <GroupPreviewSection
+          groupEnabled={groupEnabled} setGroupEnabled={setGroupEnabled}
+          groupAlign={groupAlign} setGroupAlign={setGroupAlign}
+          groupGapText={groupGapText} setGroupGapText={setGroupGapText}
+          groupGapPx={groupGapPx}
         />
       ),
     },
@@ -1335,6 +1686,33 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
           focusRingOffsetText={focusRingOffsetText} setFocusRingOffsetText={setFocusRingOffsetText} ringOffset={Number(focusRingOffsetText)}
           focusRingInput={focusRingInput} setFocusRingInput={setFocusRingInput}
           focusRingNorm={norm(focusRingInput)}
+        />
+      ),
+    },
+    {
+      id: "state-preview",
+      label: "State Preview",
+      content: (
+        <StatePreviewSection
+          forceHover={forceHover} setForceHover={setForceHover}
+          forceActive={forceActive} setForceActive={setForceActive}
+          forceFocus={forceFocus} setForceFocus={setForceFocus}
+        />
+      ),
+    },
+    {
+      id: "accessibility",
+      label: "Accessibility",
+      content: (
+        <AccessibilitySection
+          ariaLabel={ariaLabel} setAriaLabel={setAriaLabel}
+          minTouchMode={minTouchMode} setMinTouchMode={setMinTouchMode}
+          minTouchSizeText={minTouchSizeText} setMinTouchSizeText={setMinTouchSizeText}
+          minTouchSizePx={minTouchSizePx}
+          minTouchWarning={minTouchWarning}
+          contrastRatioText={contrastRatioText}
+          contrastOk={contrastOk}
+          contrastNote={contrastNote}
         />
       ),
     },

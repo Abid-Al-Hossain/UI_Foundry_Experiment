@@ -11,6 +11,9 @@ export default function TextShadowSection(props: {
   textShadowEnabled: boolean;
   setTextShadowEnabled: (v: boolean) => void;
 
+  tsColorMode: "custom" | "auto" | "contrast";
+  setTsColorMode: (v: "custom" | "auto" | "contrast") => void;
+
   tsXText: string;
   setTsXText: (v: string) => void;
 
@@ -49,16 +52,45 @@ export default function TextShadowSection(props: {
         <SizeControl label="Opacity (0–1)" valueText={props.tsOpacityText} setValueText={props.setTsOpacityText} min={0} max={1} step={0.01} />
       </div>
 
-      <div className="mt-4">
-        <ColorControl
-          title="Shadow color"
-          palette={props.PALETTE}
-          valueText={props.tsColorInput}
-          setValueText={props.setTsColorInput}
-          normalizedHex={props.tsColorHex}
-          normalizedRgb={props.tsColorRgb}
-          ok={props.tsColorOk}
-        />
+      <div className="mt-4 space-y-3">
+        <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+          Shadow color mode
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(["custom", "auto", "contrast"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => props.setTsColorMode(mode)}
+              className="rounded-xl border px-3 py-2 text-sm font-semibold uf-clickable"
+              style={{
+                borderColor: "var(--border)",
+                background: props.tsColorMode === mode ? "var(--primary)" : "transparent",
+                color: props.tsColorMode === mode ? "white" : "var(--text)",
+              }}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+
+        {props.tsColorMode === "custom" ? (
+          <ColorControl
+            title="Shadow color"
+            palette={props.PALETTE}
+            valueText={props.tsColorInput}
+            setValueText={props.setTsColorInput}
+            normalizedHex={props.tsColorHex}
+            normalizedRgb={props.tsColorRgb}
+            ok={props.tsColorOk}
+          />
+        ) : (
+          <div className="text-xs" style={{ color: "var(--muted)" }}>
+            {props.tsColorMode === "auto"
+              ? "Auto uses the text color with the chosen opacity."
+              : "Contrast uses black/white for maximum legibility."}
+          </div>
+        )}
       </div>
     </SectionCard>
   );

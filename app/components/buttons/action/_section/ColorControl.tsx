@@ -23,7 +23,7 @@ export default function ColorControl(props: {
           value={props.normalizedHex}
           onChange={(e) => props.setValueText(e.target.value)}
           className="h-9 w-12 rounded-lg border uf-clickable"
-          style={{ borderColor: "var(--border)" }}
+          style={{ borderColor: "var(--border)", cursor: "pointer" }}
           aria-label={`Pick ${props.title} color`}
         />
       </div>
@@ -35,7 +35,7 @@ export default function ColorControl(props: {
             type="button"
             onClick={() => props.setValueText(c)}
             className="h-7 w-7 rounded-lg border transition uf-clickable"
-            style={{ background: c, borderColor: "var(--border)" }}
+            style={{ background: c, borderColor: "var(--border)", cursor: "pointer" }}
             title={c}
           />
         ))}
