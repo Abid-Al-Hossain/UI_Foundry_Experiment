@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ThemeId } from "./themes";
 
 type ThemeContextValue = {
@@ -40,6 +40,81 @@ const DEFAULT_CUSTOM_THEME: ThemeVars = {
   ring: "rgba(79, 124, 255, 0.35)",
 };
 
+type ThemeSnapshot = {
+  theme: ThemeId;
+  customTheme: ThemeVars;
+};
+
+const themeListeners = new Set<() => void>();
+
+let cachedSnapshot: ThemeSnapshot = {
+  theme: DEFAULT_THEME,
+  customTheme: DEFAULT_CUSTOM_THEME,
+};
+let cachedTheme: ThemeId = DEFAULT_THEME;
+let cachedCustom: ThemeVars = DEFAULT_CUSTOM_THEME;
+
+const sameCustomTheme = (a: ThemeVars, b: ThemeVars) =>
+  a.bg === b.bg &&
+  a.surface === b.surface &&
+  a.card === b.card &&
+  a.text === b.text &&
+  a.muted === b.muted &&
+  a.border === b.border &&
+  a.primary === b.primary &&
+  a.primaryHover === b.primaryHover &&
+  a.ring === b.ring;
+
+const getStoredSnapshot = (): ThemeSnapshot => {
+  if (typeof window === "undefined") {
+    return cachedSnapshot;
+  }
+  let theme: ThemeId = DEFAULT_THEME;
+  let customTheme: ThemeVars = DEFAULT_CUSTOM_THEME;
+  try {
+    const saved = (localStorage.getItem(STORAGE_KEY) as ThemeId | null) ?? DEFAULT_THEME;
+    theme = saved;
+    const savedCustom = localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (savedCustom) {
+      customTheme = JSON.parse(savedCustom) as ThemeVars;
+    }
+  } catch {
+    // ignore
+  }
+  if (theme === cachedTheme && sameCustomTheme(customTheme, cachedCustom)) {
+    return cachedSnapshot;
+  }
+  cachedTheme = theme;
+  cachedCustom = customTheme;
+  cachedSnapshot = { theme, customTheme };
+  return cachedSnapshot;
+};
+
+const getServerSnapshot = (): ThemeSnapshot => cachedSnapshot;
+
+const subscribe = (callback: () => void) => {
+  themeListeners.add(callback);
+  if (typeof window !== "undefined") {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY || event.key === CUSTOM_STORAGE_KEY) {
+        callback();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      themeListeners.delete(callback);
+      window.removeEventListener("storage", onStorage);
+    };
+  }
+  return () => {
+    themeListeners.delete(callback);
+  };
+};
+
+const emitThemeChange = () => {
+  themeListeners.forEach((listener) => listener());
+};
+
 function applyThemeVars(vars?: ThemeVars) {
   const root = document.documentElement;
   const keys: (keyof ThemeVars)[] = [
@@ -61,21 +136,7 @@ function applyThemeVars(vars?: ThemeVars) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeId>(DEFAULT_THEME);
-  const [customTheme, setCustomThemeState] = useState<ThemeVars>(DEFAULT_CUSTOM_THEME);
-
-  useEffect(() => {
-    try {
-      const saved = (localStorage.getItem(STORAGE_KEY) as ThemeId | null) ?? DEFAULT_THEME;
-      setThemeState(saved);
-      const savedCustom = localStorage.getItem(CUSTOM_STORAGE_KEY);
-      if (savedCustom) {
-        setCustomThemeState(JSON.parse(savedCustom) as ThemeVars);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const { theme, customTheme } = useSyncExternalStore(subscribe, getStoredSnapshot, getServerSnapshot);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -87,21 +148,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, customTheme]);
 
   const setTheme = (t: ThemeId) => {
-    setThemeState(t);
     try {
       localStorage.setItem(STORAGE_KEY, t);
     } catch {
       // ignore
     }
+    emitThemeChange();
   };
 
   const setCustomTheme = (t: ThemeVars) => {
-    setCustomThemeState(t);
     try {
       localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(t));
     } catch {
       // ignore
     }
+    emitThemeChange();
   };
 
   const value = useMemo(

@@ -9,6 +9,10 @@ export type MinTouchMode = "off" | "warn" | "enforce";
 export default function AccessibilitySection(props: {
   ariaLabel: string;
   setAriaLabel: (v: string) => void;
+  ariaPressedMode: "off" | "true" | "false";
+  setAriaPressedMode: (v: "off" | "true" | "false") => void;
+  ariaBusyMode: "off" | "auto" | "true" | "false";
+  setAriaBusyMode: (v: "off" | "auto" | "true" | "false") => void;
 
   minTouchMode: MinTouchMode;
   setMinTouchMode: (v: MinTouchMode) => void;
@@ -25,6 +29,9 @@ export default function AccessibilitySection(props: {
   return (
     <SectionCard title="Accessibility" subtitle="Touch size, contrast hints, and aria label.">
       <div className="space-y-4">
+        <div className="text-xs" style={{ color: "var(--muted)" }}>
+          Tip: Aria labels are best for icon-only buttons. Aria-busy auto follows Loading.
+        </div>
         <LabeledField label="Aria label">
           <input
             value={props.ariaLabel}
@@ -36,6 +43,31 @@ export default function AccessibilitySection(props: {
               background: "color-mix(in oklab, var(--surface) 70%, transparent)",
               color: "var(--text)",
             }}
+          />
+        </LabeledField>
+
+        <LabeledField label="Aria pressed">
+          <Segmented
+            value={props.ariaPressedMode}
+            onChange={(v) => props.setAriaPressedMode(v as "off" | "true" | "false")}
+            items={[
+              { value: "off", label: "Off" },
+              { value: "true", label: "True" },
+              { value: "false", label: "False" },
+            ]}
+          />
+        </LabeledField>
+
+        <LabeledField label="Aria busy">
+          <Segmented
+            value={props.ariaBusyMode}
+            onChange={(v) => props.setAriaBusyMode(v as "off" | "auto" | "true" | "false")}
+            items={[
+              { value: "off", label: "Off" },
+              { value: "auto", label: "Auto" },
+              { value: "true", label: "True" },
+              { value: "false", label: "False" },
+            ]}
           />
         </LabeledField>
 

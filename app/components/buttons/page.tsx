@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import useHydrated from "@/components/hooks/useHydrated";
 
 function escapeHtml(s: string) {
   return (s || "")
@@ -77,8 +78,7 @@ type ButtonCard = {
 };
 
 export default function ButtonsLandingPage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   const actionPreviewDoc = useMemo(
     () =>

@@ -28,6 +28,16 @@ export default function DisabledSection(props: {
   disabledBorderInput: string;
   setDisabledBorderInput: (v: string) => void;
   disabledBorderNorm: { ok: boolean; hex: string; rgb: string };
+
+  disabledBorderWidthText: string;
+  setDisabledBorderWidthText: (v: string) => void;
+  disabledBorderWidthPx: number;
+
+  disabledHoverSuppressed: boolean;
+  setDisabledHoverSuppressed: (v: boolean) => void;
+
+  disabledTextShadowEnabled: boolean;
+  setDisabledTextShadowEnabled: (v: boolean) => void;
 }) {
   return (
     <SectionCard title="Disabled" subtitle="Colors, opacity, and cursor.">
@@ -58,6 +68,15 @@ export default function DisabledSection(props: {
           </div>
         </div>
 
+        <SizeControl
+          label={`Border width (${props.disabledBorderWidthPx}px)`}
+          valueText={props.disabledBorderWidthText}
+          setValueText={props.setDisabledBorderWidthText}
+          min={0}
+          max={12}
+          step={1}
+        />
+
         <div className="flex items-center gap-2">
           <input
             id="disabled-colors"
@@ -69,6 +88,29 @@ export default function DisabledSection(props: {
           <label htmlFor="disabled-colors" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
             Custom disabled colors
           </label>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <input
+            type="checkbox"
+            checked={props.disabledHoverSuppressed}
+            onChange={(e) => props.setDisabledHoverSuppressed(e.target.checked)}
+            className="uf-clickable"
+          />
+          Suppress hover styles while disabled
+        </label>
+
+        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <input
+            type="checkbox"
+            checked={props.disabledTextShadowEnabled}
+            onChange={(e) => props.setDisabledTextShadowEnabled(e.target.checked)}
+            className="uf-clickable"
+          />
+          Use text shadow when disabled
+        </label>
+        <div className="text-xs" style={{ color: "var(--muted)" }}>
+          Uses the Text Shadow section values.
         </div>
 
         {props.disabledUseCustomColors ? (

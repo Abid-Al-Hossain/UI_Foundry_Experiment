@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import AppShell from "@/components/layout/AppShell";
+import useHydrated from "@/components/hooks/useHydrated";
 
 // --- Section Imports ---
 import BasicsSection, { type ButtonVariant, type AnimationPreset } from "./_section/BasicsSection";
@@ -13,7 +14,7 @@ import ShadowSection from "./_section/ShadowSection";
 import TypographySection, { type FontStyleKey, type FontWeightKey, type TextTransformKey, type SystemFontItem } from "./_section/TypographySection";
 import TextPositionSection, { type AlignKey } from "./_section/TextPositionSection";
 import TextShadowSection from "./_section/TextShadowSection";
-import IconSection from "./_section/IconSection";
+import IconSection, { type IconName, type IconSource } from "./_section/IconSection";
 import OutlineGhostPresetsSection from "./_section/OutlineGhostPresetsSection";
 import GroupPreviewSection, { type GroupAlign } from "./_section/GroupPreviewSection";
 import HoverSection from "./_section/HoverSection";
@@ -31,6 +32,8 @@ import StatePreviewSection from "./_section/StatePreviewSection";
 const PALETTE = [
   "#111827", "#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#0ea5e9", "#ffffff"
 ] as const;
+
+type TransitionEasing = "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
 
 // Full System Fonts List
 const SYSTEM_FONTS: SystemFontItem[] = [
@@ -131,6 +134,17 @@ function norm(input: string): { ok: boolean; hex: string; rgb: string } {
   return { ok: false, hex: "#2563eb", rgb: "rgb(37, 99, 235)" };
 }
 
+function buildGradient(angleText: string, startInput: string, midEnabled: boolean, midInput: string, endInput: string) {
+  const angle = Number(angleText);
+  const safeAngle = Number.isFinite(angle) ? angle : 90;
+  const safeStart = norm(startInput).ok ? norm(startInput).hex : startInput;
+  const safeMid = norm(midInput).ok ? norm(midInput).hex : midInput;
+  const safeEnd = norm(endInput).ok ? norm(endInput).hex : endInput;
+  return midEnabled
+    ? `linear-gradient(${safeAngle}deg, ${safeStart}, ${safeMid}, ${safeEnd})`
+    : `linear-gradient(${safeAngle}deg, ${safeStart}, ${safeEnd})`;
+}
+
 function contrastHex(bgHex: string) {
   const h = (bgHex || "").trim().toLowerCase();
   if (!/^#[0-9a-f]{6}$/.test(h)) return "#111827";
@@ -181,7 +195,7 @@ const ICONS_SVG: Record<string, string> = {
 };
 
 export default function ActionButtonPage() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("basics");
   const [isDesktop, setIsDesktop] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -230,6 +244,9 @@ export default function ActionButtonPage() {
   const [disabledBgInput, setDisabledBgInput] = useState("#e5e7eb");
   const [disabledTextInput, setDisabledTextInput] = useState("#9ca3af");
   const [disabledBorderInput, setDisabledBorderInput] = useState("rgba(0,0,0,0.08)");
+  const [disabledBorderWidthText, setDisabledBorderWidthText] = useState("1");
+  const [disabledHoverSuppressed, setDisabledHoverSuppressed] = useState(true);
+  const [disabledTextShadowEnabled, setDisabledTextShadowEnabled] = useState(false);
 
   // --- Radius ---
   const [linkRadius, setLinkRadius] = useState(true);
@@ -287,14 +304,26 @@ export default function ActionButtonPage() {
   const [tsColorInput, setTsColorInput] = useState("#000000");
 
   // --- Icon ---
-  const [iconName, setIconName] = useState<string>("none");
-  const [iconSource, setIconSource] = useState<"library"|"custom">("library");
+  const [iconName, setIconName] = useState<IconName>("none");
+  const [iconSource, setIconSource] = useState<IconSource>("library");
   const [iconCustomSvg, setIconCustomSvg] = useState("");
   const [iconPosition, setIconPosition] = useState<"left"|"right">("left");
   const [iconSizeText, setIconSizeText] = useState("18");
   const [iconGapText, setIconGapText] = useState("10");
   const [iconColorMode, setIconColorMode] = useState<"text"|"custom">("text");
   const [iconColorInput, setIconColorInput] = useState("#ffffff");
+  const [hoverIconEnabled, setHoverIconEnabled] = useState(false);
+  const [hoverIconSource, setHoverIconSource] = useState<IconSource>("library");
+  const [hoverIconName, setHoverIconName] = useState<IconName>("none");
+  const [hoverIconCustomSvg, setHoverIconCustomSvg] = useState("");
+  const [activeIconEnabled, setActiveIconEnabled] = useState(false);
+  const [activeIconSource, setActiveIconSource] = useState<IconSource>("library");
+  const [activeIconName, setActiveIconName] = useState<IconName>("none");
+  const [activeIconCustomSvg, setActiveIconCustomSvg] = useState("");
+  const [loadingIconEnabled, setLoadingIconEnabled] = useState(false);
+  const [loadingIconSource, setLoadingIconSource] = useState<IconSource>("library");
+  const [loadingIconName, setLoadingIconName] = useState<IconName>("none");
+  const [loadingIconCustomSvg, setLoadingIconCustomSvg] = useState("");
 
   // --- Group Preview ---
   const [groupEnabled, setGroupEnabled] = useState(false);
@@ -303,8 +332,13 @@ export default function ActionButtonPage() {
 
   // --- Hover ---
   const [hoverEnabled, setHoverEnabled] = useState(true);
-  const [hoverBgMode, setHoverBgMode] = useState<"auto"|"custom">("auto");
+  const [hoverBgMode, setHoverBgMode] = useState<"auto"|"custom"|"gradient">("auto");
   const [hoverBgInput, setHoverBgInput] = useState("#0f172a");
+  const [hoverGradAngleText, setHoverGradAngleText] = useState("90");
+  const [hoverGradStartInput, setHoverGradStartInput] = useState("#2563eb");
+  const [hoverGradMidEnabled, setHoverGradMidEnabled] = useState(false);
+  const [hoverGradMidInput, setHoverGradMidInput] = useState("#6366f1");
+  const [hoverGradEndInput, setHoverGradEndInput] = useState("#8b5cf6");
   const [hoverTextMode, setHoverTextMode] = useState<"same"|"custom">("same");
   const [hoverTextInput, setHoverTextInput] = useState("#ffffff");
   const [hoverBorderMode, setHoverBorderMode] = useState<"same"|"custom">("same");
@@ -314,6 +348,17 @@ export default function ActionButtonPage() {
   const [activeEnabled, setActiveEnabled] = useState(true);
   const [activeTranslateYText, setActiveTranslateYText] = useState("1");
   const [activeScaleText, setActiveScaleText] = useState("0.99");
+  const [activeBgMode, setActiveBgMode] = useState<"same"|"custom"|"gradient">("same");
+  const [activeBgInput, setActiveBgInput] = useState("#0b1220");
+  const [activeGradAngleText, setActiveGradAngleText] = useState("90");
+  const [activeGradStartInput, setActiveGradStartInput] = useState("#1d4ed8");
+  const [activeGradMidEnabled, setActiveGradMidEnabled] = useState(false);
+  const [activeGradMidInput, setActiveGradMidInput] = useState("#3b82f6");
+  const [activeGradEndInput, setActiveGradEndInput] = useState("#0ea5e9");
+  const [activeTextMode, setActiveTextMode] = useState<"same"|"custom">("same");
+  const [activeTextInput, setActiveTextInput] = useState("#ffffff");
+  const [activeBorderMode, setActiveBorderMode] = useState<"same"|"custom">("same");
+  const [activeBorderInput, setActiveBorderInput] = useState("#2563eb");
 
   // --- Focus Ring ---
   const [focusRingEnabled, setFocusRingEnabled] = useState(true);
@@ -321,8 +366,16 @@ export default function ActionButtonPage() {
   const [focusRingOffsetText, setFocusRingOffsetText] = useState("2");
   const [focusRingInput, setFocusRingInput] = useState("#60a5fa");
 
+  // --- Transitions ---
+  const [transitionColorDurationText, setTransitionColorDurationText] = useState("160");
+  const [transitionColorEasing, setTransitionColorEasing] = useState<TransitionEasing>("ease");
+  const [transitionTransformDurationText, setTransitionTransformDurationText] = useState("120");
+  const [transitionTransformEasing, setTransitionTransformEasing] = useState<TransitionEasing>("ease");
+
   // --- Accessibility ---
   const [ariaLabel, setAriaLabel] = useState("");
+  const [ariaPressedMode, setAriaPressedMode] = useState<"off"|"true"|"false">("off");
+  const [ariaBusyMode, setAriaBusyMode] = useState<"off"|"auto"|"true"|"false">("off");
   const [minTouchMode, setMinTouchMode] = useState<MinTouchMode>("off");
   const [minTouchSizeText, setMinTouchSizeText] = useState("44");
 
@@ -338,10 +391,6 @@ export default function ActionButtonPage() {
   const [downloadName, setDownloadName] = useState("action-button");
   
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -414,9 +463,14 @@ export default function ActionButtonPage() {
   const borderWidthPx = clamp(Number(borderWidthText)||0, 0, 12);
   const borderHoverWidthPx = clamp(Number(borderHoverWidthText)||borderWidthPx, 0, 12);
   const borderActiveWidthPx = clamp(Number(borderActiveWidthText)||borderHoverWidthPx, 0, 12);
+  const hoverBorderWidthPx = hoverEnabled ? borderHoverWidthPx : borderWidthPx;
+  const activeBorderWidthPx = activeEnabled ? borderActiveWidthPx : borderWidthPx;
+  const disabledBorderWidthPx = clamp(Number(disabledBorderWidthText)||borderWidthPx, 0, 12);
 
   const groupGapPx = clamp(Number(groupGapText)||12, 0, 32);
   const minTouchSizePx = clamp(Number(minTouchSizeText)||44, 24, 80);
+  const transitionColorMs = clamp(Number(transitionColorDurationText)||160, 0, 2000);
+  const transitionTransformMs = clamp(Number(transitionTransformDurationText)||120, 0, 2000);
 
   // --- IDs ---
   const idItalic = "ab-italic";
@@ -434,10 +488,12 @@ export default function ActionButtonPage() {
   const safeGradMid = norm(gradMidInput).ok ? norm(gradMidInput).hex : gradMidInput;
   const safeGradEnd = norm(gradEndInput).ok ? norm(gradEndInput).hex : gradEndInput;
   const safeBg = norm(bgInput).ok ? norm(bgInput).hex : bgInput;
+  const hoverGradient = buildGradient(hoverGradAngleText, hoverGradStartInput, hoverGradMidEnabled, hoverGradMidInput, hoverGradEndInput);
+  const activeGradient = buildGradient(activeGradAngleText, activeGradStartInput, activeGradMidEnabled, activeGradMidInput, activeGradEndInput);
 
   let cssBg = "transparent";
-  let cssText = textInput;
-  let cssBorder = borderInput;
+  const cssText = textInput;
+  const cssBorder = borderInput;
 
   if (variant === "solid") {
     if (useGradient) {
@@ -454,13 +510,15 @@ export default function ActionButtonPage() {
   let cssHoverText = cssText;
   let cssHoverBorder = cssBorder;
   let cssHoverFilter = "none";
+  const safeHoverBg = norm(hoverBgInput).ok ? norm(hoverBgInput).hex : hoverBgInput;
 
   if (hoverEnabled) {
     if (hoverBgMode === "auto") {
       cssHoverFilter = "brightness(0.92)";
+    } else if (hoverBgMode === "gradient") {
+      cssHoverBg = hoverGradient;
+      cssHoverFilter = "none";
     } else {
-      // Use safe hover hex if valid
-      const safeHoverBg = norm(hoverBgInput).ok ? norm(hoverBgInput).hex : hoverBgInput;
       cssHoverBg = safeHoverBg;
       cssHoverFilter = "none";
     }
@@ -474,6 +532,29 @@ export default function ActionButtonPage() {
     }
   } else {
     cssHoverFilter = "none";
+  }
+
+  // Determine Active CSS values
+  const safeActiveBg = norm(activeBgInput).ok ? norm(activeBgInput).hex : activeBgInput;
+  const safeActiveText = norm(activeTextInput).ok ? norm(activeTextInput).hex : activeTextInput;
+  const safeActiveBorder = norm(activeBorderInput).ok ? norm(activeBorderInput).hex : activeBorderInput;
+  let cssActiveBg = cssBg;
+  let cssActiveText = cssText;
+  let cssActiveBorder = cssBorder;
+  const cssActiveFilter = "none";
+
+  if (activeEnabled) {
+    if (activeBgMode === "custom") {
+      cssActiveBg = safeActiveBg;
+    } else if (activeBgMode === "gradient") {
+      cssActiveBg = activeGradient;
+    }
+    if (activeTextMode === "custom") {
+      cssActiveText = safeActiveText;
+    }
+    if (activeBorderMode === "custom") {
+      cssActiveBorder = safeActiveBorder;
+    }
   }
 
   // Determine Disabled CSS values
@@ -515,7 +596,11 @@ export default function ActionButtonPage() {
   let tsBaseColor = tsColorInput;
   if (tsColorMode === "auto") tsBaseColor = contrastTextHex;
   if (tsColorMode === "contrast") tsBaseColor = contrastHex(previewBgHex);
+  const tsX = Number(tsXText)||0;
+  const tsY = Number(tsYText)||0;
+  const tsBlur = Number(tsBlurText)||0;
   const tsColor = hexWithAlpha(tsBaseColor, Number(tsOpacityText)||0.25);
+  const disabledTextShadowCss = disabledTextShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
 
   const applyOutlinePreset = () => {
     const contrast = contrastHex(previewBgHex);
@@ -541,7 +626,18 @@ export default function ActionButtonPage() {
     setHoverBorderInput(hexWithAlpha(contrast, 0.35));
   };
 
-  const previewPayload = {
+  const baseIconSvg = iconSource === "custom" ? iconCustomSvg : (ICONS_SVG[iconName] || "");
+  const hoverIconSvg = hoverIconEnabled
+    ? (hoverIconSource === "custom" ? hoverIconCustomSvg : (ICONS_SVG[hoverIconName] || ""))
+    : "";
+  const activeIconSvg = activeIconEnabled
+    ? (activeIconSource === "custom" ? activeIconCustomSvg : (ICONS_SVG[activeIconName] || ""))
+    : "";
+  const loadingIconSvg = loadingIconEnabled
+    ? (loadingIconSource === "custom" ? loadingIconCustomSvg : (ICONS_SVG[loadingIconName] || ""))
+    : "";
+
+  const previewPayload = useMemo(() => ({
     label,
     variant,
     disabled,
@@ -563,16 +659,23 @@ export default function ActionButtonPage() {
     cssHoverText,
     cssHoverBorder,
     cssHoverFilter,
+    cssActiveBg,
+    cssActiveText,
+    cssActiveBorder,
+    cssActiveFilter,
 
     cssDisabledBg,
     cssDisabledText,
     cssDisabledBorder,
     disabledOpacity,
     disabledCursor,
+    disabledBorderWidth: disabledBorderWidthPx,
+    disabledHoverSuppressed,
+    disabledTextShadow: disabledTextShadowCss,
     
     borderWidth: borderWidthPx,
-    borderHoverWidth: borderHoverWidthPx,
-    borderActiveWidth: borderActiveWidthPx,
+    borderHoverWidth: hoverBorderWidthPx,
+    borderActiveWidth: activeBorderWidthPx,
     borderStyle,
     
     // radius
@@ -611,16 +714,31 @@ export default function ActionButtonPage() {
     iconName,
     iconSource,
     iconCustomSvg,
+    hoverIconEnabled,
+    hoverIconSource,
+    hoverIconName,
+    hoverIconCustomSvg,
+    activeIconEnabled,
+    activeIconSource,
+    activeIconName,
+    activeIconCustomSvg,
+    loadingIconEnabled,
+    loadingIconSource,
+    loadingIconName,
+    loadingIconCustomSvg,
     iconPosition,
     iconSize: Number(iconSizeText)||18,
     iconGap: Number(iconGapText)||10,
     iconColor: iconColorMode === "text" ? "currentColor" : iconColorInput,
-    svgContent: iconSource === "custom" ? iconCustomSvg : (ICONS_SVG[iconName] || ""),
+    baseIconSvg,
+    hoverIconSvg,
+    activeIconSvg,
+    loadingIconSvg,
 
     // active
     activeEnabled,
-    activeTy: Number(activeTranslateYText)||1,
-    activeScale: Number(activeScaleText)||0.99,
+    activeTy: activeEnabled ? (Number(activeTranslateYText)||0) : 0,
+    activeScale: activeEnabled ? (Number(activeScaleText)||1) : 1,
 
     // focus
     focusRingEnabled,
@@ -631,34 +749,43 @@ export default function ActionButtonPage() {
     // preview specific
     previewBg: previewBgHex,
     ariaLabel,
+    ariaPressedMode,
+    ariaBusyMode,
     groupEnabled,
     groupAlign,
     groupGap: groupGapPx,
+    hoverEnabled,
     forceHover,
     forceActive,
     forceFocus,
-  };
+    transitionColorMs,
+    transitionColorEasing,
+    transitionTransformMs,
+    transitionTransformEasing,
+  }), [
+    label, variant, disabled, loading, animation, 
+    loadingLabel, loadingSpinnerMode, loadingSpinnerPosition, loadingSpinnerSvg,
+    touchWidth, touchHeight, padX, padY,
+    cssBg, cssText, cssBorder, cssHoverBg, cssHoverText, cssHoverBorder, cssHoverFilter, cssActiveBg, cssActiveText, cssActiveBorder, cssActiveFilter,
+    cssDisabledBg, cssDisabledText, cssDisabledBorder, disabledOpacity, disabledCursor, disabledBorderWidthPx, disabledHoverSuppressed, disabledTextShadowCss,
+    borderWidthPx, hoverBorderWidthPx, activeBorderWidthPx, borderStyle, rTL, rTR, rBR, rBL,
+    shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shColorInput,
+    fontBucket, systemFontIdx, googleFontFamily, fontSizeValue, fontSizeUnit, fontWeight, letterSpacingValue, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
+    align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsColor,
+    iconName, iconSource, iconCustomSvg, hoverIconEnabled, hoverIconSource, hoverIconName, hoverIconCustomSvg,
+    activeIconEnabled, activeIconSource, activeIconName, activeIconCustomSvg,
+    loadingIconEnabled, loadingIconSource, loadingIconName, loadingIconCustomSvg,
+    iconPosition, iconSizeText, iconGapText, iconColorMode, iconColorInput, baseIconSvg, hoverIconSvg, activeIconSvg, loadingIconSvg,
+    activeEnabled, activeTranslateYText, activeScaleText,
+    focusRingEnabled, focusRingWidthText, focusRingOffsetText, focusRingInput,
+    previewBgHex, ariaLabel, ariaPressedMode, ariaBusyMode, groupEnabled, groupAlign, groupGapPx, hoverEnabled, forceHover, forceActive, forceFocus,
+    transitionColorMs, transitionColorEasing, transitionTransformMs, transitionTransformEasing,
+  ]);
 
   useEffect(() => {
     if (!iframeRef.current?.contentWindow) return;
     iframeRef.current.contentWindow.postMessage(previewPayload, "*");
-  }, [
-    label, variant, disabled, loading, animation, 
-    loadingLabel, loadingSpinnerMode, loadingSpinnerPosition, loadingSpinnerSvg,
-    wPx, hPx, padX, padY, minTouchMode, minTouchSizeText,
-    useGradient, gradAngleText, gradStartInput, gradMidEnabled, gradMidInput, gradEndInput, bgInput, textInput,
-    borderWidthText, borderHoverWidthText, borderActiveWidthText, borderStyle, borderInput, rTL, rTR, rBR, rBL,
-    disabledOpacityText, disabledCursor, disabledUseCustomColors, disabledBgInput, disabledTextInput, disabledBorderInput,
-    shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shColorInput,
-    fontBucket, systemFontIdx, googleFontFamily, fontSizeText, fontSizeUnit, fontWeight, letterSpacingText, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
-    align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsOpacityText, tsColorInput,
-    iconName, iconSource, iconCustomSvg, iconPosition, iconSizeText, iconGapText, iconColorMode, iconColorInput,
-    groupEnabled, groupAlign, groupGapText,
-    hoverEnabled, hoverBgMode, hoverBgInput, hoverTextMode, hoverTextInput, hoverBorderMode, hoverBorderInput,
-    activeEnabled, activeTranslateYText, activeScaleText,
-    focusRingEnabled, focusRingWidthText, focusRingOffsetText, focusRingInput,
-    previewBgMode, previewBgInput, ariaLabel, forceHover, forceActive, forceFocus, tsColorMode
-  ]);
+  }, [previewPayload]);
 
   const initialSrcDoc = `<!doctype html>
 <html lang="en">
@@ -685,7 +812,14 @@ export default function ActionButtonPage() {
   .btn {
     appearance: none; outline: none; 
     cursor: pointer; position: relative; display: inline-flex;
-    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition:
+      background var(--btn-color-duration) var(--btn-color-ease),
+      color var(--btn-color-duration) var(--btn-color-ease),
+      border-color var(--btn-color-duration) var(--btn-color-ease),
+      filter var(--btn-color-duration) var(--btn-color-ease),
+      box-shadow var(--btn-color-duration) var(--btn-color-ease),
+      transform var(--btn-transform-duration) var(--btn-transform-ease),
+      border-width var(--btn-transform-duration) var(--btn-transform-ease);
     
     /* Dynamic Props */
     background: var(--btn-bg);
@@ -697,12 +831,23 @@ export default function ActionButtonPage() {
   }
   
   /* Robust CSS Hover */
-  .btn:hover:not(:disabled) {
+  .btn:hover:not(:disabled),
+  .btn.force-hover {
     background: var(--btn-hover-bg);
     color: var(--btn-hover-text);
     border-color: var(--btn-hover-border);
     border-width: var(--btn-hover-border-width);
     filter: var(--btn-hover-filter);
+  }
+
+  .btn:active:not(:disabled),
+  .btn.force-active {
+    background: var(--btn-active-bg);
+    color: var(--btn-active-text);
+    border-color: var(--btn-active-border);
+    border-width: var(--btn-active-border-width);
+    filter: var(--btn-active-filter);
+    transform: translateY(var(--btn-active-ty)) scale(var(--btn-active-scale));
   }
 
   .btn:disabled {
@@ -711,6 +856,17 @@ export default function ActionButtonPage() {
     background: var(--btn-disabled-bg);
     color: var(--btn-disabled-text);
     border-color: var(--btn-disabled-border);
+    border-width: var(--btn-disabled-border-width);
+    text-shadow: var(--btn-disabled-text-shadow);
+  }
+
+  .btn.suppress-hover:hover,
+  .btn.suppress-hover:disabled:hover {
+    background: var(--btn-disabled-bg);
+    color: var(--btn-disabled-text);
+    border-color: var(--btn-disabled-border);
+    border-width: var(--btn-disabled-border-width);
+    filter: none;
   }
 
   .icon-svg { flex-shrink: 0; display: inline-flex; }
@@ -785,6 +941,82 @@ export default function ActionButtonPage() {
       iconR: btn.querySelector('.icon-right'),
     };
   }
+
+  function clearIconSlot(slot){
+    if (!slot) return;
+    slot.innerHTML = '';
+    slot.style.display = 'none';
+    slot.style.marginRight = '0';
+    slot.style.marginLeft = '0';
+  }
+
+  function showIcon(slot, svg, size, color, gap, position){
+    if (!slot || !svg) return;
+    slot.innerHTML = svg;
+    slot.style.display = 'inline-flex';
+    slot.style.width = size;
+    slot.style.height = size;
+    slot.style.color = color;
+    if (position === 'left') slot.style.marginRight = gap;
+    else slot.style.marginLeft = gap;
+  }
+
+  function pickIconSvg(d, state){
+    if (state === 'active' && d.activeIconSvg) return d.activeIconSvg;
+    if (state === 'hover' && d.hoverIconSvg) return d.hoverIconSvg;
+    return d.baseIconSvg || '';
+  }
+
+  function getVisualState(btn, d){
+    if (d.loading) return 'loading';
+    if (d.forceActive && d.activeEnabled) return 'active';
+    if (d.forceHover && d.hoverEnabled) return 'hover';
+    const isActive = btn.dataset.active === 'true';
+    const isHover = btn.dataset.hover === 'true';
+    return isActive ? 'active' : (isHover ? 'hover' : 'base');
+  }
+
+  function applyIconState(btn, d){
+    const parts = getParts(btn);
+    const iconGap = d.iconGap + "px";
+    const iconSize = d.iconSize + "px";
+    const iconColor = d.iconColor;
+    const loadingMode = d.loadingSpinnerMode || "default";
+    const loadingSpinnerSvg = loadingMode === "custom"
+      ? (d.loadingSpinnerSvg || "")
+      : (loadingMode === "none" ? "" : defaultSpinnerSvg);
+    const spinnerPosition = d.loadingSpinnerPosition === "right" ? "right" : "left";
+
+    clearIconSlot(parts.iconL);
+    clearIconSlot(parts.iconR);
+
+    if (d.loading) {
+      if (d.loadingIconSvg) {
+        const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
+        showIcon(target, d.loadingIconSvg, iconSize, iconColor, iconGap, d.iconPosition);
+      } else if (loadingSpinnerSvg) {
+        const target = spinnerPosition === 'right' ? parts.iconR : parts.iconL;
+        renderSpinner(target, loadingSpinnerSvg);
+        if (target) {
+          target.style.display = 'inline-flex';
+          target.style.width = iconSize;
+          target.style.height = iconSize;
+          target.style.color = iconColor;
+          if (spinnerPosition === 'left') target.style.marginRight = iconGap;
+          else target.style.marginLeft = iconGap;
+        }
+      }
+      return;
+    }
+
+    const state = getVisualState(btn, d);
+    const svg = pickIconSvg(d, state);
+    if (svg) {
+      const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
+      showIcon(target, svg, iconSize, iconColor, iconGap, d.iconPosition);
+    }
+  }
+
   buttons.forEach((btn) => {
     btn.addEventListener('blur', () => {
       btn.classList.remove('force-focus-ring');
@@ -874,6 +1106,22 @@ export default function ActionButtonPage() {
       btn.disabled = d.disabled || d.loading;
       if (d.ariaLabel) btn.setAttribute('aria-label', d.ariaLabel);
       else btn.removeAttribute('aria-label');
+      if (d.ariaPressedMode && d.ariaPressedMode !== 'off') {
+        btn.setAttribute('aria-pressed', d.ariaPressedMode);
+      } else {
+        btn.removeAttribute('aria-pressed');
+      }
+      let ariaBusyValue = null;
+      if (d.ariaBusyMode === 'auto') {
+        ariaBusyValue = d.loading ? 'true' : null;
+      } else if (d.ariaBusyMode && d.ariaBusyMode !== 'off') {
+        ariaBusyValue = d.ariaBusyMode;
+      }
+      if (ariaBusyValue) {
+        btn.setAttribute('aria-busy', ariaBusyValue);
+      } else {
+        btn.removeAttribute('aria-busy');
+      }
       
       // Set Border Width/Style
       btn.style.setProperty('--btn-border-width', d.borderWidth + "px");
@@ -890,12 +1138,26 @@ export default function ActionButtonPage() {
       btn.style.setProperty('--btn-hover-text', d.cssHoverText);
       btn.style.setProperty('--btn-hover-border', d.cssHoverBorder);
       btn.style.setProperty('--btn-hover-filter', d.cssHoverFilter);
+
+      btn.style.setProperty('--btn-active-bg', d.cssActiveBg);
+      btn.style.setProperty('--btn-active-text', d.cssActiveText);
+      btn.style.setProperty('--btn-active-border', d.cssActiveBorder);
+      btn.style.setProperty('--btn-active-filter', d.cssActiveFilter);
+      btn.style.setProperty('--btn-active-ty', d.activeTy + "px");
+      btn.style.setProperty('--btn-active-scale', d.activeScale);
       
       btn.style.setProperty('--btn-disabled-bg', d.cssDisabledBg);
       btn.style.setProperty('--btn-disabled-text', d.cssDisabledText);
       btn.style.setProperty('--btn-disabled-border', d.cssDisabledBorder);
       btn.style.setProperty('--btn-disabled-opacity', d.disabledOpacity);
       btn.style.setProperty('--btn-disabled-cursor', d.disabledCursor);
+      btn.style.setProperty('--btn-disabled-border-width', d.disabledBorderWidth + "px");
+      btn.style.setProperty('--btn-disabled-text-shadow', d.disabledTextShadow);
+
+      btn.style.setProperty('--btn-color-duration', d.transitionColorMs + "ms");
+      btn.style.setProperty('--btn-color-ease', d.transitionColorEasing);
+      btn.style.setProperty('--btn-transform-duration', d.transitionTransformMs + "ms");
+      btn.style.setProperty('--btn-transform-ease', d.transitionTransformEasing);
 
       // Box Shadow
       if (d.shadowEnabled && d.variant !== 'ghost') {
@@ -922,100 +1184,49 @@ export default function ActionButtonPage() {
       } else {
         btn.style.textShadow = 'none';
       }
+      if (d.disabled || d.loading) {
+        btn.style.textShadow = d.disabledTextShadow || 'none';
+      }
 
       // Icons
-      const iconGap = d.iconGap + "px";
-      const iconSize = d.iconSize + "px";
-      const iconColor = d.iconColor;
-      const loadingMode = d.loadingSpinnerMode || "default";
-      const loadingSpinnerSvg = loadingMode === "custom"
-        ? (d.loadingSpinnerSvg || "")
-        : (loadingMode === "none" ? "" : defaultSpinnerSvg);
-      const spinnerPosition = d.loadingSpinnerPosition === "right" ? "right" : "left";
-      
-      if (parts.iconL) {
-        parts.iconL.innerHTML = '';
-        parts.iconL.style.display = 'none';
-        parts.iconL.style.marginRight = '0';
-        parts.iconL.style.marginLeft = '0';
-      }
-      if (parts.iconR) {
-        parts.iconR.innerHTML = '';
-        parts.iconR.style.display = 'none';
-        parts.iconR.style.marginRight = '0';
-        parts.iconR.style.marginLeft = '0';
-      }
-      
-      if (d.loading) {
-          if (loadingSpinnerSvg) {
-            const target = spinnerPosition === 'right' ? parts.iconR : parts.iconL;
-            renderSpinner(target, loadingSpinnerSvg);
-            if (target) {
-              target.style.display = 'inline-flex';
-              target.style.width = iconSize; target.style.height = iconSize;
-              target.style.color = iconColor;
-              if (spinnerPosition === 'left') target.style.marginRight = iconGap;
-              else target.style.marginLeft = iconGap;
-            }
-          }
-      } else if ((d.iconSource === 'custom' && d.svgContent) || (d.iconSource !== 'custom' && d.iconName !== 'none' && d.svgContent)) {
-          const target = d.iconPosition === 'left' ? parts.iconL : parts.iconR;
-          if (target) {
-            target.innerHTML = d.svgContent;
-            target.style.display = 'inline-flex';
-            target.style.width = iconSize; target.style.height = iconSize;
-            target.style.color = iconColor;
-            
-            if (d.iconPosition === 'left') target.style.marginRight = iconGap;
-            else target.style.marginLeft = iconGap;
-          }
-      }
+      if (!btn.dataset.hover) btn.dataset.hover = 'false';
+      if (!btn.dataset.active) btn.dataset.active = 'false';
+      applyIconState(btn, d);
 
       // Animation Class
       btn.className = 'btn';
       if (d.animation === 'pulse') btn.classList.add('anim-pulse');
       if (d.animation === 'float') btn.classList.add('anim-float');
       if (d.animation === 'subtle-pop') btn.classList.add('anim-subtle-pop');
+      const allowForceHover = d.forceHover && d.hoverEnabled && !d.disabled && !d.loading;
+      const allowForceActive = d.forceActive && d.activeEnabled && !d.disabled && !d.loading;
+      if (allowForceHover) btn.classList.add('force-hover');
+      if (allowForceActive) btn.classList.add('force-active');
       if (d.forceFocus) btn.classList.add('force-focus-ring');
-      else btn.classList.remove('force-focus-ring');
+      btn.classList.toggle('suppress-hover', d.disabledHoverSuppressed && (d.disabled || d.loading));
 
-      // JS Active State (Transform Only)
-      btn.onmousedown = () => {
-         if(!d.activeEnabled || d.disabled || d.loading) return;
-         btn.style.transform = \`translateY(\${d.activeTy}px) scale(\${d.activeScale})\`;
-         btn.style.borderWidth = d.borderActiveWidth + "px";
-      };
-      btn.onmouseup = () => {
-         btn.style.transform = 'none';
-         btn.style.borderWidth = '';
-         if (d.animation === 'float') btn.classList.add('anim-float');
+      // Hover/Active icon state hooks
+      btn.onmouseenter = () => {
+        if (!d.hoverEnabled || d.forceHover || d.forceActive || d.disabled || d.loading) return;
+        btn.dataset.hover = 'true';
+        applyIconState(btn, d);
       };
       btn.onmouseleave = () => {
-         btn.style.transform = 'none';
-         btn.style.borderWidth = '';
+        if (!d.hoverEnabled || d.forceHover || d.forceActive) return;
+        btn.dataset.hover = 'false';
+        btn.dataset.active = 'false';
+        applyIconState(btn, d);
       };
-
-      if (d.forceHover && !d.disabled && !d.loading) {
-        btn.style.background = d.cssHoverBg;
-        btn.style.color = d.cssHoverText;
-        btn.style.borderColor = d.cssHoverBorder;
-        btn.style.filter = d.cssHoverFilter;
-        btn.style.borderWidth = d.borderHoverWidth + "px";
-      } else {
-        btn.style.background = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.style.filter = '';
-        if (!d.forceActive) btn.style.borderWidth = '';
-      }
-
-      if (d.forceActive && d.activeEnabled && !d.disabled && !d.loading) {
-        btn.style.transform = \`translateY(\${d.activeTy}px) scale(\${d.activeScale})\`;
-        btn.style.borderWidth = d.borderActiveWidth + "px";
-      } else if (!d.forceActive) {
-        btn.style.transform = '';
-        if (!d.forceHover) btn.style.borderWidth = '';
-      }
+      btn.onmousedown = () => {
+        if (!d.activeEnabled || d.disabled || d.loading || d.forceActive) return;
+        btn.dataset.active = 'true';
+        applyIconState(btn, d);
+      };
+      btn.onmouseup = () => {
+        if (d.forceActive) return;
+        btn.dataset.active = 'false';
+        applyIconState(btn, d);
+      };
     });
     
     // Focus vars
@@ -1047,11 +1258,17 @@ export default function ActionButtonPage() {
     const exportHeight = touchHeight;
     const fontSizeCss = `${fontSizeValue}${fontSizeUnit}`;
     const letterSpacingCss = `${letterSpacingValue}${letterSpacingUnit}`;
-    const ariaAttr = ariaLabel ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"` : "";
+    const ariaLabelAttr = ariaLabel ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"` : "";
+    const ariaPressedAttr = ariaPressedMode !== "off" ? ` aria-pressed="${ariaPressedMode}"` : "";
+    const ariaBusyAttr = ariaBusyMode === "auto"
+      ? (loading ? ` aria-busy="true"` : "")
+      : (ariaBusyMode !== "off" ? ` aria-busy="${ariaBusyMode}"` : "");
+    const ariaAttr = `${ariaLabelAttr}${ariaPressedAttr}${ariaBusyAttr}`;
     const tsX = Number(tsXText)||0;
     const tsY = Number(tsYText)||0;
     const tsBlur = Number(tsBlurText)||0;
     const textShadowCss = textShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
+    const transitionCss = `background ${transitionColorMs}ms ${transitionColorEasing}, color ${transitionColorMs}ms ${transitionColorEasing}, border-color ${transitionColorMs}ms ${transitionColorEasing}, filter ${transitionColorMs}ms ${transitionColorEasing}, box-shadow ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}, border-width ${transitionTransformMs}ms ${transitionTransformEasing}`;
     const exportShadowColor = hexWithAlpha(shColorInput, Number(shOpacityText)||0.1);
     const exportShadow = shadowEnabled && variant !== "ghost"
       ? `${Number(shXText)||0}px ${Number(shYText)||0}px ${Number(shBlurText)||0}px ${Number(shSpreadText)||0}px ${exportShadowColor}`
@@ -1067,23 +1284,43 @@ export default function ActionButtonPage() {
       ? `<span class="uf-spinner-wrap" style="width:${spinnerSize}px;height:${spinnerSize}px;${loadingSpinnerPosition === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}">${exportSpinnerSvg}</span>`
       : "";
     const labelHtml = `<span class="uf-label">${loading ? loadingLabelText : label}</span>`;
-    const exportIconSvg = iconSource === "custom" ? iconCustomSvg : (ICONS_SVG[iconName] || "");
-    const hasIcon = iconSource === "custom" ? Boolean(exportIconSvg.trim()) : iconName !== "none";
+    const exportBaseIconSvg = baseIconSvg;
+    const exportHoverIconSvg = hoverIconSvg;
+    const exportActiveIconSvg = activeIconSvg;
+    const exportLoadingIconSvg = loadingIconSvg;
+    const hasBaseIcon = iconSource === "custom" ? Boolean(exportBaseIconSvg.trim()) : iconName !== "none";
+    const hasHoverIcon = Boolean(exportHoverIconSvg && exportHoverIconSvg.trim());
+    const hasActiveIcon = Boolean(exportActiveIconSvg && exportActiveIconSvg.trim());
+    const hasLoadingIcon = Boolean(exportLoadingIconSvg && exportLoadingIconSvg.trim());
     const iconColor = iconColorMode === "custom" ? iconColorInput : "currentColor";
-    const iconWrapLeft = hasIcon && iconPosition === "left"
-      ? `<span class="uf-icon-wrap left" style="width:${spinnerSize}px;height:${spinnerSize}px;margin-right:${spinnerGap}px;color:${iconColor};">${exportIconSvg}</span>`
+    const renderIconSpan = (state: string, svg: string, position: "left" | "right") =>
+      svg
+        ? `<span class="uf-icon-wrap uf-icon-${state} ${position}" style="width:${spinnerSize}px;height:${spinnerSize}px;${position === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}color:${iconColor};">${svg}</span>`
+        : "";
+    const iconWrapLeft = iconPosition === "left"
+      ? `${renderIconSpan("base", exportBaseIconSvg, "left")}${renderIconSpan("hover", exportHoverIconSvg, "left")}${renderIconSpan("active", exportActiveIconSvg, "left")}`
       : "";
-    const iconWrapRight = hasIcon && iconPosition === "right"
-      ? `<span class="uf-icon-wrap right" style="width:${spinnerSize}px;height:${spinnerSize}px;margin-left:${spinnerGap}px;color:${iconColor};">${exportIconSvg}</span>`
+    const iconWrapRight = iconPosition === "right"
+      ? `${renderIconSpan("base", exportBaseIconSvg, "right")}${renderIconSpan("hover", exportHoverIconSvg, "right")}${renderIconSpan("active", exportActiveIconSvg, "right")}`
       : "";
+    const loadingIconWrap = hasLoadingIcon ? renderIconSpan("loading", exportLoadingIconSvg, iconPosition === "right" ? "right" : "left") : "";
+    const useLoadingIcon = loading && hasLoadingIcon;
     const buttonInnerHtml = loading
-      ? (loadingSpinnerPosition === "right" ? `${labelHtml}${spinnerWrap}` : `${spinnerWrap}${labelHtml}`)
+      ? (useLoadingIcon
+          ? (iconPosition === "right" ? `${labelHtml}${loadingIconWrap}` : `${loadingIconWrap}${labelHtml}`)
+          : (loadingSpinnerPosition === "right" ? `${labelHtml}${spinnerWrap}` : `${spinnerWrap}${labelHtml}`))
       : `${iconWrapLeft}${labelHtml}${iconWrapRight}`;
     const exportDisabled = disabled || loading;
     const exportSpinnerSvgLiteral = JSON.stringify(exportSpinnerSvg);
     const exportLoadingLabelLiteral = JSON.stringify(loadingLabelText);
-    const exportIconSvgLiteral = JSON.stringify(exportIconSvg);
-    const exportHasIconLiteral = JSON.stringify(hasIcon);
+    const exportBaseIconSvgLiteral = JSON.stringify(exportBaseIconSvg);
+    const exportHoverIconSvgLiteral = JSON.stringify(exportHoverIconSvg);
+    const exportActiveIconSvgLiteral = JSON.stringify(exportActiveIconSvg);
+    const exportLoadingIconSvgLiteral = JSON.stringify(exportLoadingIconSvg);
+    const exportHasIconLiteral = JSON.stringify(hasBaseIcon);
+    const exportHasHoverIconLiteral = JSON.stringify(hasHoverIcon);
+    const exportHasActiveIconLiteral = JSON.stringify(hasActiveIcon);
+    const exportHasLoadingIconLiteral = JSON.stringify(hasLoadingIcon);
     const exportIconColorLiteral = JSON.stringify(iconColor);
 
     // Radius string for export
@@ -1109,12 +1346,29 @@ export default function ActionButtonPage() {
   ${hoverBgMode === 'auto' ? `filter: brightness(95%);` : `background: ${cssHoverBg}; filter: none;`}
   ${hoverTextMode === 'custom' ? `color: ${hoverTextInput};` : ''}
   ${hoverBorderMode === 'custom' ? `border-color: ${hoverBorderInput};` : ''}
-  border-width: ${borderHoverWidthPx}px;
+  border-width: ${hoverBorderWidthPx}px;
+}`.trim() : "";
+    const activeCSS = activeEnabled ? `
+.uf-btn:active {
+  background: ${cssActiveBg};
+  color: ${cssActiveText};
+  border-color: ${cssActiveBorder};
+  border-width: ${activeBorderWidthPx}px;
+  filter: ${cssActiveFilter};
+  transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+}`.trim() : "";
+    const disabledHoverCSS = disabledHoverSuppressed ? `
+.uf-btn.suppress-hover:hover {
+  background: ${cssDisabledBg};
+  color: ${cssDisabledText};
+  border-color: ${cssDisabledBorder};
+  border-width: ${disabledBorderWidthPx}px;
+  filter: none;
 }`.trim() : "";
 
     if (downloadFormat === "html") {
       content = `
-<button class="uf-btn"${exportDisabled ? " disabled" : ""}${ariaAttr}>
+<button class="uf-btn${useLoadingIcon ? " is-loading" : ""}${disabledHoverSuppressed && exportDisabled ? " suppress-hover" : ""}"${exportDisabled ? " disabled" : ""}${ariaAttr}>
   ${buttonInnerHtml}
 </button>
 
@@ -1135,13 +1389,15 @@ export default function ActionButtonPage() {
   line-height: ${lHeight};
   text-shadow: ${textShadowCss};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: ${transitionCss};
   text-decoration: ${underline ? "underline" : "none"};
 }
 .uf-btn:disabled {
   background: ${cssDisabledBg};
   color: ${cssDisabledText};
   border-color: ${cssDisabledBorder};
+  border-width: ${disabledBorderWidthPx}px;
+  text-shadow: ${disabledTextShadowCss};
   opacity: ${disabledOpacity};
   cursor: ${disabledCursor};
 }
@@ -1156,9 +1412,24 @@ export default function ActionButtonPage() {
   width: 100%;
   height: 100%;
 }
+.uf-icon-hover,
+.uf-icon-active,
+.uf-icon-loading {
+  display: none;
+}
+.uf-btn:hover .uf-icon-base { display: none; }
+.uf-btn:hover .uf-icon-hover { display: inline-flex; }
+.uf-btn:active .uf-icon-hover { display: none; }
+.uf-btn:active .uf-icon-base { display: none; }
+.uf-btn:active .uf-icon-active { display: inline-flex; }
+.uf-btn.is-loading .uf-icon-base,
+.uf-btn.is-loading .uf-icon-hover,
+.uf-btn.is-loading .uf-icon-active { display: none; }
+.uf-btn.is-loading .uf-icon-loading { display: inline-flex; }
 @keyframes spin { to { transform: rotate(360deg); } }
 ${hoverCSS}
-${activeEnabled ? `.uf-btn:active { transform: translateY(${activeTranslateYText}px) scale(${activeScaleText}); border-width: ${borderActiveWidthPx}px; }` : ""}
+${disabledHoverCSS}
+${activeCSS}
 </style>`;
     } else if (downloadFormat === "react") {
       content = `
@@ -1174,11 +1445,21 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   const spinnerPosition = "${loadingSpinnerPosition}";
   const spinnerGap = ${spinnerGap};
   const spinnerSize = ${spinnerSize};
-  const iconSvg = ${exportIconSvgLiteral};
+  const baseIconSvg = ${exportBaseIconSvgLiteral};
+  const hoverIconSvg = ${exportHoverIconSvgLiteral};
+  const activeIconSvg = ${exportActiveIconSvgLiteral};
+  const loadingIconSvg = ${exportLoadingIconSvgLiteral};
   const iconPosition = "${iconPosition}";
   const iconColor = ${exportIconColorLiteral};
-  const hasIcon = ${exportHasIconLiteral};
+  const hasBaseIcon = ${exportHasIconLiteral};
+  const hasHoverIcon = ${exportHasHoverIconLiteral};
+  const hasActiveIcon = ${exportHasActiveIconLiteral};
+  const hasLoadingIcon = ${exportHasLoadingIconLiteral};
   const ariaLabel = ${JSON.stringify(ariaLabel)};
+  const ariaPressedMode = ${JSON.stringify(ariaPressedMode)};
+  const ariaBusyMode = ${JSON.stringify(ariaBusyMode)};
+  const hoverEnabled = ${JSON.stringify(hoverEnabled)};
+  const activeEnabled = ${JSON.stringify(activeEnabled)};
 
   const baseStyle = {
     width: '${exportWidth}px', height: '${exportHeight}px',
@@ -1197,13 +1478,20 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     alignItems: '${alignItems}',
     justifyContent: '${justify}',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: '${transitionCss}',
   };
+
+  const ariaPressedValue = ariaPressedMode !== 'off' ? ariaPressedMode : undefined;
+  const ariaBusyValue = ariaBusyMode === 'auto'
+    ? (loading ? 'true' : undefined)
+    : (ariaBusyMode !== 'off' ? ariaBusyMode : undefined);
 
   const disabledStyle = {
     background: '${cssDisabledBg}',
     color: '${cssDisabledText}',
     borderColor: '${cssDisabledBorder}',
+    borderWidth: '${disabledBorderWidthPx}px',
+    textShadow: '${disabledTextShadowCss}',
     opacity: ${disabledOpacity},
     cursor: '${disabledCursor}',
   };
@@ -1212,12 +1500,16 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     ${hoverBgMode === 'auto' ? `filter: 'brightness(95%)',` : `background: '${cssHoverBg}', filter: 'none',`}
     ${hoverTextMode === 'custom' ? `color: '${hoverTextInput}',` : ''}
     ${hoverBorderMode === 'custom' ? `borderColor: '${hoverBorderInput}',` : ''}
-    borderWidth: '${borderHoverWidthPx}px',
+    borderWidth: '${hoverBorderWidthPx}px',
   };
 
   const activeStyle = {
+    background: '${cssActiveBg}',
+    color: '${cssActiveText}',
+    borderColor: '${cssActiveBorder}',
+    filter: '${cssActiveFilter}',
     transform: 'translateY(${activeTranslateYText}px) scale(${activeScaleText})',
-    borderWidth: '${borderActiveWidthPx}px',
+    borderWidth: '${activeBorderWidthPx}px',
   };
 
   const spinnerWrapStyle = {
@@ -1227,7 +1519,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     ...(spinnerPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
   };
 
-  const spinnerNode = spinnerSvg ? (
+  const useLoadingIcon = loading && hasLoadingIcon && loadingIconSvg;
+  const spinnerNode = !useLoadingIcon && spinnerSvg ? (
     <span className="uf-spinner-wrap" style={spinnerWrapStyle} dangerouslySetInnerHTML={{ __html: spinnerSvg }} />
   ) : null;
   const labelNode = <span className="uf-label">{loading ? loadingLabel : defaultLabel}</span>;
@@ -1238,8 +1531,16 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     color: iconColor,
     ...(iconPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
   };
-  const iconNode = hasIcon && iconSvg ? (
-    <span className="uf-icon-wrap" style={iconWrapStyle} dangerouslySetInnerHTML={{ __html: iconSvg }} />
+  const resolveIconSvg = () => {
+    if (useLoadingIcon) return loadingIconSvg;
+    if (active && hasActiveIcon && activeIconSvg) return activeIconSvg;
+    if (hover && hasHoverIcon && hoverIconSvg) return hoverIconSvg;
+    if (hasBaseIcon && baseIconSvg) return baseIconSvg;
+    return "";
+  };
+  const resolvedIconSvg = resolveIconSvg();
+  const iconNode = resolvedIconSvg ? (
+    <span className="uf-icon-wrap" style={iconWrapStyle} dangerouslySetInnerHTML={{ __html: resolvedIconSvg }} />
   ) : null;
 
   return (
@@ -1251,30 +1552,46 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       \`}</style>
       <button 
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onMouseDown={() => setActive(true)}
-      onMouseUp={() => setActive(false)}
+      onMouseEnter={() => hoverEnabled && setHover(true)}
+      onMouseLeave={() => hoverEnabled && setHover(false)}
+      onMouseDown={() => activeEnabled && setActive(true)}
+      onMouseUp={() => activeEnabled && setActive(false)}
       disabled={isDisabled}
       aria-label={ariaLabel || undefined}
+      aria-pressed={ariaPressedValue}
+      aria-busy={ariaBusyValue}
       style={{
         ...baseStyle,
-        ...(hover ? hoverStyle : {}),
-        ...(active ? activeStyle : {}),
+        ...(hoverEnabled && hover ? hoverStyle : {}),
+        ...(activeEnabled && active ? activeStyle : {}),
         ...(isDisabled ? disabledStyle : {}),
       }}
     >
       {loading ? (
-        spinnerPosition === 'right' ? (
-          <>
-            {labelNode}
-            {spinnerNode}
-          </>
+        useLoadingIcon ? (
+          iconPosition === 'right' ? (
+            <>
+              {labelNode}
+              {iconNode}
+            </>
+          ) : (
+            <>
+              {iconNode}
+              {labelNode}
+            </>
+          )
         ) : (
-          <>
-            {spinnerNode}
-            {labelNode}
-          </>
+          spinnerPosition === 'right' ? (
+            <>
+              {labelNode}
+              {spinnerNode}
+            </>
+          ) : (
+            <>
+              {spinnerNode}
+              {labelNode}
+            </>
+          )
         )
       ) : (
         iconPosition === 'right' ? (
@@ -1294,6 +1611,104 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   );
 };
 `;
+    } else if (downloadFormat === "tailwind") {
+      const uniformRadius = rTL === rTR && rTR === rBR && rBR === rBL;
+      const radiusClasses = uniformRadius
+        ? [`rounded-[${rTL}px]`]
+        : [
+            `rounded-tl-[${rTL}px]`,
+            `rounded-tr-[${rTR}px]`,
+            `rounded-br-[${rBR}px]`,
+            `rounded-bl-[${rBL}px]`,
+          ];
+      const borderStyleClass =
+        borderStyle === "dashed"
+          ? "border-dashed"
+          : borderStyle === "dotted"
+            ? "border-dotted"
+            : borderStyle === "double"
+              ? "border-double"
+              : borderStyle === "none"
+                ? "border-none"
+                : "border-solid";
+      const transformClasses = activeEnabled
+        ? [
+            `active:translate-y-[${activeTranslateYText}px]`,
+            `active:scale-[${activeScaleText}]`,
+            `active:border-[${activeBorderWidthPx}px]`,
+            `active:bg-[${cssActiveBg}]`,
+            `active:text-[${cssActiveText}]`,
+            `active:border-[${cssActiveBorder}]`,
+          ]
+        : [];
+      const hoverClasses = hoverEnabled
+        ? [
+            hoverBgMode === "auto" ? "hover:brightness-[0.92]" : `hover:bg-[${cssHoverBg}]`,
+            hoverTextMode === "custom" ? `hover:text-[${hoverTextInput}]` : "",
+            hoverBorderMode === "custom" ? `hover:border-[${hoverBorderInput}]` : "",
+            `hover:border-[${hoverBorderWidthPx}px]`,
+          ]
+        : [];
+      const focusClasses = focusRingEnabled
+        ? [
+            "focus-visible:outline-none",
+            `focus-visible:ring-[${focusRingWidthText}px]`,
+            `focus-visible:ring-offset-[${focusRingOffsetText}px]`,
+            `focus-visible:ring-[${focusRingInput}]`,
+          ]
+        : ["focus-visible:outline-none"];
+
+      const tailwindClasses = [
+        "inline-flex",
+        "items-center",
+        "justify-center",
+        `font-[${fontWeight}]`,
+        `w-[${exportWidth}px]`,
+        `h-[${exportHeight}px]`,
+        `px-[${padX}px]`,
+        `py-[${padY}px]`,
+        `border-[${borderWidthPx}px]`,
+        borderStyleClass,
+        `border-[${borderInput}]`,
+        cssBg !== "transparent" ? `bg-[${cssBg}]` : "bg-transparent",
+        `text-[${textInput}]`,
+        `text-[${fontSizeCss}]`,
+        `tracking-[${letterSpacingCss}]`,
+        `leading-[${lHeight}]`,
+        underline ? "underline" : "no-underline",
+        fontStyle === "italic" ? "italic" : "",
+        textTransform === "uppercase"
+          ? "uppercase"
+          : textTransform === "lowercase"
+            ? "lowercase"
+            : textTransform === "capitalize"
+              ? "capitalize"
+              : "normal-case",
+        exportShadow !== "none" ? `shadow-[${exportShadow}]` : "shadow-none",
+        `disabled:opacity-[${disabledOpacity}]`,
+        `disabled:cursor-${disabledCursor}`,
+        `disabled:bg-[${cssDisabledBg}]`,
+        `disabled:text-[${cssDisabledText}]`,
+        `disabled:border-[${cssDisabledBorder}]`,
+        `disabled:border-[${disabledBorderWidthPx}px]`,
+        ...radiusClasses,
+        ...hoverClasses,
+        ...transformClasses,
+        ...focusClasses,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      const inlineStyleParts = [`transition: ${transitionCss};`];
+      if (!uniformRadius) inlineStyleParts.push(`border-radius: ${rCSS};`);
+      if (textShadowCss !== "none") inlineStyleParts.push(`text-shadow: ${textShadowCss};`);
+      const inlineStyle = inlineStyleParts.join(" ");
+
+      content = `
+<button class="${tailwindClasses}"${ariaAttr}${inlineStyle ? ` style="${inlineStyle}"` : ""}>
+  ${loading ? loadingLabelText : label}
+</button>
+`.trim();
     } else if (downloadFormat === "css-vars") {
       content = `
 :root {
@@ -1308,6 +1723,14 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   --uf-btn-hover-bg: ${cssHoverBg};
   --uf-btn-hover-text: ${cssHoverText};
   --uf-btn-hover-border: ${cssHoverBorder};
+  --uf-btn-active-bg: ${cssActiveBg};
+  --uf-btn-active-text: ${cssActiveText};
+  --uf-btn-active-border: ${cssActiveBorder};
+  --uf-btn-disabled-bg: ${cssDisabledBg};
+  --uf-btn-disabled-text: ${cssDisabledText};
+  --uf-btn-disabled-border: ${cssDisabledBorder};
+  --uf-btn-disabled-border-width: ${disabledBorderWidthPx}px;
+  --uf-btn-disabled-text-shadow: ${disabledTextShadowCss};
 }
 
 .uf-btn {
@@ -1323,6 +1746,30 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   letter-spacing: var(--uf-btn-letter-spacing);
   line-height: var(--uf-btn-line-height);
   box-shadow: var(--uf-btn-shadow);
+  transition: ${transitionCss};
+}
+.uf-btn:hover {
+  background: var(--uf-btn-hover-bg);
+  color: var(--uf-btn-hover-text);
+  border-color: var(--uf-btn-hover-border);
+  border-width: ${hoverBorderWidthPx}px;
+  ${hoverEnabled && hoverBgMode === 'auto' ? `filter: brightness(95%);` : `filter: none;`}
+}
+.uf-btn:active {
+  background: var(--uf-btn-active-bg);
+  color: var(--uf-btn-active-text);
+  border-color: var(--uf-btn-active-border);
+  border-width: ${activeBorderWidthPx}px;
+  transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+}
+.uf-btn:disabled {
+  background: var(--uf-btn-disabled-bg);
+  color: var(--uf-btn-disabled-text);
+  border-color: var(--uf-btn-disabled-border);
+  border-width: var(--uf-btn-disabled-border-width);
+  text-shadow: var(--uf-btn-disabled-text-shadow);
+  opacity: ${disabledOpacity};
+  cursor: ${disabledCursor};
 }
 `.trim();
     } else if (downloadFormat === "scss") {
@@ -1335,6 +1782,15 @@ $uf-btn-font-size: ${fontSizeCss};
 $uf-btn-letter-spacing: ${letterSpacingCss};
 $uf-btn-line-height: ${lHeight};
 $uf-btn-shadow: ${exportShadow};
+$uf-btn-hover-bg: ${cssHoverBg};
+$uf-btn-hover-text: ${cssHoverText};
+$uf-btn-hover-border: ${cssHoverBorder};
+$uf-btn-active-bg: ${cssActiveBg};
+$uf-btn-active-text: ${cssActiveText};
+$uf-btn-active-border: ${cssActiveBorder};
+$uf-btn-disabled-bg: ${cssDisabledBg};
+$uf-btn-disabled-text: ${cssDisabledText};
+$uf-btn-disabled-border: ${cssDisabledBorder};
 
 @mixin uf-button {
   width: ${exportWidth}px; height: ${exportHeight}px;
@@ -1349,6 +1805,33 @@ $uf-btn-shadow: ${exportShadow};
   letter-spacing: $uf-btn-letter-spacing;
   line-height: $uf-btn-line-height;
   box-shadow: $uf-btn-shadow;
+  transition: ${transitionCss};
+
+  &:hover {
+    background: $uf-btn-hover-bg;
+    color: $uf-btn-hover-text;
+    border-color: $uf-btn-hover-border;
+    border-width: ${hoverBorderWidthPx}px;
+    ${hoverEnabled && hoverBgMode === 'auto' ? `filter: brightness(95%);` : `filter: none;`}
+  }
+
+  &:active {
+    background: $uf-btn-active-bg;
+    color: $uf-btn-active-text;
+    border-color: $uf-btn-active-border;
+    border-width: ${activeBorderWidthPx}px;
+    transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+  }
+
+  &:disabled {
+    background: $uf-btn-disabled-bg;
+    color: $uf-btn-disabled-text;
+    border-color: $uf-btn-disabled-border;
+    border-width: ${disabledBorderWidthPx}px;
+    text-shadow: ${disabledTextShadowCss};
+    opacity: ${disabledOpacity};
+    cursor: ${disabledCursor};
+  }
 }
 `.trim();
     } else if (downloadFormat === "tailwind-config") {
@@ -1587,7 +2070,7 @@ module.exports = {
       content: (
         <IconSection
           PALETTE={PALETTE}
-          iconName={iconName as any} setIconName={setIconName}
+          iconName={iconName} setIconName={setIconName}
           iconSource={iconSource} setIconSource={setIconSource}
           iconCustomSvg={iconCustomSvg} setIconCustomSvg={setIconCustomSvg}
           iconPosition={iconPosition} setIconPosition={setIconPosition}
@@ -1596,6 +2079,18 @@ module.exports = {
           iconColorMode={iconColorMode} setIconColorMode={setIconColorMode}
           iconColorInput={iconColorInput} setIconColorInput={setIconColorInput}
           iconColorNorm={norm(iconColorInput)} baseTextHex={textInput}
+          hoverIconEnabled={hoverIconEnabled} setHoverIconEnabled={setHoverIconEnabled}
+          hoverIconSource={hoverIconSource} setHoverIconSource={setHoverIconSource}
+          hoverIconName={hoverIconName} setHoverIconName={setHoverIconName}
+          hoverIconCustomSvg={hoverIconCustomSvg} setHoverIconCustomSvg={setHoverIconCustomSvg}
+          activeIconEnabled={activeIconEnabled} setActiveIconEnabled={setActiveIconEnabled}
+          activeIconSource={activeIconSource} setActiveIconSource={setActiveIconSource}
+          activeIconName={activeIconName} setActiveIconName={setActiveIconName}
+          activeIconCustomSvg={activeIconCustomSvg} setActiveIconCustomSvg={setActiveIconCustomSvg}
+          loadingIconEnabled={loadingIconEnabled} setLoadingIconEnabled={setLoadingIconEnabled}
+          loadingIconSource={loadingIconSource} setLoadingIconSource={setLoadingIconSource}
+          loadingIconName={loadingIconName} setLoadingIconName={setLoadingIconName}
+          loadingIconCustomSvg={loadingIconCustomSvg} setLoadingIconCustomSvg={setLoadingIconCustomSvg}
         />
       ),
     },
@@ -1638,6 +2133,10 @@ module.exports = {
           disabledTextNorm={norm(disabledTextInput)}
           disabledBorderInput={disabledBorderInput} setDisabledBorderInput={setDisabledBorderInput}
           disabledBorderNorm={norm(disabledBorderInput)}
+          disabledBorderWidthText={disabledBorderWidthText} setDisabledBorderWidthText={setDisabledBorderWidthText}
+          disabledBorderWidthPx={disabledBorderWidthPx}
+          disabledHoverSuppressed={disabledHoverSuppressed} setDisabledHoverSuppressed={setDisabledHoverSuppressed}
+          disabledTextShadowEnabled={disabledTextShadowEnabled} setDisabledTextShadowEnabled={setDisabledTextShadowEnabled}
         />
       ),
     },
@@ -1651,6 +2150,14 @@ module.exports = {
           hoverBgMode={hoverBgMode} setHoverBgMode={setHoverBgMode}
           hoverBgInput={hoverBgInput} setHoverBgInput={setHoverBgInput}
           hoverBgOk={norm(hoverBgInput).ok} hoverBgHex={norm(hoverBgInput).hex} hoverBgRgb={norm(hoverBgInput).rgb}
+          hoverGradAngleText={hoverGradAngleText} setHoverGradAngleText={setHoverGradAngleText}
+          hoverGradStartInput={hoverGradStartInput} setHoverGradStartInput={setHoverGradStartInput}
+          hoverGradStartNorm={norm(hoverGradStartInput)}
+          hoverGradMidEnabled={hoverGradMidEnabled} setHoverGradMidEnabled={setHoverGradMidEnabled}
+          hoverGradMidInput={hoverGradMidInput} setHoverGradMidInput={setHoverGradMidInput}
+          hoverGradMidNorm={norm(hoverGradMidInput)}
+          hoverGradEndInput={hoverGradEndInput} setHoverGradEndInput={setHoverGradEndInput}
+          hoverGradEndNorm={norm(hoverGradEndInput)}
           
           hoverTextMode={hoverTextMode} setHoverTextMode={setHoverTextMode}
           hoverTextInput={hoverTextInput} setHoverTextInput={setHoverTextInput}
@@ -1659,6 +2166,11 @@ module.exports = {
           hoverBorderMode={hoverBorderMode} setHoverBorderMode={setHoverBorderMode}
           hoverBorderInput={hoverBorderInput} setHoverBorderInput={setHoverBorderInput}
           hoverBorderOk={norm(hoverBorderInput).ok} hoverBorderHex={norm(hoverBorderInput).hex} hoverBorderRgb={norm(hoverBorderInput).rgb}
+          transitionColorDurationText={transitionColorDurationText}
+          setTransitionColorDurationText={setTransitionColorDurationText}
+          transitionColorMs={transitionColorMs}
+          transitionColorEasing={transitionColorEasing}
+          setTransitionColorEasing={setTransitionColorEasing}
         />
       ),
     },
@@ -1671,6 +2183,29 @@ module.exports = {
           activeEnabled={activeEnabled} setActiveEnabled={setActiveEnabled}
           activeTranslateYText={activeTranslateYText} setActiveTranslateYText={setActiveTranslateYText} activeTranslateY={Number(activeTranslateYText)}
           activeScaleText={activeScaleText} setActiveScaleText={setActiveScaleText} activeScale={Number(activeScaleText)}
+          PALETTE={PALETTE}
+          activeBgMode={activeBgMode} setActiveBgMode={setActiveBgMode}
+          activeBgInput={activeBgInput} setActiveBgInput={setActiveBgInput}
+          activeBgNorm={norm(activeBgInput)}
+          activeGradAngleText={activeGradAngleText} setActiveGradAngleText={setActiveGradAngleText}
+          activeGradStartInput={activeGradStartInput} setActiveGradStartInput={setActiveGradStartInput}
+          activeGradStartNorm={norm(activeGradStartInput)}
+          activeGradMidEnabled={activeGradMidEnabled} setActiveGradMidEnabled={setActiveGradMidEnabled}
+          activeGradMidInput={activeGradMidInput} setActiveGradMidInput={setActiveGradMidInput}
+          activeGradMidNorm={norm(activeGradMidInput)}
+          activeGradEndInput={activeGradEndInput} setActiveGradEndInput={setActiveGradEndInput}
+          activeGradEndNorm={norm(activeGradEndInput)}
+          activeTextMode={activeTextMode} setActiveTextMode={setActiveTextMode}
+          activeTextInput={activeTextInput} setActiveTextInput={setActiveTextInput}
+          activeTextNorm={norm(activeTextInput)}
+          activeBorderMode={activeBorderMode} setActiveBorderMode={setActiveBorderMode}
+          activeBorderInput={activeBorderInput} setActiveBorderInput={setActiveBorderInput}
+          activeBorderNorm={norm(activeBorderInput)}
+          transitionTransformDurationText={transitionTransformDurationText}
+          setTransitionTransformDurationText={setTransitionTransformDurationText}
+          transitionTransformMs={transitionTransformMs}
+          transitionTransformEasing={transitionTransformEasing}
+          setTransitionTransformEasing={setTransitionTransformEasing}
         />
       ),
     },
@@ -1706,6 +2241,8 @@ module.exports = {
       content: (
         <AccessibilitySection
           ariaLabel={ariaLabel} setAriaLabel={setAriaLabel}
+          ariaPressedMode={ariaPressedMode} setAriaPressedMode={setAriaPressedMode}
+          ariaBusyMode={ariaBusyMode} setAriaBusyMode={setAriaBusyMode}
           minTouchMode={minTouchMode} setMinTouchMode={setMinTouchMode}
           minTouchSizeText={minTouchSizeText} setMinTouchSizeText={setMinTouchSizeText}
           minTouchSizePx={minTouchSizePx}
