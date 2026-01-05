@@ -20,7 +20,6 @@ export default function AppShell({
     <div className={shellModeClass} style={{ background: "var(--bg)", color: "var(--text)" }}>
       <Header />
 
-      {/* dY"ť WIDTH FIX IS HERE */}
       <main className={`mx-auto w-full max-w-screen-2xl px-4 py-6 ${mainModeClass}`}>
         {/* Mobile: stacked. Desktop: 2 columns */}
         <div className={`grid gap-5 md:grid-cols-12 ${gridModeClass}`}>
@@ -60,3 +59,4 @@ export default function AppShell({
     </div>
   );
 }
+

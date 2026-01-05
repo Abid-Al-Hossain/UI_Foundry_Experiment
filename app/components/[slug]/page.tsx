@@ -21,101 +21,77 @@ export default async function ComponentPage({
   const item = slug ? getComponentBySlug(slug) : undefined;
 
   const title = item?.name ?? titleFromSlug(slug);
-  const description =
-    item?.description ??
-    "This component is not in the registry yet. Customization & export will be added soon.";
+  const description = item?.description ?? "This component is not in the registry yet.";
+  const statusTitle = item ? "Coming soon" : "Not listed";
+  const statusText = item
+    ? "Customization, live preview, and export for this component are not ready yet."
+    : "This component is not available in the registry right now.";
 
   return (
     <AppShell>
-      <div className="space-y-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            <p className="mt-2" style={{ color: "var(--muted)" }}>
-              {description}
-            </p>
+      <div className="space-y-6">
+        <div
+          className="rounded-2xl border p-6"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--card) 70%, transparent)",
+          }}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+              <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
+                {description}
+              </p>
+            </div>
+
+            <Link
+              href="/"
+              className="inline-flex w-fit items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition hover:opacity-90 active:scale-[0.98]"
+              style={{
+                borderColor: "var(--border)",
+                background: "color-mix(in oklab, var(--card) 60%, transparent)",
+                color: "var(--text)",
+              }}
+            >
+              Back
+            </Link>
           </div>
-
-          <Link
-            href="/"
-            className="inline-flex w-fit items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition hover:opacity-90 active:scale-[0.98]"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 60%, transparent)",
-              color: "var(--text)",
-            }}
-          >
-            Back
-          </Link>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <section
-            className="rounded-xl border p-4 shadow-sm transition hover:shadow-md"
-            style={{ borderColor: "var(--border)", background: "var(--card)" }}
-          >
-            <h2 className="font-semibold">Customization</h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-              Sliders, toggles, presets will appear here.
-            </p>
-
-            <div
-              className="mt-4 rounded-lg p-4 text-sm"
-              style={{
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--muted)",
-                border: "1px dashed var(--border)",
-              }}
-            >
-              Placeholder: customization controls
-            </div>
-          </section>
-
-          <section
-            className="rounded-xl border p-4 shadow-sm transition hover:shadow-md"
-            style={{ borderColor: "var(--border)", background: "var(--card)" }}
-          >
-            <h2 className="font-semibold">Live Preview</h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-              Preview updates instantly as users change controls.
-            </p>
-
-            <div
-              className="mt-4 flex min-h-[180px] items-center justify-center rounded-lg p-4"
-              style={{
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <div
-                className="rounded-md border px-4 py-2 text-sm transition hover:opacity-95"
-                style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
-              >
-                Preview placeholder
-              </div>
-            </div>
-          </section>
         </div>
 
         <section
-          className="rounded-xl border p-4 shadow-sm transition hover:shadow-md"
-          style={{ borderColor: "var(--border)", background: "var(--card)" }}
+          className="rounded-2xl border p-6"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 80%, transparent)",
+          }}
         >
-          <h2 className="font-semibold">Export Code</h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-            HTML / React / Next tabs + Copy/Download will go here.
+          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
+            {statusTitle}
+          </h2>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
+            {statusText}
           </p>
 
-          <div
-            className="mt-4 rounded-lg p-4 text-xs"
-            style={{
-              background: "#050814",
-              color: "var(--text)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <pre className="whitespace-pre-wrap">{`// Export placeholder
-// Later: generate deterministic code from settings`}</pre>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/components/buttons"
+              className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+              style={{ background: "var(--primary)", color: "white" }}
+            >
+              Try Action Button
+            </Link>
+            <Link
+              href="/components/buttons/action"
+              className="rounded-xl border px-4 py-2 text-sm font-semibold transition"
+              style={{
+                borderColor: "var(--border)",
+                background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                color: "var(--text)",
+              }}
+            >
+              Open Editor
+            </Link>
           </div>
         </section>
       </div>

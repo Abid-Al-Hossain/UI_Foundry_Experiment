@@ -20,7 +20,7 @@ export default function Sidebar() {
         <div className="mt-4 flex flex-col gap-1">
           {COMPONENTS.map((item) => {
             const href = `/components/${item.slug}`;
-            const isActive = pathname === href;
+            const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
             return (
               <Link
