@@ -1,7 +1,7 @@
 "use client";
 
 import type { DownloadFormat } from "../_section/PreviewDownloadPanel";
-import { hexWithAlpha, sanitizeFilenameBase } from "./colorUtils";
+import { sanitizeFilenameBase } from "./colorUtils";
 
 type TransitionEasing = "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
 
@@ -27,14 +27,16 @@ export type ExportPayloadInput = {
   transitionColorEasing: TransitionEasing;
   transitionTransformMs: number;
   transitionTransformEasing: TransitionEasing;
-  shColorInput: string;
-  shOpacityText: string;
-  shadowEnabled: boolean;
-  variant: string;
-  shXText: string;
-  shYText: string;
-  shBlurText: string;
-  shSpreadText: string;
+  boxShadowCss: string;
+  boxShadowHoverCss: string;
+  boxShadowActiveCss: string;
+  topGradientCss: string;
+  parallaxHighlightEnabled: boolean;
+  parallaxStrength: number;
+  iconEmbossFilter: string;
+  hoverTiltX: number;
+  hoverTiltY: number;
+  hoverPerspective: number;
   loadingLabel: string;
   animation: string;
   iconSizeText: string;
@@ -130,14 +132,16 @@ export function buildExportPayload(params: ExportPayloadInput) {
     transitionColorEasing,
     transitionTransformMs,
     transitionTransformEasing,
-    shColorInput,
-    shOpacityText,
-    shadowEnabled,
-    variant,
-    shXText,
-    shYText,
-    shBlurText,
-    shSpreadText,
+    boxShadowCss,
+    boxShadowHoverCss,
+    boxShadowActiveCss,
+    topGradientCss,
+    parallaxHighlightEnabled,
+    parallaxStrength,
+    iconEmbossFilter,
+    hoverTiltX,
+    hoverTiltY,
+    hoverPerspective,
     loadingLabel,
     animation,
     iconSizeText,
@@ -238,10 +242,17 @@ export function buildExportPayload(params: ExportPayloadInput) {
   const tsBlur = Number(tsBlurText) || 0;
   const textShadowCss = textShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
   const transitionCss = `background ${transitionColorMs}ms ${transitionColorEasing}, color ${transitionColorMs}ms ${transitionColorEasing}, border-color ${transitionColorMs}ms ${transitionColorEasing}, filter ${transitionColorMs}ms ${transitionColorEasing}, box-shadow ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}, border-width ${transitionTransformMs}ms ${transitionTransformEasing}`;
-  const exportShadowColor = hexWithAlpha(shColorInput, Number(shOpacityText) || 0.1);
-  const exportShadow = shadowEnabled && variant !== "ghost"
-    ? `${Number(shXText) || 0}px ${Number(shYText) || 0}px ${Number(shBlurText) || 0}px ${Number(shSpreadText) || 0}px ${exportShadowColor}`
-    : "none";
+  const exportShadow = boxShadowCss && boxShadowCss !== "none" ? boxShadowCss : "none";
+  const exportHoverShadow = boxShadowHoverCss && boxShadowHoverCss !== "none" ? boxShadowHoverCss : exportShadow;
+  const exportActiveShadow = boxShadowActiveCss && boxShadowActiveCss !== "none" ? boxShadowActiveCss : exportShadow;
+  const hoverTransform = (hoverTiltX || hoverTiltY)
+    ? `perspective(${hoverPerspective}px) rotateX(${hoverTiltX}deg) rotateY(${hoverTiltY}deg)`
+    : "";
+  const exportTopGradient = topGradientCss && topGradientCss !== "none" ? topGradientCss : "none";
+  const parallaxOpacity = parallaxHighlightEnabled
+    ? Math.max(0, Math.min(1, Number(parallaxStrength) || 0))
+    : 0;
+  const iconEmbossCss = iconEmbossFilter || "none";
   const loadingLabelText = loadingLabel || "Loading...";
   const spinnerSize = Number(iconSizeText) || 18;
   const spinnerGap = Number(iconGapText) || 10;
@@ -299,13 +310,15 @@ export function buildExportPayload(params: ExportPayloadInput) {
   const focusRingWidth = focusRingEnabled ? focusRingWidthText : "0";
   const focusRingOffset = focusRingEnabled ? focusRingOffsetText : "0";
   const focusRingColor = focusRingEnabled ? focusRingInput : "transparent";
-  const focusBoxShadow = `${exportShadow}, 0 0 0 ${focusRingOffset}px ${previewBgHex}, 0 0 0 calc(${focusRingOffset}px + ${focusRingWidth}px) ${focusRingColor}`;
+  const focusShadowBase = exportShadow === "none" ? "" : `${exportShadow}, `;
+  const focusBoxShadow = `${focusShadowBase}0 0 0 ${focusRingOffset}px ${previewBgHex}, 0 0 0 calc(${focusRingOffset}px + ${focusRingWidth}px) ${focusRingColor}`;
   const focusCss = `
 .uf-btn:focus-visible {
   outline: none;
   box-shadow: ${focusBoxShadow};
 }`.trim();
   const hoverFilter = cssHoverFilter || "none";
+  const hoverTransformCss = hoverTransform ? `\n  transform: ${hoverTransform};` : "";
   const animationValue = animation === "pulse"
     ? "pulse 2s infinite"
     : animation === "float"
@@ -346,6 +359,7 @@ export function buildExportPayload(params: ExportPayloadInput) {
   border-color: ${cssHoverBorder};
   border-width: ${hoverBorderWidthPx}px;
   filter: ${hoverFilter};
+  box-shadow: ${exportHoverShadow};${hoverTransformCss}
 }`.trim() : "";
   const activeCSS = activeEnabled ? `
 .uf-btn:active:not(:disabled) {
@@ -355,6 +369,7 @@ export function buildExportPayload(params: ExportPayloadInput) {
   border-width: ${activeBorderWidthPx}px;
   filter: ${cssActiveFilter};
   transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+  box-shadow: ${exportActiveShadow};
 }`.trim() : "";
   const disabledHoverCSS = disabledHoverSuppressed ? `
 .uf-btn.suppress-hover:hover {
@@ -373,6 +388,33 @@ export function buildExportPayload(params: ExportPayloadInput) {
 .uf-btn:active:not(:disabled) .uf-icon-base { display: none; }
 .uf-btn:active:not(:disabled) .uf-icon-active { display: inline-flex; }
 ` : "";
+  const parallaxScript = parallaxOpacity > 0 ? `
+<script>
+  (function() {
+    const btn = document.querySelector('.uf-btn');
+    if (!btn) return;
+    const strength = ${parallaxOpacity};
+    const reset = () => {
+      btn.style.setProperty('--uf-btn-light-x', '0px');
+      btn.style.setProperty('--uf-btn-light-y', '0px');
+      btn.style.setProperty('--uf-btn-parallax-opacity', '0');
+    };
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const nx = e.clientX - rect.left - rect.width / 2;
+      const ny = e.clientY - rect.top - rect.height / 2;
+      const maxShift = Math.min(rect.width, rect.height) * 0.35 * strength;
+      const shiftX = Math.max(-maxShift, Math.min(maxShift, nx));
+      const shiftY = Math.max(-maxShift, Math.min(maxShift, ny));
+      btn.style.setProperty('--uf-btn-light-x', Math.round(shiftX) + 'px');
+      btn.style.setProperty('--uf-btn-light-y', Math.round(shiftY) + 'px');
+      btn.style.setProperty('--uf-btn-parallax-opacity', String(strength));
+    });
+    btn.addEventListener('mouseleave', reset);
+  })();
+</script>
+` : "";
 
   if (downloadFormat === "html") {
     content = `
@@ -387,6 +429,14 @@ ${fontImport}
   padding: ${padY}px ${padX}px;
   border-radius: ${rCSS};
   display: inline-flex;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  --uf-btn-top-gradient: ${exportTopGradient};
+  --uf-btn-parallax-opacity: 0;
+  --uf-btn-light-x: 0px;
+  --uf-btn-light-y: 0px;
+  --uf-icon-emboss-filter: ${iconEmbossCss};
   align-items: ${alignItems}; justify-content: ${justify};
   background: ${cssBg};
   color: ${textInput};
@@ -399,11 +449,42 @@ ${fontImport}
   letter-spacing: ${letterSpacingCss};
   line-height: ${lHeight};
   text-shadow: ${textShadowCss};
+  box-shadow: ${exportShadow};
+  transform-style: preserve-3d;
   ${animationValue ? `animation: ${animationValue};` : ""}
   cursor: pointer;
   transition: ${transitionCss};
   text-decoration: ${underline ? "underline" : "none"};
 }
+.uf-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--uf-btn-top-gradient);
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
+    rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
+    rgba(255, 255, 255, 0) 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn > * {
+  position: relative;
+  z-index: 1;
+}
+.uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
+.uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
+.uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
 ${focusCss}
 .uf-btn:disabled {
   background: ${cssDisabledBg};
@@ -441,7 +522,8 @@ ${animationCss}
 ${hoverCSS}
 ${disabledHoverCSS}
 ${activeCSS}
-</style>`;
+</style>
+${parallaxScript}`;
   } else if (downloadFormat === "react") {
     content = `
 import React, { useState } from 'react';
@@ -471,11 +553,35 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
   const ariaBusyMode = ${JSON.stringify(ariaBusyMode)};
   const hoverEnabled = ${JSON.stringify(hoverEnabled)};
   const activeEnabled = ${JSON.stringify(activeEnabled)};
+  const hoverTransform = ${JSON.stringify(hoverTransform)};
+  const parallaxStrength = ${parallaxOpacity};
+
+  const updateParallax = (e) => {
+    if (!parallaxStrength) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const nx = e.clientX - rect.left - rect.width / 2;
+    const ny = e.clientY - rect.top - rect.height / 2;
+    const maxShift = Math.min(rect.width, rect.height) * 0.35 * parallaxStrength;
+    const shiftX = Math.max(-maxShift, Math.min(maxShift, nx));
+    const shiftY = Math.max(-maxShift, Math.min(maxShift, ny));
+    e.currentTarget.style.setProperty('--uf-btn-light-x', Math.round(shiftX) + 'px');
+    e.currentTarget.style.setProperty('--uf-btn-light-y', Math.round(shiftY) + 'px');
+    e.currentTarget.style.setProperty('--uf-btn-parallax-opacity', String(parallaxStrength));
+  };
+  const resetParallax = (target) => {
+    if (!target) return;
+    target.style.setProperty('--uf-btn-light-x', '0px');
+    target.style.setProperty('--uf-btn-light-y', '0px');
+    target.style.setProperty('--uf-btn-parallax-opacity', '0');
+  };
 
   const baseStyle = {
     width: '${exportWidth}px', height: '${exportHeight}px',
     padding: '${padY}px ${padX}px',
     borderRadius: '${rCSS}',
+    position: 'relative',
+    overflow: 'hidden',
     background: '${cssBg}',
     color: '${textInput}',
     border: '${borderWidthPx}px ${borderStyle} ${borderInput}',
@@ -487,8 +593,15 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     letterSpacing: '${letterSpacingCss}',
     lineHeight: ${lHeight},
     textShadow: '${textShadowCss}',
+    boxShadow: '${exportShadow}',
     animation: '${animationValue || "none"}',
+    transformStyle: 'preserve-3d',
     textDecoration: '${underline ? "underline" : "none"}',
+    ['--uf-btn-top-gradient']: '${exportTopGradient}',
+    ['--uf-btn-parallax-opacity']: 0,
+    ['--uf-btn-light-x']: '0px',
+    ['--uf-btn-light-y']: '0px',
+    ['--uf-icon-emboss-filter']: '${iconEmbossCss}',
     display: 'inline-flex',
     alignItems: '${alignItems}',
     justifyContent: '${justify}',
@@ -519,6 +632,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     borderColor: '${cssHoverBorder}',
     borderWidth: '${hoverBorderWidthPx}px',
     filter: '${hoverFilter}',
+    boxShadow: '${exportHoverShadow}',
+    ...(hoverTransform ? { transform: hoverTransform } : {}),
   };
 
   const activeStyle = {
@@ -528,6 +643,7 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     filter: '${cssActiveFilter}',
     transform: 'translateY(${activeTranslateYText}px) scale(${activeScaleText})',
     borderWidth: '${activeBorderWidthPx}px',
+    boxShadow: '${exportActiveShadow}',
   };
 
   const spinnerWrapStyle = {
@@ -568,6 +684,31 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
         @keyframes spin { to { transform: rotate(360deg); } }
         .uf-spinner-wrap svg { display: block; width: 100%; height: 100%; animation: spin 0.8s linear infinite; }
         .uf-icon-wrap svg { display: block; width: 100%; height: 100%; }
+        .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
+        .uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
+        .uf-btn::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: var(--uf-btn-top-gradient);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .uf-btn::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: radial-gradient(
+            circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
+            rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
+            rgba(255, 255, 255, 0) 60%
+          );
+          pointer-events: none;
+          z-index: 0;
+        }
+        .uf-btn > * { position: relative; z-index: 1; }
         ${focusCss}
         ${animationCss}
       \`}</style>
@@ -575,7 +716,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       className="uf-btn"
       onClick={onClick}
       onMouseEnter={() => !isDisabled && hoverEnabled && setHover(true)}
-      onMouseLeave={() => { setHover(false); setActive(false); }}
+      onMouseMove={updateParallax}
+      onMouseLeave={(e) => { resetParallax(e.currentTarget); setHover(false); setActive(false); }}
       onMouseDown={() => !isDisabled && activeEnabled && setActive(true)}
       onMouseUp={() => setActive(false)}
       disabled={isDisabled}
@@ -669,6 +811,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
           hoverTextMode === "custom" ? `enabled:hover:text-[${hoverTextInput}]` : "",
           hoverBorderMode === "custom" ? `enabled:hover:border-[${hoverBorderInput}]` : "",
           `enabled:hover:border-[${hoverBorderWidthPx}px]`,
+          exportHoverShadow !== "none" ? `enabled:hover:shadow-[${exportHoverShadow}]` : "",
+          hoverTransform ? `enabled:hover:[transform:${hoverTransform.replace(/ /g, "_")}]` : "",
         ]
       : [];
     const focusClasses = focusRingEnabled
@@ -681,11 +825,14 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       : ["focus-visible:outline-none"];
 
     const tailwindClasses = [
+      "uf-btn",
       "inline-flex",
       "items-center",
       "justify-center",
-        "cursor-pointer",
-        `w-[${exportWidth}px]`,
+      "relative",
+      "overflow-hidden",
+      "cursor-pointer",
+      `w-[${exportWidth}px]`,
       `h-[${exportHeight}px]`,
       `px-[${padX}px]`,
       `py-[${padY}px]`,
@@ -715,6 +862,7 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       `disabled:border-[${disabledBorderWidthPx}px]`,
       ...radiusClasses,
       ...hoverClasses,
+      ...(exportActiveShadow !== "none" ? [`enabled:active:shadow-[${exportActiveShadow}]`] : []),
       ...transformClasses,
       ...focusClasses,
     ]
@@ -727,13 +875,46 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       `font-weight: ${fontWeight};`,
       `font-style: ${fontStyle};`,
       `text-transform: ${textTransform};`,
+      "transform-style: preserve-3d;",
       `--tw-ring-offset-color: ${previewBgHex};`,
+      `--uf-btn-top-gradient: ${exportTopGradient};`,
+      `--uf-btn-parallax-opacity: ${parallaxOpacity};`,
+      "--uf-btn-light-x: 0px;",
+      "--uf-btn-light-y: 0px;",
+      `--uf-icon-emboss-filter: ${iconEmbossCss};`,
     ];
     if (animationValue) inlineStyleParts.push(`animation: ${animationValue};`);
     if (!uniformRadius) inlineStyleParts.push(`border-radius: ${rCSS};`);
     if (textShadowCss !== "none") inlineStyleParts.push(`text-shadow: ${textShadowCss};`);
     const inlineStyle = inlineStyleParts.join(" ");
-    const extraStyleContent = [fontImport, animationCss].filter(Boolean).join("\n");
+    const pseudoCss = `
+.uf-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--uf-btn-top-gradient);
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
+    rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
+    rgba(255, 255, 255, 0) 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn > * { position: relative; z-index: 1; }
+.uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
+.uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
+`.trim();
+    const extraStyleContent = [fontImport, animationCss, pseudoCss].filter(Boolean).join("\n");
     const extraStyleTag = extraStyleContent ? `<style>${extraStyleContent}</style>\n` : "";
 
     content = `
@@ -753,6 +934,13 @@ ${fontImport}
   --uf-btn-letter-spacing: ${letterSpacingCss};
   --uf-btn-line-height: ${lHeight};
   --uf-btn-shadow: ${exportShadow};
+  --uf-btn-shadow-hover: ${exportHoverShadow};
+  --uf-btn-shadow-active: ${exportActiveShadow};
+  --uf-btn-top-gradient: ${exportTopGradient};
+  --uf-btn-parallax-opacity: ${parallaxOpacity};
+  --uf-btn-light-x: 0px;
+  --uf-btn-light-y: 0px;
+  --uf-icon-emboss-filter: ${iconEmbossCss};
   --uf-btn-hover-bg: ${cssHoverBg};
   --uf-btn-hover-text: ${cssHoverText};
   --uf-btn-hover-border: ${cssHoverBorder};
@@ -771,6 +959,8 @@ ${fontImport}
   padding: ${padY}px ${padX}px;
   border-radius: var(--uf-btn-radius);
   display: inline-flex;
+  position: relative;
+  overflow: hidden;
   align-items: ${alignItems}; justify-content: ${justify};
   background: var(--uf-btn-bg);
   color: var(--uf-btn-text);
@@ -786,9 +976,34 @@ ${fontImport}
   text-shadow: ${textShadowCss};
   ${animationValue ? `animation: ${animationValue};` : ""}
   box-shadow: var(--uf-btn-shadow);
+  transform-style: preserve-3d;
   cursor: pointer;
   transition: ${transitionCss};
 }
+.uf-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--uf-btn-top-gradient);
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
+    rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
+    rgba(255, 255, 255, 0) 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.uf-btn > * { position: relative; z-index: 1; }
+.uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
 ${focusCss}
 ${hoverEnabled ? `.uf-btn:hover:not(:disabled) {
   background: var(--uf-btn-hover-bg);
@@ -796,6 +1011,7 @@ ${hoverEnabled ? `.uf-btn:hover:not(:disabled) {
   border-color: var(--uf-btn-hover-border);
   border-width: ${hoverBorderWidthPx}px;
   filter: ${hoverFilter};
+  box-shadow: var(--uf-btn-shadow-hover);${hoverTransform ? `\n  transform: ${hoverTransform};` : ""}
 }` : ""}
 ${activeEnabled ? `.uf-btn:active:not(:disabled) {
   background: var(--uf-btn-active-bg);
@@ -804,6 +1020,7 @@ ${activeEnabled ? `.uf-btn:active:not(:disabled) {
   border-width: ${activeBorderWidthPx}px;
   filter: ${cssActiveFilter};
   transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+  box-shadow: var(--uf-btn-shadow-active);
 }` : ""}
 .uf-btn:disabled {
   background: var(--uf-btn-disabled-bg);
@@ -827,6 +1044,13 @@ $uf-btn-font-size: ${fontSizeCss};
 $uf-btn-letter-spacing: ${letterSpacingCss};
 $uf-btn-line-height: ${lHeight};
 $uf-btn-shadow: ${exportShadow};
+$uf-btn-shadow-hover: ${exportHoverShadow};
+$uf-btn-shadow-active: ${exportActiveShadow};
+$uf-btn-top-gradient: ${exportTopGradient};
+$uf-btn-parallax-opacity: ${parallaxOpacity};
+$uf-btn-light-x: 0px;
+$uf-btn-light-y: 0px;
+$uf-icon-emboss-filter: ${iconEmbossCss};
 $uf-btn-hover-bg: ${cssHoverBg};
 $uf-btn-hover-text: ${cssHoverText};
 $uf-btn-hover-border: ${cssHoverBorder};
@@ -857,6 +1081,14 @@ $uf-btn-disabled-border: ${cssDisabledBorder};
   text-shadow: ${textShadowCss};
   ${animationValue ? `animation: ${animationValue};` : ""}
   box-shadow: $uf-btn-shadow;
+  position: relative;
+  overflow: hidden;
+  --uf-btn-top-gradient: #{$uf-btn-top-gradient};
+  --uf-btn-parallax-opacity: #{$uf-btn-parallax-opacity};
+  --uf-btn-light-x: #{$uf-btn-light-x};
+  --uf-btn-light-y: #{$uf-btn-light-y};
+  --uf-icon-emboss-filter: #{$uf-icon-emboss-filter};
+  transform-style: preserve-3d;
   cursor: pointer;
   transition: ${transitionCss};
 
@@ -865,12 +1097,41 @@ $uf-btn-disabled-border: ${cssDisabledBorder};
     box-shadow: ${focusBoxShadow};
   }
 
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--uf-btn-top-gradient);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
+      rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
+      rgba(255, 255, 255, 0) 60%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * { position: relative; z-index: 1; }
+  .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
+  .uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
+
 ${hoverEnabled ? `  &:hover:not(:disabled) {
     background: $uf-btn-hover-bg;
     color: $uf-btn-hover-text;
     border-color: $uf-btn-hover-border;
     border-width: ${hoverBorderWidthPx}px;
     filter: ${hoverFilter};
+    box-shadow: $uf-btn-shadow-hover;${hoverTransform ? `\n    transform: ${hoverTransform};` : ""}
   }` : ""}
 
 ${activeEnabled ? `  &:active:not(:disabled) {
@@ -880,6 +1141,7 @@ ${activeEnabled ? `  &:active:not(:disabled) {
     border-width: ${activeBorderWidthPx}px;
     filter: ${cssActiveFilter};
     transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
+    box-shadow: $uf-btn-shadow-active;
   }` : ""}
 
   &:disabled {
@@ -910,6 +1172,8 @@ module.exports = {
       },
       boxShadow: {
         "uf-btn": "${exportShadow}",
+        "uf-btn-hover": "${exportHoverShadow}",
+        "uf-btn-active": "${exportActiveShadow}",
       },
     },
   },
@@ -937,6 +1201,9 @@ module.exports = {
             fontWeight: { value: fontWeight },
             letterSpacing: { value: letterSpacingCss },
             lineHeight: { value: lHeight },
+          },
+          shadow: {
+            base: { value: exportShadow },
           },
         },
       },

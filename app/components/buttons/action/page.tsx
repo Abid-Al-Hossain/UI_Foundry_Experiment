@@ -104,6 +104,74 @@ export default function ActionButtonPage() {
   const [shSpreadText, setShSpreadText] = useState("0");
   const [shOpacityText, setShOpacityText] = useState("0.10");
   const [shColorInput, setShColorInput] = useState("#000000");
+  const [shadowTemp, setShadowTemp] = useState<"neutral" | "warm" | "cool">("neutral");
+
+  // --- 3D Shadow & Depth ---
+  const [elevationPreset, setElevationPreset] = useState<"flat" | "raised" | "lifted" | "inset">("raised");
+  const [depthText, setDepthText] = useState("8");
+  const [lightDirection, setLightDirection] = useState<"top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom">("top-left");
+  const [lightAngleText, setLightAngleText] = useState("315");
+  const [shadowStackEnabled, setShadowStackEnabled] = useState(false);
+  const [stack1Enabled, setStack1Enabled] = useState(true);
+  const [stack1XText, setStack1XText] = useState("0");
+  const [stack1YText, setStack1YText] = useState("8");
+  const [stack1BlurText, setStack1BlurText] = useState("16");
+  const [stack1SpreadText, setStack1SpreadText] = useState("0");
+  const [stack1OpacityText, setStack1OpacityText] = useState("0.18");
+  const [stack2Enabled, setStack2Enabled] = useState(true);
+  const [stack2XText, setStack2XText] = useState("0");
+  const [stack2YText, setStack2YText] = useState("3");
+  const [stack2BlurText, setStack2BlurText] = useState("8");
+  const [stack2SpreadText, setStack2SpreadText] = useState("0");
+  const [stack2OpacityText, setStack2OpacityText] = useState("0.12");
+  const [stack3Enabled, setStack3Enabled] = useState(false);
+  const [stack3XText, setStack3XText] = useState("0");
+  const [stack3YText, setStack3YText] = useState("1");
+  const [stack3BlurText, setStack3BlurText] = useState("4");
+  const [stack3SpreadText, setStack3SpreadText] = useState("0");
+  const [stack3OpacityText, setStack3OpacityText] = useState("0.08");
+  const [innerShadowEnabled, setInnerShadowEnabled] = useState(false);
+  const [glossEnabled, setGlossEnabled] = useState(false);
+  const [glossSizeText, setGlossSizeText] = useState("8");
+  const [glossOpacityText, setGlossOpacityText] = useState("0.22");
+  const [bevelEnabled, setBevelEnabled] = useState(false);
+  const [bevelSizeText, setBevelSizeText] = useState("3");
+  const [bevelSoftnessText, setBevelSoftnessText] = useState("3");
+  const [materialPreset, setMaterialPreset] = useState<"custom" | "plastic" | "matte" | "metal" | "glass">("custom");
+  const [edgeThicknessText, setEdgeThicknessText] = useState("0");
+  const [edgeGradientEnabled, setEdgeGradientEnabled] = useState(false);
+  const [edgeGradientSizeText, setEdgeGradientSizeText] = useState("2");
+  const [edgeGradientStrengthText, setEdgeGradientStrengthText] = useState("0.25");
+  const [topGradientEnabled, setTopGradientEnabled] = useState(false);
+  const [topGradAngleText, setTopGradAngleText] = useState("180");
+  const [topGradStartInput, setTopGradStartInput] = useState("#ffffff");
+  const [topGradMidEnabled, setTopGradMidEnabled] = useState(false);
+  const [topGradMidInput, setTopGradMidInput] = useState("#e5e7eb");
+  const [topGradEndInput, setTopGradEndInput] = useState("#000000");
+  const [topGradOpacityText, setTopGradOpacityText] = useState("0.15");
+  const [parallaxHighlightEnabled, setParallaxHighlightEnabled] = useState(false);
+  const [parallaxStrengthText, setParallaxStrengthText] = useState("0.35");
+  const [rimLightEnabled, setRimLightEnabled] = useState(false);
+  const [rimLightColorInput, setRimLightColorInput] = useState("#93c5fd");
+  const [rimLightSizeText, setRimLightSizeText] = useState("10");
+  const [rimLightOpacityText, setRimLightOpacityText] = useState("0.35");
+  const [iconEmbossMode, setIconEmbossMode] = useState<"off" | "raised" | "inset">("off");
+  const [iconEmbossDepthText, setIconEmbossDepthText] = useState("2");
+  const [iconEmbossStrengthText, setIconEmbossStrengthText] = useState("0.6");
+  const [borderDepthMode, setBorderDepthMode] = useState<"none" | "raised" | "inset">("none");
+  const [borderDepthSizeText, setBorderDepthSizeText] = useState("2");
+  const [baseShadowEnabled, setBaseShadowEnabled] = useState(false);
+  const [baseShadowSizeText, setBaseShadowSizeText] = useState("10");
+  const [baseShadowOpacityText, setBaseShadowOpacityText] = useState("0.22");
+  const [pressedDepthText, setPressedDepthText] = useState("0");
+  const [pressedInsetEnabled, setPressedInsetEnabled] = useState(false);
+  const [hoverLiftText, setHoverLiftText] = useState("0");
+  const [specularStrengthText, setSpecularStrengthText] = useState("1");
+  const [roughnessText, setRoughnessText] = useState("0");
+  const [aoStrengthText, setAoStrengthText] = useState("0");
+  const [hoverTiltXText, setHoverTiltXText] = useState("0");
+  const [hoverTiltYText, setHoverTiltYText] = useState("0");
+  const [hoverPerspectiveText, setHoverPerspectiveText] = useState("800");
 
   // --- Typography ---
   const [fontBucket, setFontBucket] = useState<"system"|"google">("system");
@@ -297,6 +365,54 @@ export default function ActionButtonPage() {
   const fontFamily = fontBucket === "system"
     ? (SYSTEM_FONTS[Math.min(systemFontIdx, SYSTEM_FONTS.length - 1)]?.css || "sans-serif")
     : googleFontFamily;
+
+  const toHex2 = (n: number) => {
+    const clamped = Math.max(0, Math.min(255, Math.round(n)));
+    const s = clamped.toString(16);
+    return s.length === 1 ? `0${s}` : s;
+  };
+  const mixHex = (baseHex: string, mixHexValue: string, amount: number) => {
+    const base = norm(baseHex);
+    const mix = norm(mixHexValue);
+    if (!base.ok || !mix.ok) return baseHex;
+    const a = clamp(amount, 0, 1);
+    const br = parseInt(base.hex.slice(1, 3), 16);
+    const bg = parseInt(base.hex.slice(3, 5), 16);
+    const bb = parseInt(base.hex.slice(5, 7), 16);
+    const mr = parseInt(mix.hex.slice(1, 3), 16);
+    const mg = parseInt(mix.hex.slice(3, 5), 16);
+    const mb = parseInt(mix.hex.slice(5, 7), 16);
+    const r = br + (mr - br) * a;
+    const g = bg + (mg - bg) * a;
+    const b = bb + (mb - bb) * a;
+    return `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`;
+  };
+
+  const depthPx = clamp(Number(depthText) || 0, 0, 40);
+  const glossSizePx = clamp(Number(glossSizeText) || 0, 0, 40);
+  const glossOpacity = clamp(Number(glossOpacityText) || 0, 0, 1);
+  const bevelSizePx = clamp(Number(bevelSizeText) || 0, 0, 24);
+  const bevelSoftnessPx = clamp(Number(bevelSoftnessText) || 0, 0, 24);
+  const edgeThicknessPx = clamp(Number(edgeThicknessText) || 0, 0, 20);
+  const edgeGradientSizePx = clamp(Number(edgeGradientSizeText) || 0, 0, 12);
+  const edgeGradientStrength = clamp(Number(edgeGradientStrengthText) || 0, 0, 1);
+  const topGradOpacity = clamp(Number(topGradOpacityText) || 0, 0, 1);
+  const parallaxStrength = clamp(Number(parallaxStrengthText) || 0, 0, 1);
+  const rimLightSizePx = clamp(Number(rimLightSizeText) || 0, 0, 30);
+  const rimLightOpacity = clamp(Number(rimLightOpacityText) || 0, 0, 1);
+  const iconEmbossDepthPx = clamp(Number(iconEmbossDepthText) || 0, 0, 8);
+  const iconEmbossStrength = clamp(Number(iconEmbossStrengthText) || 0, 0, 1);
+  const borderDepthPx = clamp(Number(borderDepthSizeText) || 0, 0, 8);
+  const baseShadowSizePx = clamp(Number(baseShadowSizeText) || 0, 0, 30);
+  const baseShadowOpacity = clamp(Number(baseShadowOpacityText) || 0, 0, 1);
+  const pressedDepthPx = clamp(Number(pressedDepthText) || 0, 0, 30);
+  const hoverLiftPx = clamp(Number(hoverLiftText) || 0, 0, 24);
+  const specularStrength = clamp(Number(specularStrengthText) || 0, 0, 1);
+  const roughness = clamp(Number(roughnessText) || 0, 0, 1);
+  const aoStrength = clamp(Number(aoStrengthText) || 0, 0, 1);
+  const hoverTiltX = clamp(Number(hoverTiltXText) || 0, -20, 20);
+  const hoverTiltY = clamp(Number(hoverTiltYText) || 0, -20, 20);
+  const hoverPerspective = clamp(Number(hoverPerspectiveText) || 800, 200, 2000);
   const radiusVal = clamp(Number(radiusText)||0, 0, 60);
   const rTL = linkRadius ? radiusVal : clamp(Number(radiusTLText)||0, 0, 60);
   const rTR = linkRadius ? radiusVal : clamp(Number(radiusTRText)||0, 0, 60);
@@ -445,6 +561,175 @@ export default function ActionButtonPage() {
   const tsColor = hexWithAlpha(tsBaseColor, Number(tsOpacityText)||0.25);
   const disabledTextShadowCss = disabledTextShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
 
+  const lightAngleMap: Record<string, number> = {
+    "top-left": 225,
+    "top-right": 315,
+    "bottom-left": 135,
+    "bottom-right": 45,
+  };
+  const rawLightAngle = lightDirection === "custom"
+    ? Number(lightAngleText)
+    : lightAngleMap[lightDirection] ?? 315;
+  const safeLightAngle = Number.isFinite(rawLightAngle) ? rawLightAngle : 315;
+  const shadowAngle = (safeLightAngle + 180) % 360;
+  const shadowRad = (shadowAngle * Math.PI) / 180;
+  const shadowDirX = Math.cos(shadowRad);
+  const shadowDirY = Math.sin(shadowRad);
+
+  const shColorNorm = norm(shColorInput);
+  const shadowBaseHex = shadowTemp === "warm"
+    ? mixHex(shColorNorm.ok ? shColorNorm.hex : "#000000", "#f59e0b", 0.25)
+    : shadowTemp === "cool"
+      ? mixHex(shColorNorm.ok ? shColorNorm.hex : "#000000", "#38bdf8", 0.25)
+      : (shColorNorm.ok ? shColorNorm.hex : "#000000");
+  const rimLightNorm = norm(rimLightColorInput);
+
+  const baseShadowColor = hexWithAlpha(shadowBaseHex, Number(shOpacityText) || 0.1);
+
+  const buildStackLayer = (
+    enabled: boolean,
+    xText: string,
+    yText: string,
+    blurText: string,
+    spreadText: string,
+    opacityText: string
+  ) => {
+    if (!enabled) return null;
+    const opacity = clamp(Number(opacityText) || 0, 0, 1);
+    const color = hexWithAlpha(shadowBaseHex, opacity);
+    const x = clamp(Number(xText) || 0, -60, 60);
+    const y = clamp(Number(yText) || 0, -60, 60);
+    const blur = clamp(Number(blurText) || 0, 0, 160);
+    const spread = clamp(Number(spreadText) || 0, -40, 40);
+    return `${x}px ${y}px ${blur}px ${spread}px ${color}`;
+  };
+
+  const buildBoxShadow = (options: { depthOverride?: number; pressedInset?: boolean } = {}) => {
+    const depth = typeof options.depthOverride === "number" ? options.depthOverride : depthPx;
+    const pressedInset = Boolean(options.pressedInset);
+    const allowOuter = variant !== "ghost" && !pressedInset;
+    const outerShadows: string[] = [];
+    const innerShadows: string[] = [];
+
+    if (shadowEnabled && allowOuter) {
+      outerShadows.push(
+        `${Number(shXText) || 0}px ${Number(shYText) || 0}px ${Number(shBlurText) || 0}px ${Number(shSpreadText) || 0}px ${baseShadowColor}`
+      );
+    }
+
+    if (shadowStackEnabled && allowOuter) {
+      const layers = [
+        buildStackLayer(stack1Enabled, stack1XText, stack1YText, stack1BlurText, stack1SpreadText, stack1OpacityText),
+        buildStackLayer(stack2Enabled, stack2XText, stack2YText, stack2BlurText, stack2SpreadText, stack2OpacityText),
+        buildStackLayer(stack3Enabled, stack3XText, stack3YText, stack3BlurText, stack3SpreadText, stack3OpacityText),
+      ].filter(Boolean) as string[];
+      outerShadows.push(...layers);
+    }
+
+    if (edgeThicknessPx > 0 && allowOuter) {
+      const edgeOpacity = clamp(0.15 + depth / 80, 0.15, 0.5);
+      const edgeColor = hexWithAlpha(shadowBaseHex, edgeOpacity);
+      const edgeX = Math.round(shadowDirX * edgeThicknessPx);
+      const edgeY = Math.round(shadowDirY * edgeThicknessPx);
+      outerShadows.push(`${edgeX}px ${edgeY}px 0px 0px ${edgeColor}`);
+    }
+
+    if (depth > 0 && allowOuter) {
+      const depthOpacity = clamp(0.12 + depth / 60, 0.12, 0.4);
+      const depthColor = hexWithAlpha(shadowBaseHex, depthOpacity);
+      const dx = Math.round(shadowDirX * depth);
+      const dy = Math.round(shadowDirY * depth);
+      const blur = Math.round(depth * 2);
+      outerShadows.push(`${dx}px ${dy}px ${blur}px 0px ${depthColor}`);
+    }
+
+    if (rimLightEnabled && rimLightSizePx > 0 && rimLightOpacity > 0 && allowOuter) {
+      const rimHex = rimLightNorm.ok ? rimLightNorm.hex : rimLightColorInput;
+      const rimColor = hexWithAlpha(rimHex, rimLightOpacity);
+      outerShadows.push(`0 0 ${rimLightSizePx}px 0px ${rimColor}`);
+    }
+
+    if (baseShadowEnabled && baseShadowSizePx > 0 && baseShadowOpacity > 0 && allowOuter) {
+      const baseColor = hexWithAlpha(shadowBaseHex, baseShadowOpacity);
+      const baseOffset = Math.round(baseShadowSizePx * 0.6);
+      const baseBlur = Math.round(baseShadowSizePx * 1.8);
+      outerShadows.push(`0 ${baseOffset}px ${baseBlur}px 0px ${baseColor}`);
+    }
+
+    if (pressedInset && depth > 0) {
+      const insetOpacity = clamp(0.2 + depth / 70, 0.18, 0.5);
+      const insetColor = hexWithAlpha(shadowBaseHex, insetOpacity);
+      const insetOffset = Math.max(2, Math.round(depth * 0.5));
+      const insetBlur = Math.max(4, Math.round(depth * 1.2));
+      innerShadows.push(
+        `inset ${Math.round(shadowDirX * insetOffset)}px ${Math.round(shadowDirY * insetOffset)}px ${insetBlur}px 0px ${insetColor}`
+      );
+    }
+
+    if (innerShadowEnabled) {
+      const insetOpacity = clamp(0.18 + depth / 80, 0.15, 0.45);
+      const insetColor = hexWithAlpha(shadowBaseHex, insetOpacity);
+      const insetOffset = Math.max(2, Math.round(depth * 0.4));
+      const insetBlur = Math.max(4, Math.round(depth * 1.2));
+      innerShadows.push(
+        `inset ${Math.round(shadowDirX * insetOffset)}px ${Math.round(shadowDirY * insetOffset)}px ${insetBlur}px 0px ${insetColor}`
+      );
+    }
+
+    if (borderDepthMode !== "none" && borderDepthPx > 0) {
+      const borderLight = "rgba(255, 255, 255, 0.35)";
+      const borderDark = "rgba(0, 0, 0, 0.35)";
+      const sign = borderDepthMode === "raised" ? 1 : -1;
+      const bx = Math.round(shadowDirX * borderDepthPx);
+      const by = Math.round(shadowDirY * borderDepthPx);
+      innerShadows.push(`inset ${-sign * bx}px ${-sign * by}px ${borderDepthPx}px 0px ${borderLight}`);
+      innerShadows.push(`inset ${sign * bx}px ${sign * by}px ${borderDepthPx}px 0px ${borderDark}`);
+    }
+
+    if (aoStrength > 0) {
+      const aoBlur = Math.max(4, Math.round((depth + bevelSizePx) * 1.2));
+      const aoOpacity = clamp(aoStrength * 0.35, 0, 0.6);
+      innerShadows.push(`inset 0 0 ${aoBlur}px 0px rgba(0, 0, 0, ${aoOpacity})`);
+    }
+
+    if (edgeGradientEnabled && edgeGradientSizePx > 0 && edgeGradientStrength > 0) {
+      const edgeInset = Math.max(1, Math.round(edgeGradientSizePx / 2));
+      innerShadows.push(
+        `inset 0 ${edgeGradientSizePx}px ${edgeGradientSizePx}px -${edgeInset}px rgba(255, 255, 255, ${edgeGradientStrength})`
+      );
+      innerShadows.push(
+        `inset 0 -${edgeGradientSizePx}px ${edgeGradientSizePx}px -${edgeInset}px rgba(0, 0, 0, ${edgeGradientStrength * 0.9})`
+      );
+    }
+
+    if (glossEnabled && glossSizePx > 0 && glossOpacity > 0) {
+      const glossBlur = Math.round(glossSizePx * (1.5 + roughness * 1.5));
+      const glossStrength = clamp(glossOpacity * specularStrength * (1 - roughness * 0.3), 0, 1);
+      if (glossStrength > 0) {
+        innerShadows.push(
+          `inset ${Math.round(-shadowDirX * glossSizePx)}px ${Math.round(-shadowDirY * glossSizePx)}px ${glossBlur}px 0px rgba(255, 255, 255, ${glossStrength})`
+        );
+      }
+    }
+
+    if (bevelEnabled && bevelSizePx > 0) {
+      const bevelBlur = Math.round(bevelSoftnessPx);
+      const bevelX = Math.round(shadowDirX * bevelSizePx);
+      const bevelY = Math.round(shadowDirY * bevelSizePx);
+      innerShadows.push(`inset ${-bevelX}px ${-bevelY}px ${bevelBlur}px 0px rgba(255, 255, 255, 0.35)`);
+      innerShadows.push(`inset ${bevelX}px ${bevelY}px ${bevelBlur}px 0px rgba(0, 0, 0, 0.25)`);
+    }
+
+    return [...outerShadows, ...innerShadows].filter(Boolean).join(", ") || "none";
+  };
+
+  const boxShadowCss = buildBoxShadow();
+  const boxShadowHoverCss = hoverLiftPx > 0 ? buildBoxShadow({ depthOverride: depthPx + hoverLiftPx }) : boxShadowCss;
+  const activeDepthOverride = Math.max(depthPx - pressedDepthPx, 0);
+  const boxShadowActiveCss = pressedInsetEnabled
+    ? buildBoxShadow({ depthOverride: pressedDepthPx, pressedInset: true })
+    : buildBoxShadow({ depthOverride: activeDepthOverride });
+
   const applyOutlinePreset = () => {
     const contrast = contrastHex(previewBgHex);
     setUseGradient(false);
@@ -469,6 +754,99 @@ export default function ActionButtonPage() {
     setHoverBorderInput(hexWithAlpha(contrast, 0.35));
   };
 
+  const applyElevationPreset = (preset: "flat" | "raised" | "lifted" | "inset") => {
+    setElevationPreset(preset);
+    if (preset === "flat") {
+      setShadowEnabled(false);
+      setDepthText("0");
+      setShadowStackEnabled(false);
+      setInnerShadowEnabled(false);
+      setGlossEnabled(false);
+      setBevelEnabled(false);
+    } else if (preset === "raised") {
+      setShadowEnabled(true);
+      setDepthText("6");
+      setShadowStackEnabled(false);
+      setInnerShadowEnabled(false);
+      setGlossEnabled(true);
+      setGlossSizeText("6");
+      setGlossOpacityText("0.2");
+      setBevelEnabled(true);
+      setBevelSizeText("2");
+      setBevelSoftnessText("2");
+    } else if (preset === "lifted") {
+      setShadowEnabled(true);
+      setDepthText("12");
+      setShadowStackEnabled(false);
+      setInnerShadowEnabled(false);
+      setGlossEnabled(true);
+      setGlossSizeText("8");
+      setGlossOpacityText("0.25");
+      setBevelEnabled(true);
+      setBevelSizeText("3");
+      setBevelSoftnessText("3");
+    } else {
+      setShadowEnabled(false);
+      setDepthText("0");
+      setShadowStackEnabled(false);
+      setInnerShadowEnabled(true);
+      setGlossEnabled(false);
+      setBevelEnabled(false);
+    }
+  };
+
+  const applyMaterialPreset = (preset: "custom" | "plastic" | "matte" | "metal" | "glass") => {
+    setMaterialPreset(preset);
+    if (preset === "custom") return;
+    if (preset === "plastic") {
+      setGlossEnabled(true);
+      setGlossSizeText("10");
+      setGlossOpacityText("0.35");
+      setSpecularStrengthText("0.9");
+      setRoughnessText("0.25");
+      setBevelEnabled(true);
+      setBevelSizeText("3");
+      setBevelSoftnessText("3");
+      setEdgeGradientEnabled(true);
+      setEdgeGradientSizeText("2");
+      setEdgeGradientStrengthText("0.3");
+      setAoStrengthText("0.2");
+    } else if (preset === "matte") {
+      setGlossEnabled(false);
+      setSpecularStrengthText("0.2");
+      setRoughnessText("0.8");
+      setBevelEnabled(false);
+      setEdgeGradientEnabled(false);
+      setAoStrengthText("0.3");
+    } else if (preset === "metal") {
+      setGlossEnabled(true);
+      setGlossSizeText("6");
+      setGlossOpacityText("0.28");
+      setSpecularStrengthText("1");
+      setRoughnessText("0.15");
+      setBevelEnabled(true);
+      setBevelSizeText("2");
+      setBevelSoftnessText("2");
+      setEdgeGradientEnabled(true);
+      setEdgeGradientSizeText("2");
+      setEdgeGradientStrengthText("0.4");
+      setAoStrengthText("0.35");
+    } else if (preset === "glass") {
+      setGlossEnabled(true);
+      setGlossSizeText("14");
+      setGlossOpacityText("0.45");
+      setSpecularStrengthText("1");
+      setRoughnessText("0.1");
+      setBevelEnabled(true);
+      setBevelSizeText("2");
+      setBevelSoftnessText("4");
+      setEdgeGradientEnabled(true);
+      setEdgeGradientSizeText("1");
+      setEdgeGradientStrengthText("0.2");
+      setAoStrengthText("0.1");
+    }
+  };
+
   const baseIconSvg = iconSource === "custom" ? iconCustomSvg : (ICONS_SVG[iconName] || "");
   const hoverIconSvg = hoverIconEnabled
     ? (hoverIconSource === "custom" ? hoverIconCustomSvg : (ICONS_SVG[hoverIconName] || ""))
@@ -480,156 +858,30 @@ export default function ActionButtonPage() {
     ? (loadingIconSource === "custom" ? loadingIconCustomSvg : (ICONS_SVG[loadingIconName] || ""))
     : "";
 
-  const previewPayload = useMemo(() => ({
-    label,
-    variant,
-    disabled,
-    loading,
-    loadingLabel,
-    loadingSpinnerMode,
-    loadingSpinnerPosition,
-    loadingSpinnerSvg,
-    animation,
-    width: touchWidth,
-    height: touchHeight,
-    padX, padY,
-    
-    // Pass PRE-CALCULATED CSS variables
-    cssBg,
-    cssText,
-    cssBorder,
-    cssHoverBg,
-    cssHoverText,
-    cssHoverBorder,
-    cssHoverFilter,
-    cssActiveBg,
-    cssActiveText,
-    cssActiveBorder,
-    cssActiveFilter,
-
-    cssDisabledBg,
-    cssDisabledText,
-    cssDisabledBorder,
-    disabledOpacity,
-    disabledCursor,
-    disabledBorderWidth: disabledBorderWidthPx,
-    disabledHoverSuppressed,
-    disabledTextShadow: disabledTextShadowCss,
-    
-    borderWidth: borderWidthPx,
-    borderHoverWidth: hoverBorderWidthPx,
-    borderActiveWidth: activeBorderWidthPx,
-    borderStyle,
-    
-    // radius
-    radiusTL: rTL, radiusTR: rTR, radiusBR: rBR, radiusBL: rBL,
-    
-    // shadow
-    shadowEnabled,
-    shX: Number(shXText)||0, shY: Number(shYText)||0,
-    shBlur: Number(shBlurText)||0, shSpread: Number(shSpreadText)||0,
-    shColor: hexWithAlpha(shColorInput, Number(shOpacityText)||0.1),
-
-    // typography
-    fontFamily,
-    fontSizeValue,
-    fontSizeUnit,
-    fontWeight,
-    letterSpacingValue,
-    letterSpacingUnit,
-    lineHeight: lHeight,
-    fontStyle,
-    textTransform,
-    underline,
-
-    // alignment
-    align,
-
-    // text shadow
-    textShadowEnabled,
-    tsX: Number(tsXText)||0, tsY: Number(tsYText)||0, 
-    tsBlur: Number(tsBlurText)||0, 
-    tsColor,
-
-    // icon
-    iconName,
-    iconSource,
-    iconCustomSvg,
-    hoverIconEnabled,
-    hoverIconSource,
-    hoverIconName,
-    hoverIconCustomSvg,
-    activeIconEnabled,
-    activeIconSource,
-    activeIconName,
-    activeIconCustomSvg,
-    loadingIconEnabled,
-    loadingIconSource,
-    loadingIconName,
-    loadingIconCustomSvg,
-    iconPosition,
-    iconSize: Number(iconSizeText)||18,
-    iconGap: Number(iconGapText)||10,
-    iconColor: iconColorMode === "text" ? "currentColor" : iconColorInput,
-    baseIconSvg,
-    hoverIconSvg,
-    activeIconSvg,
-    loadingIconSvg,
-
-    // active
-    activeEnabled,
-    activeTy: activeEnabled ? (Number(activeTranslateYText)||0) : 0,
-    activeScale: activeEnabled ? (Number(activeScaleText)||1) : 1,
-
-    // focus
-    focusRingEnabled,
-    focusRingWidth: Number(focusRingWidthText)||4,
-    focusRingOffset: Number(focusRingOffsetText)||2,
-    focusRingColor: focusRingInput,
-
-    // preview specific
-    previewBg: previewBgHex,
-    ariaLabel,
-    ariaPressedMode,
-    ariaBusyMode,
-    groupEnabled,
-    groupAlign,
-    groupGap: groupGapPx,
-    hoverEnabled,
-    forceHover,
-    forceActive,
-    forceFocus,
-    transitionColorMs,
-    transitionColorEasing,
-    transitionTransformMs,
-    transitionTransformEasing,
-  }), [
-    label, variant, disabled, loading, animation, 
-    loadingLabel, loadingSpinnerMode, loadingSpinnerPosition, loadingSpinnerSvg,
-    touchWidth, touchHeight, padX, padY,
-    cssBg, cssText, cssBorder, cssHoverBg, cssHoverText, cssHoverBorder, cssHoverFilter, cssActiveBg, cssActiveText, cssActiveBorder, cssActiveFilter,
-    cssDisabledBg, cssDisabledText, cssDisabledBorder, disabledOpacity, disabledCursor, disabledBorderWidthPx, disabledHoverSuppressed, disabledTextShadowCss,
-    borderWidthPx, hoverBorderWidthPx, activeBorderWidthPx, borderStyle, rTL, rTR, rBR, rBL,
-    shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shColorInput,
-    fontFamily, fontSizeValue, fontSizeUnit, fontWeight, letterSpacingValue, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
-    align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsColor,
-    iconName, iconSource, iconCustomSvg, hoverIconEnabled, hoverIconSource, hoverIconName, hoverIconCustomSvg,
-    activeIconEnabled, activeIconSource, activeIconName, activeIconCustomSvg,
-    loadingIconEnabled, loadingIconSource, loadingIconName, loadingIconCustomSvg,
-    iconPosition, iconSizeText, iconGapText, iconColorMode, iconColorInput, baseIconSvg, hoverIconSvg, activeIconSvg, loadingIconSvg,
-    activeEnabled, activeTranslateYText, activeScaleText,
-    focusRingEnabled, focusRingWidthText, focusRingOffsetText, focusRingInput,
-    previewBgHex, ariaLabel, ariaPressedMode, ariaBusyMode, groupEnabled, groupAlign, groupGapPx, hoverEnabled, forceHover, forceActive, forceFocus,
-    transitionColorMs, transitionColorEasing, transitionTransformMs, transitionTransformEasing,
-  ]);
-
-  useEffect(() => {
-    if (!iframeRef.current?.contentWindow) return;
-    iframeRef.current.contentWindow.postMessage(previewPayload, "*");
-  }, [previewPayload]);
-
-  const initialSrcDoc = PREVIEW_SRC_DOC;
-
+  const topGradStartNorm = norm(topGradStartInput);
+  const topGradMidNorm = norm(topGradMidInput);
+  const topGradEndNorm = norm(topGradEndInput);
+  const topAngleRaw = Number(topGradAngleText);
+  const topAngle = Number.isFinite(topAngleRaw) ? topAngleRaw : 180;
+  const topStart = topGradStartNorm.ok ? topGradStartNorm.hex : topGradStartInput;
+  const topMid = topGradMidNorm.ok ? topGradMidNorm.hex : topGradMidInput;
+  const topEnd = topGradEndNorm.ok ? topGradEndNorm.hex : topGradEndInput;
+  const topStartColor = hexWithAlpha(topStart, topGradOpacity);
+  const topMidColor = hexWithAlpha(topMid, topGradOpacity);
+  const topEndColor = hexWithAlpha(topEnd, topGradOpacity);
+  const topGradientCss = topGradientEnabled
+    ? (topGradMidEnabled
+        ? `linear-gradient(${topAngle}deg, ${topStartColor}, ${topMidColor}, ${topEndColor})`
+        : `linear-gradient(${topAngle}deg, ${topStartColor}, ${topEndColor})`)
+    : "none";
+  const embossBlur = Math.max(1, Math.round(iconEmbossDepthPx * 0.8));
+  const embossLight = `rgba(255, 255, 255, ${clamp(iconEmbossStrength * 0.6, 0, 1)})`;
+  const embossDark = `rgba(0, 0, 0, ${clamp(iconEmbossStrength * 0.45, 0, 1)})`;
+  const iconEmbossFilter = iconEmbossMode === "off" || iconEmbossDepthPx <= 0
+    ? "none"
+    : iconEmbossMode === "raised"
+      ? `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossDark}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossLight})`
+      : `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossLight}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossDark})`;
   // --- Export Logic ---
   const handleDownload = () => {
     const { filename, content } = buildExportPayload({
@@ -654,14 +906,16 @@ export default function ActionButtonPage() {
       transitionColorEasing,
       transitionTransformMs,
       transitionTransformEasing,
-      shColorInput,
-      shOpacityText,
-      shadowEnabled,
-      variant,
-      shXText,
-      shYText,
-      shBlurText,
-      shSpreadText,
+      boxShadowCss,
+      boxShadowHoverCss,
+      boxShadowActiveCss,
+      topGradientCss,
+      parallaxHighlightEnabled,
+      parallaxStrength,
+      iconEmbossFilter,
+      hoverTiltX,
+      hoverTiltY,
+      hoverPerspective,
       loadingLabel,
       animation,
       iconSizeText,
@@ -758,6 +1012,329 @@ export default function ActionButtonPage() {
   const disabledBgNorm = norm(disabledBgInput);
   const disabledTextNorm = norm(disabledTextInput);
   const disabledBorderNorm = norm(disabledBorderInput);
+
+  const previewPayload = useMemo(() => ({
+    label,
+    variant,
+    disabled,
+    loading,
+    loadingLabel,
+    loadingSpinnerMode,
+    loadingSpinnerPosition,
+    loadingSpinnerSvg,
+    animation,
+    width: touchWidth,
+    height: touchHeight,
+    padX, padY,
+    
+    // Pass PRE-CALCULATED CSS variables
+    cssBg,
+    cssText,
+    cssBorder,
+    cssHoverBg,
+    cssHoverText,
+    cssHoverBorder,
+    cssHoverFilter,
+    cssActiveBg,
+    cssActiveText,
+    cssActiveBorder,
+    cssActiveFilter,
+
+    cssDisabledBg,
+    cssDisabledText,
+    cssDisabledBorder,
+    disabledOpacity,
+    disabledCursor,
+    disabledBorderWidth: disabledBorderWidthPx,
+    disabledHoverSuppressed,
+    disabledTextShadow: disabledTextShadowCss,
+    
+    borderWidth: borderWidthPx,
+    borderHoverWidth: hoverBorderWidthPx,
+    borderActiveWidth: activeBorderWidthPx,
+    borderStyle,
+    
+    // radius
+    radiusTL: rTL, radiusTR: rTR, radiusBR: rBR, radiusBL: rBL,
+    
+    // shadow
+    shadowEnabled,
+    shX: Number(shXText)||0, shY: Number(shYText)||0,
+    shBlur: Number(shBlurText)||0, shSpread: Number(shSpreadText)||0,
+    shColor: hexWithAlpha(shadowBaseHex, Number(shOpacityText)||0.1),
+    boxShadow: boxShadowCss,
+    boxShadowHover: boxShadowHoverCss,
+    boxShadowActive: boxShadowActiveCss,
+    topGradient: topGradientCss,
+    parallaxHighlightEnabled,
+    parallaxStrength,
+    iconEmbossFilter,
+    hoverTiltX,
+    hoverTiltY,
+    hoverPerspective,
+
+    // typography
+    fontFamily,
+    fontSizeValue,
+    fontSizeUnit,
+    fontWeight,
+    letterSpacingValue,
+    letterSpacingUnit,
+    lineHeight: lHeight,
+    fontStyle,
+    textTransform,
+    underline,
+
+    // alignment
+    align,
+
+    // text shadow
+    textShadowEnabled,
+    tsX: Number(tsXText)||0, tsY: Number(tsYText)||0, 
+    tsBlur: Number(tsBlurText)||0, 
+    tsColor,
+
+    // icon
+    iconName,
+    iconSource,
+    iconCustomSvg,
+    hoverIconEnabled,
+    hoverIconSource,
+    hoverIconName,
+    hoverIconCustomSvg,
+    activeIconEnabled,
+    activeIconSource,
+    activeIconName,
+    activeIconCustomSvg,
+    loadingIconEnabled,
+    loadingIconSource,
+    loadingIconName,
+    loadingIconCustomSvg,
+    iconPosition,
+    iconSize: Number(iconSizeText)||18,
+    iconGap: Number(iconGapText)||10,
+    iconColor: iconColorMode === "text" ? "currentColor" : iconColorInput,
+    baseIconSvg,
+    hoverIconSvg,
+    activeIconSvg,
+    loadingIconSvg,
+
+    // active
+    activeEnabled,
+    activeTy: activeEnabled ? (Number(activeTranslateYText)||0) : 0,
+    activeScale: activeEnabled ? (Number(activeScaleText)||1) : 1,
+
+    // focus
+    focusRingEnabled,
+    focusRingWidth: Number(focusRingWidthText)||4,
+    focusRingOffset: Number(focusRingOffsetText)||2,
+    focusRingColor: focusRingInput,
+
+    // preview specific
+    previewBg: previewBgHex,
+    ariaLabel,
+    ariaPressedMode,
+    ariaBusyMode,
+    groupEnabled,
+    groupAlign,
+    groupGap: groupGapPx,
+    hoverEnabled,
+    forceHover,
+    forceActive,
+    forceFocus,
+    transitionColorMs,
+    transitionColorEasing,
+    transitionTransformMs,
+    transitionTransformEasing,
+  }), [
+    label, variant, disabled, loading, animation, 
+    loadingLabel, loadingSpinnerMode, loadingSpinnerPosition, loadingSpinnerSvg,
+    touchWidth, touchHeight, padX, padY,
+    cssBg, cssText, cssBorder, cssHoverBg, cssHoverText, cssHoverBorder, cssHoverFilter, cssActiveBg, cssActiveText, cssActiveBorder, cssActiveFilter,
+    cssDisabledBg, cssDisabledText, cssDisabledBorder, disabledOpacity, disabledCursor, disabledBorderWidthPx, disabledHoverSuppressed, disabledTextShadowCss,
+    borderWidthPx, hoverBorderWidthPx, activeBorderWidthPx, borderStyle, rTL, rTR, rBR, rBL,
+    shadowEnabled, shXText, shYText, shBlurText, shSpreadText, shOpacityText, shadowBaseHex,
+    boxShadowCss, boxShadowHoverCss, boxShadowActiveCss, topGradientCss, parallaxHighlightEnabled, parallaxStrength, iconEmbossFilter, hoverTiltX, hoverTiltY, hoverPerspective,
+    fontFamily, fontSizeValue, fontSizeUnit, fontWeight, letterSpacingValue, letterSpacingUnit, lHeight, fontStyle, textTransform, underline,
+    align, textShadowEnabled, tsXText, tsYText, tsBlurText, tsColor,
+    iconName, iconSource, iconCustomSvg, hoverIconEnabled, hoverIconSource, hoverIconName, hoverIconCustomSvg,
+    activeIconEnabled, activeIconSource, activeIconName, activeIconCustomSvg,
+    loadingIconEnabled, loadingIconSource, loadingIconName, loadingIconCustomSvg,
+    iconPosition, iconSizeText, iconGapText, iconColorMode, iconColorInput, baseIconSvg, hoverIconSvg, activeIconSvg, loadingIconSvg,
+    activeEnabled, activeTranslateYText, activeScaleText,
+    focusRingEnabled, focusRingWidthText, focusRingOffsetText, focusRingInput,
+    previewBgHex, ariaLabel, ariaPressedMode, ariaBusyMode, groupEnabled, groupAlign, groupGapPx, hoverEnabled, forceHover, forceActive, forceFocus,
+    transitionColorMs, transitionColorEasing, transitionTransformMs, transitionTransformEasing,
+  ]);
+
+  useEffect(() => {
+    if (!iframeRef.current?.contentWindow) return;
+    iframeRef.current.contentWindow.postMessage(previewPayload, "*");
+  }, [previewPayload]);
+
+  const initialSrcDoc = PREVIEW_SRC_DOC;
+
+  const shadowSectionProps = {
+    PALETTE,
+    shadowEnabled,
+    setShadowEnabled,
+    shXText,
+    setShXText,
+    shYText,
+    setShYText,
+    shBlurText,
+    setShBlurText,
+    shSpreadText,
+    setShSpreadText,
+    shOpacityText,
+    setShOpacityText,
+    shColorInput,
+    setShColorInput,
+    shColorOk: shColorNorm.ok,
+    shColorHex: shColorNorm.hex,
+    shColorRgb: shColorNorm.rgb,
+    shadowTemp,
+    setShadowTemp,
+    elevationPreset,
+    setElevationPreset,
+    onApplyElevationPreset: applyElevationPreset,
+    depthText,
+    setDepthText,
+    depthPx,
+    lightDirection,
+    setLightDirection,
+    lightAngleText,
+    setLightAngleText,
+    shadowStackEnabled,
+    setShadowStackEnabled,
+    stack1Enabled,
+    setStack1Enabled,
+    stack1XText,
+    setStack1XText,
+    stack1YText,
+    setStack1YText,
+    stack1BlurText,
+    setStack1BlurText,
+    stack1SpreadText,
+    setStack1SpreadText,
+    stack1OpacityText,
+    setStack1OpacityText,
+    stack2Enabled,
+    setStack2Enabled,
+    stack2XText,
+    setStack2XText,
+    stack2YText,
+    setStack2YText,
+    stack2BlurText,
+    setStack2BlurText,
+    stack2SpreadText,
+    setStack2SpreadText,
+    stack2OpacityText,
+    setStack2OpacityText,
+    stack3Enabled,
+    setStack3Enabled,
+    stack3XText,
+    setStack3XText,
+    stack3YText,
+    setStack3YText,
+    stack3BlurText,
+    setStack3BlurText,
+    stack3SpreadText,
+    setStack3SpreadText,
+    stack3OpacityText,
+    setStack3OpacityText,
+    innerShadowEnabled,
+    setInnerShadowEnabled,
+    glossEnabled,
+    setGlossEnabled,
+    glossSizeText,
+    setGlossSizeText,
+    glossOpacityText,
+    setGlossOpacityText,
+    bevelEnabled,
+    setBevelEnabled,
+    bevelSizeText,
+    setBevelSizeText,
+    bevelSoftnessText,
+    setBevelSoftnessText,
+    materialPreset,
+    setMaterialPreset,
+    onApplyMaterialPreset: applyMaterialPreset,
+    edgeThicknessText,
+    setEdgeThicknessText,
+    edgeGradientEnabled,
+    setEdgeGradientEnabled,
+    edgeGradientSizeText,
+    setEdgeGradientSizeText,
+    edgeGradientStrengthText,
+    setEdgeGradientStrengthText,
+    topGradientEnabled,
+    setTopGradientEnabled,
+    topGradAngleText,
+    setTopGradAngleText,
+    topGradStartInput,
+    setTopGradStartInput,
+    topGradStartNorm,
+    topGradMidEnabled,
+    setTopGradMidEnabled,
+    topGradMidInput,
+    setTopGradMidInput,
+    topGradMidNorm,
+    topGradEndInput,
+    setTopGradEndInput,
+    topGradEndNorm,
+    topGradOpacityText,
+    setTopGradOpacityText,
+    parallaxHighlightEnabled,
+    setParallaxHighlightEnabled,
+    parallaxStrengthText,
+    setParallaxStrengthText,
+    rimLightEnabled,
+    setRimLightEnabled,
+    rimLightColorInput,
+    setRimLightColorInput,
+    rimLightOk: rimLightNorm.ok,
+    rimLightHex: rimLightNorm.hex,
+    rimLightRgb: rimLightNorm.rgb,
+    rimLightSizeText,
+    setRimLightSizeText,
+    rimLightOpacityText,
+    setRimLightOpacityText,
+    iconEmbossMode,
+    setIconEmbossMode,
+    iconEmbossDepthText,
+    setIconEmbossDepthText,
+    iconEmbossStrengthText,
+    setIconEmbossStrengthText,
+    borderDepthMode,
+    setBorderDepthMode,
+    borderDepthSizeText,
+    setBorderDepthSizeText,
+    baseShadowEnabled,
+    setBaseShadowEnabled,
+    baseShadowSizeText,
+    setBaseShadowSizeText,
+    baseShadowOpacityText,
+    setBaseShadowOpacityText,
+    pressedDepthText,
+    setPressedDepthText,
+    pressedInsetEnabled,
+    setPressedInsetEnabled,
+    hoverLiftText,
+    setHoverLiftText,
+    specularStrengthText,
+    setSpecularStrengthText,
+    roughnessText,
+    setRoughnessText,
+    aoStrengthText,
+    setAoStrengthText,
+    hoverTiltXText,
+    setHoverTiltXText,
+    hoverTiltYText,
+    setHoverTiltYText,
+    hoverPerspectiveText,
+    setHoverPerspectiveText,
+  };
 
   const iconSectionProps = {
     PALETTE,
@@ -1044,17 +1621,7 @@ export default function ActionButtonPage() {
       id: "shadow",
       label: "Shadow",
       content: (
-        <ShadowSection
-          PALETTE={PALETTE}
-          shadowEnabled={shadowEnabled} setShadowEnabled={setShadowEnabled}
-          shXText={shXText} setShXText={setShXText}
-          shYText={shYText} setShYText={setShYText}
-          shBlurText={shBlurText} setShBlurText={setShBlurText}
-          shSpreadText={shSpreadText} setShSpreadText={setShSpreadText}
-          shOpacityText={shOpacityText} setShOpacityText={setShOpacityText}
-          shColorInput={shColorInput} setShColorInput={setShColorInput}
-          shColorOk={norm(shColorInput).ok} shColorHex={norm(shColorInput).hex} shColorRgb={norm(shColorInput).rgb}
-        />
+        <ShadowSection {...shadowSectionProps} />
       ),
     },
     {

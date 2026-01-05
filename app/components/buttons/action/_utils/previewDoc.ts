@@ -25,6 +25,7 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
   .btn {
     appearance: none; outline: none; 
     cursor: pointer; position: relative; display: inline-flex;
+    overflow: hidden;
     transition:
       background var(--btn-color-duration) var(--btn-color-ease),
       color var(--btn-color-duration) var(--btn-color-ease),
@@ -41,6 +42,36 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
     border-width: var(--btn-border-width);
     filter: none;
     box-shadow: var(--btn-shadow);
+    transform-style: preserve-3d;
+  }
+
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--btn-top-gradient, none);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at calc(50% + var(--btn-light-x, 0px)) calc(20% + var(--btn-light-y, 0px)),
+      rgba(255, 255, 255, var(--btn-parallax-opacity, 0)),
+      rgba(255, 255, 255, 0) 60%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .btn > * {
+    position: relative;
+    z-index: 1;
   }
   
   /* Robust CSS Hover */
@@ -51,6 +82,8 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
     border-color: var(--btn-hover-border);
     border-width: var(--btn-hover-border-width);
     filter: var(--btn-hover-filter);
+    box-shadow: var(--btn-hover-shadow, var(--btn-shadow));
+    transform: perspective(var(--btn-hover-perspective)) rotateX(var(--btn-hover-tilt-x)) rotateY(var(--btn-hover-tilt-y));
   }
 
   .btn:active:not(:disabled),
@@ -61,6 +94,7 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
     border-width: var(--btn-active-border-width);
     filter: var(--btn-active-filter);
     transform: translateY(var(--btn-active-ty)) scale(var(--btn-active-scale));
+    box-shadow: var(--btn-active-shadow, var(--btn-shadow));
   }
 
   .btn:disabled {
@@ -82,7 +116,7 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
     filter: none;
   }
 
-  .icon-svg { flex-shrink: 0; display: inline-flex; }
+  .icon-svg { flex-shrink: 0; display: inline-flex; filter: var(--icon-emboss-filter, none); }
   .icon-svg svg { width: 100%; height: 100%; display: block; }
   
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -373,11 +407,17 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
       btn.style.setProperty('--btn-transform-ease', d.transitionTransformEasing);
 
       // Box Shadow
-      if (d.shadowEnabled && d.variant !== 'ghost') {
-        btn.style.setProperty('--btn-shadow', \`\${d.shX}px \${d.shY}px \${d.shBlur}px \${d.shSpread}px \${d.shColor}\`);
-      } else {
-        btn.style.setProperty('--btn-shadow', 'none');
-      }
+      btn.style.setProperty('--btn-shadow', d.boxShadow || 'none');
+      btn.style.setProperty('--btn-hover-shadow', d.boxShadowHover || d.boxShadow || 'none');
+      btn.style.setProperty('--btn-active-shadow', d.boxShadowActive || d.boxShadow || 'none');
+      btn.style.setProperty('--btn-hover-tilt-x', (d.hoverTiltX || 0) + "deg");
+      btn.style.setProperty('--btn-hover-tilt-y', (d.hoverTiltY || 0) + "deg");
+      btn.style.setProperty('--btn-hover-perspective', (d.hoverPerspective || 800) + "px");
+      btn.style.setProperty('--btn-top-gradient', d.topGradient || 'none');
+      btn.style.setProperty('--btn-parallax-opacity', 0);
+      btn.style.setProperty('--btn-light-x', '0px');
+      btn.style.setProperty('--btn-light-y', '0px');
+      btn.style.setProperty('--icon-emboss-filter', d.iconEmbossFilter || 'none');
 
       // Typography & Alignment
       btn.style.fontFamily = d.fontFamily;
@@ -419,12 +459,33 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
       btn.classList.toggle('suppress-hover', d.disabledHoverSuppressed && (d.disabled || d.loading));
 
       // Hover/Active icon state hooks
+      const resetParallax = () => {
+        btn.style.setProperty('--btn-light-x', '0px');
+        btn.style.setProperty('--btn-light-y', '0px');
+        btn.style.setProperty('--btn-parallax-opacity', '0');
+      };
+      const parallaxStrength = d.parallaxHighlightEnabled ? (Number(d.parallaxStrength) || 0) : 0;
+      btn.onmousemove = (e) => {
+        if (!parallaxStrength) return;
+        const rect = btn.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const nx = e.clientX - rect.left - rect.width / 2;
+        const ny = e.clientY - rect.top - rect.height / 2;
+        const maxShift = Math.min(rect.width, rect.height) * 0.35 * parallaxStrength;
+        const shiftX = Math.max(-maxShift, Math.min(maxShift, nx));
+        const shiftY = Math.max(-maxShift, Math.min(maxShift, ny));
+        btn.style.setProperty('--btn-light-x', Math.round(shiftX) + 'px');
+        btn.style.setProperty('--btn-light-y', Math.round(shiftY) + 'px');
+        btn.style.setProperty('--btn-parallax-opacity', parallaxStrength);
+      };
       btn.onmouseenter = () => {
         if (!d.hoverEnabled || d.forceHover || d.forceActive || d.disabled || d.loading) return;
         btn.dataset.hover = 'true';
         applyIconState(btn, d);
+        if (parallaxStrength) btn.style.setProperty('--btn-parallax-opacity', parallaxStrength);
       };
       btn.onmouseleave = () => {
+        resetParallax();
         if (!d.hoverEnabled || d.forceHover || d.forceActive) return;
         btn.dataset.hover = 'false';
         btn.dataset.active = 'false';
