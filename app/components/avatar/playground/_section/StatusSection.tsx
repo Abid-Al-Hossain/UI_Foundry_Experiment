@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
 
@@ -10,12 +8,14 @@ export default function StatusSection(props: {
   setStatusPosition: (v: any) => void;
   statusAnimation: "none" | "pulse";
   setStatusAnimation: (v: any) => void;
+  badgeCount: string;
+  setBadgeCount: (v: string) => void;
 }) {
   return (
     <div className="space-y-6">
       <SectionCard
-        title="Status Indicator"
-        subtitle="Show availability or state."
+        title="Status & Badge"
+        subtitle="Show availability or notification count."
       >
         <div className="space-y-4">
           <LabeledField label="Status">
@@ -30,6 +30,22 @@ export default function StatusSection(props: {
                 { value: "away", label: "Away" },
               ]}
             />
+          </LabeledField>
+
+          <LabeledField label="Badge Label">
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={props.badgeCount}
+                onChange={(e) => props.setBadgeCount(e.target.value)}
+                placeholder="e.g. 1, 99+, New"
+                className="w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:border-[var(--primary)] text-[var(--text)]"
+                style={{ borderColor: "var(--border)" }}
+              />
+              <p className="text-xs text-[var(--muted)]">
+                Adding text turns the dot into a circular/pill badge.
+              </p>
+            </div>
           </LabeledField>
 
           <LabeledField label="Position">

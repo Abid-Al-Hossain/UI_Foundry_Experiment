@@ -160,6 +160,47 @@ export default function ActionButtonPage() {
   const [elevationPreset, setElevationPreset] = useState<
     "flat" | "raised" | "lifted" | "inset"
   >("raised");
+
+  // 3D Press Link: Update active translate when depth changes via preset
+  const handleApplyElevationPreset = (
+    mode: "flat" | "raised" | "lifted" | "inset"
+  ) => {
+    setElevationPreset(mode);
+    setShadowEnabled(true);
+    setShadowStackEnabled(false);
+    setBaseShadowEnabled(false);
+
+    if (mode === "flat") {
+      setShadowEnabled(false);
+      setDepthText("0");
+      if (activeEnabled) setActiveTranslateYText("0");
+    } else if (mode === "raised") {
+      setShXText("0");
+      setShYText("4");
+      setShBlurText("6");
+      setShSpreadText("-1");
+      setShOpacityText("0.1");
+      setDepthText("4");
+      setBaseShadowEnabled(true);
+      setBaseShadowSizeText("10");
+      if (activeEnabled) setActiveTranslateYText("4");
+    } else if (mode === "lifted") {
+      setShXText("0");
+      setShYText("10");
+      setShBlurText("15");
+      setShSpreadText("-3");
+      setShOpacityText("0.15");
+      setDepthText("8");
+      setBaseShadowEnabled(true);
+      setBaseShadowSizeText("20");
+      if (activeEnabled) setActiveTranslateYText("8");
+    } else if (mode === "inset") {
+      setDepthText("0");
+      setInnerShadowEnabled(true);
+      setShOpacityText("0");
+      if (activeEnabled) setActiveTranslateYText("0");
+    }
+  };
   const [depthText, setDepthText] = useState("8");
   const [lightDirection, setLightDirection] = useState<
     "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom"
@@ -194,11 +235,74 @@ export default function ActionButtonPage() {
   const [materialPreset, setMaterialPreset] = useState<
     "custom" | "plastic" | "matte" | "metal" | "glass"
   >("custom");
+
+  const handleApplyMaterialPreset = (
+    mode: "custom" | "plastic" | "matte" | "metal" | "glass"
+  ) => {
+    setMaterialPreset(mode);
+    if (mode === "custom") return;
+
+    if (mode === "plastic") {
+      setGlossEnabled(true);
+      setGlossOpacityText("0.4");
+      setSpecularStrengthText("0.5");
+      setRoughnessText("0.1");
+      setBevelEnabled(true);
+      setBevelSizeText("3");
+      setBevelSoftnessText("2");
+      setInnerShadowEnabled(true);
+      setBackdropBlurEnabled(false);
+      setBgInput("#2563eb");
+      setTextInput("#ffffff");
+    } else if (mode === "matte") {
+      setGlossEnabled(false);
+      setSpecularStrengthText("0");
+      setRoughnessText("1");
+      setBevelEnabled(false);
+      setInnerShadowEnabled(false);
+      setBackdropBlurEnabled(false);
+      setBgInput("#2563eb");
+      setTextInput("#ffffff");
+    } else if (mode === "metal") {
+      setGlossEnabled(true);
+      setGlossOpacityText("0.6");
+      setSpecularStrengthText("0.8");
+      setRoughnessText("0.3");
+      setBevelEnabled(true);
+      setBevelSizeText("2");
+      setBevelSoftnessText("1");
+      setInnerShadowEnabled(true);
+      setEdgeGradientEnabled(true);
+      setBackdropBlurEnabled(false);
+      setBgInput("#2563eb");
+      setTextInput("#ffffff");
+    } else if (mode === "glass") {
+      setGlossEnabled(true);
+      setGlossOpacityText("0.3");
+      setSpecularStrengthText("0.4");
+      setRoughnessText("0.1");
+      setBevelEnabled(true);
+      setBevelSizeText("1");
+      setInnerShadowEnabled(true);
+      // Glass specific
+      setBackdropBlurEnabled(true);
+      setBackdropBlurText("10");
+      setShOpacityText("0.1");
+      // For glass, we often want a semi-transparent white/black
+      // effectively overriding current bg to ensure transparency
+      setBgInput("#ffffff55");
+      setTextInput("#000000");
+    }
+  };
   const [edgeThicknessText, setEdgeThicknessText] = useState("0");
   const [edgeGradientEnabled, setEdgeGradientEnabled] = useState(false);
   const [edgeGradientSizeText, setEdgeGradientSizeText] = useState("2");
   const [edgeGradientStrengthText, setEdgeGradientStrengthText] =
     useState("0.25");
+
+  // Glassmorphism States
+  const [backdropBlurEnabled, setBackdropBlurEnabled] = useState(false);
+  const [backdropBlurText, setBackdropBlurText] = useState("10");
   const [topGradientEnabled, setTopGradientEnabled] = useState(false);
   const [topGradAngleText, setTopGradAngleText] = useState("180");
   const [topGradStartInput, setTopGradStartInput] = useState("#ffffff");
@@ -1417,6 +1521,8 @@ export default function ActionButtonPage() {
       focusRingColor: focusRingInput,
 
       // preview specific
+      backdropBlurEnabled,
+      backdropBlurText,
       previewBg: previewBgHex,
       ariaLabel,
       ariaPressedMode,
@@ -1586,7 +1692,7 @@ export default function ActionButtonPage() {
     setShadowTemp,
     elevationPreset,
     setElevationPreset,
-    onApplyElevationPreset: applyElevationPreset,
+    onApplyElevationPreset: handleApplyElevationPreset,
     depthText,
     setDepthText,
     depthPx,
@@ -1648,7 +1754,7 @@ export default function ActionButtonPage() {
     setBevelSoftnessText,
     materialPreset,
     setMaterialPreset,
-    onApplyMaterialPreset: applyMaterialPreset,
+    onApplyMaterialPreset: handleApplyMaterialPreset,
     edgeThicknessText,
     setEdgeThicknessText,
     edgeGradientEnabled,

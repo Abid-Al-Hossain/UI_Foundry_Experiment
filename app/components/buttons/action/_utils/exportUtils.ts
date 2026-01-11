@@ -3,7 +3,12 @@
 import type { DownloadFormat } from "../_section/PreviewDownloadPanel";
 import { sanitizeFilenameBase } from "./colorUtils";
 
-type TransitionEasing = "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+type TransitionEasing =
+  | "ease"
+  | "ease-in"
+  | "ease-out"
+  | "ease-in-out"
+  | "linear";
 
 export type ExportPayloadInput = {
   downloadFormat: DownloadFormat;
@@ -212,43 +217,66 @@ export function buildExportPayload(params: ExportPayloadInput) {
     previewBgHex,
     fontStyle,
     textTransform,
+    backdropBlurEnabled,
+    backdropBlurText,
   } = params;
 
   let content = "";
-  const ext = downloadFormat === "react"
-    ? "jsx"
-    : downloadFormat === "css-vars"
+  const ext =
+    downloadFormat === "react"
+      ? "jsx"
+      : downloadFormat === "css-vars"
       ? "css"
       : downloadFormat === "tailwind-config"
-        ? "js"
-        : downloadFormat === "figma-tokens"
-          ? "json"
-          : downloadFormat;
+      ? "js"
+      : downloadFormat === "figma-tokens"
+      ? "json"
+      : downloadFormat;
   const rawBase = sanitizeFilenameBase(downloadName);
-  const base = rawBase.replace(/\.(html|jsx|tailwind|css|scss|js|json)$/i, "") || "button";
+  const base =
+    rawBase.replace(/\.(html|jsx|tailwind|css|scss|js|json)$/i, "") || "button";
   const filename = `${base}.${ext}`;
   const exportWidth = touchWidth;
   const exportHeight = touchHeight;
   const fontSizeCss = `${fontSizeValue}${fontSizeUnit}`;
   const letterSpacingCss = `${letterSpacingValue}${letterSpacingUnit}`;
-  const ariaLabelAttr = ariaLabel ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"` : "";
-  const ariaPressedAttr = ariaPressedMode !== "off" ? ` aria-pressed="${ariaPressedMode}"` : "";
-  const ariaBusyAttr = ariaBusyMode === "auto"
-    ? (loading ? ` aria-busy="true"` : "")
-    : (ariaBusyMode !== "off" ? ` aria-busy="${ariaBusyMode}"` : "");
+  const ariaLabelAttr = ariaLabel
+    ? ` aria-label="${ariaLabel.replace(/"/g, "&quot;")}"`
+    : "";
+  const ariaPressedAttr =
+    ariaPressedMode !== "off" ? ` aria-pressed="${ariaPressedMode}"` : "";
+  const ariaBusyAttr =
+    ariaBusyMode === "auto"
+      ? loading
+        ? ` aria-busy="true"`
+        : ""
+      : ariaBusyMode !== "off"
+      ? ` aria-busy="${ariaBusyMode}"`
+      : "";
   const ariaAttr = `${ariaLabelAttr}${ariaPressedAttr}${ariaBusyAttr}`;
   const tsX = Number(tsXText) || 0;
   const tsY = Number(tsYText) || 0;
   const tsBlur = Number(tsBlurText) || 0;
-  const textShadowCss = textShadowEnabled ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}` : "none";
+  const textShadowCss = textShadowEnabled
+    ? `${tsX}px ${tsY}px ${tsBlur}px ${tsColor}`
+    : "none";
   const transitionCss = `background ${transitionColorMs}ms ${transitionColorEasing}, color ${transitionColorMs}ms ${transitionColorEasing}, border-color ${transitionColorMs}ms ${transitionColorEasing}, filter ${transitionColorMs}ms ${transitionColorEasing}, box-shadow ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}, border-width ${transitionTransformMs}ms ${transitionTransformEasing}`;
-  const exportShadow = boxShadowCss && boxShadowCss !== "none" ? boxShadowCss : "none";
-  const exportHoverShadow = boxShadowHoverCss && boxShadowHoverCss !== "none" ? boxShadowHoverCss : exportShadow;
-  const exportActiveShadow = boxShadowActiveCss && boxShadowActiveCss !== "none" ? boxShadowActiveCss : exportShadow;
-  const hoverTransform = (hoverTiltX || hoverTiltY)
-    ? `perspective(${hoverPerspective}px) rotateX(${hoverTiltX}deg) rotateY(${hoverTiltY}deg)`
-    : "";
-  const exportTopGradient = topGradientCss && topGradientCss !== "none" ? topGradientCss : "none";
+  const exportShadow =
+    boxShadowCss && boxShadowCss !== "none" ? boxShadowCss : "none";
+  const exportHoverShadow =
+    boxShadowHoverCss && boxShadowHoverCss !== "none"
+      ? boxShadowHoverCss
+      : exportShadow;
+  const exportActiveShadow =
+    boxShadowActiveCss && boxShadowActiveCss !== "none"
+      ? boxShadowActiveCss
+      : exportShadow;
+  const hoverTransform =
+    hoverTiltX || hoverTiltY
+      ? `perspective(${hoverPerspective}px) rotateX(${hoverTiltX}deg) rotateY(${hoverTiltY}deg)`
+      : "";
+  const exportTopGradient =
+    topGradientCss && topGradientCss !== "none" ? topGradientCss : "none";
   const parallaxOpacity = parallaxHighlightEnabled
     ? Math.max(0, Math.min(1, Number(parallaxStrength) || 0))
     : 0;
@@ -257,38 +285,83 @@ export function buildExportPayload(params: ExportPayloadInput) {
   const spinnerSize = Number(iconSizeText) || 18;
   const spinnerGap = Number(iconGapText) || 10;
   const defaultSpinnerSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-  const exportSpinnerSvg = loadingSpinnerMode === "custom" && loadingSpinnerSvg
-    ? loadingSpinnerSvg
-    : (loadingSpinnerMode === "none" ? "" : defaultSpinnerSvg);
+  const exportSpinnerSvg =
+    loadingSpinnerMode === "custom" && loadingSpinnerSvg
+      ? loadingSpinnerSvg
+      : loadingSpinnerMode === "none"
+      ? ""
+      : defaultSpinnerSvg;
   const spinnerWrap = exportSpinnerSvg
-    ? `<span class="uf-spinner-wrap" style="width:${spinnerSize}px;height:${spinnerSize}px;${loadingSpinnerPosition === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}">${exportSpinnerSvg}</span>`
+    ? `<span class="uf-spinner-wrap" style="width:${spinnerSize}px;height:${spinnerSize}px;${
+        loadingSpinnerPosition === "left"
+          ? `margin-right:${spinnerGap}px;`
+          : `margin-left:${spinnerGap}px;`
+      }">${exportSpinnerSvg}</span>`
     : "";
-  const labelHtml = `<span class="uf-label">${loading ? loadingLabelText : label}</span>`;
+  const labelHtml = `<span class="uf-label">${
+    loading ? loadingLabelText : label
+  }</span>`;
   const exportBaseIconSvg = baseIconSvg;
   const exportHoverIconSvg = hoverIconSvg;
   const exportActiveIconSvg = activeIconSvg;
   const exportLoadingIconSvg = loadingIconSvg;
-  const hasBaseIcon = iconSource === "custom" ? Boolean(exportBaseIconSvg.trim()) : iconName !== "none";
+  const hasBaseIcon =
+    iconSource === "custom"
+      ? Boolean(exportBaseIconSvg.trim())
+      : iconName !== "none";
   const hasHoverIcon = Boolean(exportHoverIconSvg && exportHoverIconSvg.trim());
-  const hasActiveIcon = Boolean(exportActiveIconSvg && exportActiveIconSvg.trim());
-  const hasLoadingIcon = Boolean(exportLoadingIconSvg && exportLoadingIconSvg.trim());
-  const iconColor = iconColorMode === "custom" ? iconColorInput : "currentColor";
-  const renderIconSpan = (state: string, svg: string, position: "left" | "right") =>
+  const hasActiveIcon = Boolean(
+    exportActiveIconSvg && exportActiveIconSvg.trim()
+  );
+  const hasLoadingIcon = Boolean(
+    exportLoadingIconSvg && exportLoadingIconSvg.trim()
+  );
+  const iconColor =
+    iconColorMode === "custom" ? iconColorInput : "currentColor";
+  const renderIconSpan = (
+    state: string,
+    svg: string,
+    position: "left" | "right"
+  ) =>
     svg
-      ? `<span class="uf-icon-wrap uf-icon-${state} ${position}" style="width:${spinnerSize}px;height:${spinnerSize}px;${position === "left" ? `margin-right:${spinnerGap}px;` : `margin-left:${spinnerGap}px;`}color:${iconColor};">${svg}</span>`
+      ? `<span class="uf-icon-wrap uf-icon-${state} ${position}" style="width:${spinnerSize}px;height:${spinnerSize}px;${
+          position === "left"
+            ? `margin-right:${spinnerGap}px;`
+            : `margin-left:${spinnerGap}px;`
+        }color:${iconColor};">${svg}</span>`
       : "";
-  const iconWrapLeft = iconPosition === "left"
-    ? `${renderIconSpan("base", exportBaseIconSvg, "left")}${renderIconSpan("hover", exportHoverIconSvg, "left")}${renderIconSpan("active", exportActiveIconSvg, "left")}`
+  const iconWrapLeft =
+    iconPosition === "left"
+      ? `${renderIconSpan("base", exportBaseIconSvg, "left")}${renderIconSpan(
+          "hover",
+          exportHoverIconSvg,
+          "left"
+        )}${renderIconSpan("active", exportActiveIconSvg, "left")}`
+      : "";
+  const iconWrapRight =
+    iconPosition === "right"
+      ? `${renderIconSpan("base", exportBaseIconSvg, "right")}${renderIconSpan(
+          "hover",
+          exportHoverIconSvg,
+          "right"
+        )}${renderIconSpan("active", exportActiveIconSvg, "right")}`
+      : "";
+  const loadingIconWrap = hasLoadingIcon
+    ? renderIconSpan(
+        "loading",
+        exportLoadingIconSvg,
+        iconPosition === "right" ? "right" : "left"
+      )
     : "";
-  const iconWrapRight = iconPosition === "right"
-    ? `${renderIconSpan("base", exportBaseIconSvg, "right")}${renderIconSpan("hover", exportHoverIconSvg, "right")}${renderIconSpan("active", exportActiveIconSvg, "right")}`
-    : "";
-  const loadingIconWrap = hasLoadingIcon ? renderIconSpan("loading", exportLoadingIconSvg, iconPosition === "right" ? "right" : "left") : "";
   const useLoadingIcon = loading && hasLoadingIcon;
   const buttonInnerHtml = loading
-    ? (useLoadingIcon
-        ? (iconPosition === "right" ? `${labelHtml}${loadingIconWrap}` : `${loadingIconWrap}${labelHtml}`)
-        : (loadingSpinnerPosition === "right" ? `${labelHtml}${spinnerWrap}` : `${spinnerWrap}${labelHtml}`))
+    ? useLoadingIcon
+      ? iconPosition === "right"
+        ? `${labelHtml}${loadingIconWrap}`
+        : `${loadingIconWrap}${labelHtml}`
+      : loadingSpinnerPosition === "right"
+      ? `${labelHtml}${spinnerWrap}`
+      : `${spinnerWrap}${labelHtml}`
     : `${iconWrapLeft}${labelHtml}${iconWrapRight}`;
   const exportDisabled = disabled || loading;
   const exportSpinnerSvgLiteral = JSON.stringify(exportSpinnerSvg);
@@ -302,11 +375,13 @@ export function buildExportPayload(params: ExportPayloadInput) {
   const exportHasActiveIconLiteral = JSON.stringify(hasActiveIcon);
   const exportHasLoadingIconLiteral = JSON.stringify(hasLoadingIcon);
   const exportIconColorLiteral = JSON.stringify(iconColor);
-  const safeFontFamily = fontFamily || (fontBucket === "system" ? "sans-serif" : googleFontFamily);
+  const safeFontFamily =
+    fontFamily || (fontBucket === "system" ? "sans-serif" : googleFontFamily);
   const googleFamilyParam = encodeURIComponent(googleFontFamily || "Inter");
-  const fontImport = fontBucket === "system"
-    ? ""
-    : `@import url("https://fonts.googleapis.com/css2?family=${googleFamilyParam}:wght@100..900&display=swap");`;
+  const fontImport =
+    fontBucket === "system"
+      ? ""
+      : `@import url("https://fonts.googleapis.com/css2?family=${googleFamilyParam}:wght@100..900&display=swap");`;
   const focusRingWidth = focusRingEnabled ? focusRingWidthText : "0";
   const focusRingOffset = focusRingEnabled ? focusRingOffsetText : "0";
   const focusRingColor = focusRingEnabled ? focusRingInput : "transparent";
@@ -318,14 +393,17 @@ export function buildExportPayload(params: ExportPayloadInput) {
   box-shadow: ${focusBoxShadow};
 }`.trim();
   const hoverFilter = cssHoverFilter || "none";
-  const hoverTransformCss = hoverTransform ? `\n  transform: ${hoverTransform};` : "";
-  const animationValue = animation === "pulse"
-    ? "pulse 2s infinite"
-    : animation === "float"
+  const hoverTransformCss = hoverTransform
+    ? `\n  transform: ${hoverTransform};`
+    : "";
+  const animationValue =
+    animation === "pulse"
+      ? "pulse 2s infinite"
+      : animation === "float"
       ? "float 3s ease-in-out infinite"
       : animation === "subtle-pop"
-        ? "subtle-pop 0.3s ease-out backwards"
-        : "";
+      ? "subtle-pop 0.3s ease-out backwards"
+      : "";
   const animationCss = animationValue
     ? `
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; transform: scale(0.98); } }
@@ -336,6 +414,11 @@ export function buildExportPayload(params: ExportPayloadInput) {
 
   // Radius string for export
   const rCSS = `${rTL}px ${rTR}px ${rBR}px ${rBL}px`;
+
+  const backdropFilterCss =
+    backdropBlurEnabled && backdropBlurText
+      ? `blur(${backdropBlurText}px)`
+      : "none";
 
   // Map Alignment
   const exportMap: Record<string, [string, string]> = {
@@ -352,7 +435,8 @@ export function buildExportPayload(params: ExportPayloadInput) {
   const [alignItems, justify] = exportMap[align] || ["center", "center"];
 
   // Construct Hover/Active CSS
-  const hoverCSS = hoverEnabled ? `
+  const hoverCSS = hoverEnabled
+    ? `
 .uf-btn:hover:not(:disabled) {
   background: ${cssHoverBg};
   color: ${cssHoverText};
@@ -360,8 +444,10 @@ export function buildExportPayload(params: ExportPayloadInput) {
   border-width: ${hoverBorderWidthPx}px;
   filter: ${hoverFilter};
   box-shadow: ${exportHoverShadow};${hoverTransformCss}
-}`.trim() : "";
-  const activeCSS = activeEnabled ? `
+}`.trim()
+    : "";
+  const activeCSS = activeEnabled
+    ? `
 .uf-btn:active:not(:disabled) {
   background: ${cssActiveBg};
   color: ${cssActiveText};
@@ -370,25 +456,34 @@ export function buildExportPayload(params: ExportPayloadInput) {
   filter: ${cssActiveFilter};
   transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
   box-shadow: ${exportActiveShadow};
-}`.trim() : "";
-  const disabledHoverCSS = disabledHoverSuppressed ? `
+}`.trim()
+    : "";
+  const disabledHoverCSS = disabledHoverSuppressed
+    ? `
 .uf-btn.suppress-hover:hover {
   background: ${cssDisabledBg};
   color: ${cssDisabledText};
   border-color: ${cssDisabledBorder};
   border-width: ${disabledBorderWidthPx}px;
   filter: none;
-}`.trim() : "";
-  const hoverIconCss = hoverEnabled ? `
+}`.trim()
+    : "";
+  const hoverIconCss = hoverEnabled
+    ? `
 .uf-btn:hover:not(:disabled) .uf-icon-base { display: none; }
 .uf-btn:hover:not(:disabled) .uf-icon-hover { display: inline-flex; }
-` : "";
-  const activeIconCss = activeEnabled ? `
+`
+    : "";
+  const activeIconCss = activeEnabled
+    ? `
 .uf-btn:active:not(:disabled) .uf-icon-hover { display: none; }
 .uf-btn:active:not(:disabled) .uf-icon-base { display: none; }
 .uf-btn:active:not(:disabled) .uf-icon-active { display: inline-flex; }
-` : "";
-  const parallaxScript = parallaxOpacity > 0 ? `
+`
+    : "";
+  const parallaxScript =
+    parallaxOpacity > 0
+      ? `
 <script>
   (function() {
     const btn = document.querySelector('.uf-btn');
@@ -414,11 +509,14 @@ export function buildExportPayload(params: ExportPayloadInput) {
     btn.addEventListener('mouseleave', reset);
   })();
 </script>
-` : "";
+`
+      : "";
 
   if (downloadFormat === "html") {
     content = `
-<button class="uf-btn${useLoadingIcon ? " is-loading" : ""}${disabledHoverSuppressed && exportDisabled ? " suppress-hover" : ""}"${exportDisabled ? " disabled" : ""}${ariaAttr}>
+<button class="uf-btn${useLoadingIcon ? " is-loading" : ""}${
+      disabledHoverSuppressed && exportDisabled ? " suppress-hover" : ""
+    }"${exportDisabled ? " disabled" : ""}${ariaAttr}>
   ${buttonInnerHtml}
 </button>
 
@@ -451,6 +549,8 @@ ${fontImport}
   text-shadow: ${textShadowCss};
   box-shadow: ${exportShadow};
   transform-style: preserve-3d;
+  backdrop-filter: ${backdropFilterCss};
+  -webkit-backdrop-filter: ${backdropFilterCss};
   ${animationValue ? `animation: ${animationValue};` : ""}
   cursor: pointer;
   transition: ${transitionCss};
@@ -598,6 +698,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     transformStyle: 'preserve-3d',
     textDecoration: '${underline ? "underline" : "none"}',
     ['--uf-btn-top-gradient']: '${exportTopGradient}',
+    backdropFilter: '${backdropFilterCss}',
+    WebkitBackdropFilter: '${backdropFilterCss}',
     ['--uf-btn-parallax-opacity']: 0,
     ['--uf-btn-light-x']: '0px',
     ['--uf-btn-light-y']: '0px',
@@ -789,12 +891,12 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       borderStyle === "dashed"
         ? "border-dashed"
         : borderStyle === "dotted"
-          ? "border-dotted"
-          : borderStyle === "double"
-            ? "border-double"
-            : borderStyle === "none"
-              ? "border-none"
-              : "border-solid";
+        ? "border-dotted"
+        : borderStyle === "double"
+        ? "border-double"
+        : borderStyle === "none"
+        ? "border-none"
+        : "border-solid";
     const transformClasses = activeEnabled
       ? [
           `enabled:active:translate-y-[${activeTranslateYText}px]`,
@@ -807,12 +909,22 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       : [];
     const hoverClasses = hoverEnabled
       ? [
-          hoverBgMode === "auto" ? "enabled:hover:brightness-[0.92]" : `enabled:hover:bg-[${cssHoverBg}]`,
-          hoverTextMode === "custom" ? `enabled:hover:text-[${hoverTextInput}]` : "",
-          hoverBorderMode === "custom" ? `enabled:hover:border-[${hoverBorderInput}]` : "",
+          hoverBgMode === "auto"
+            ? "enabled:hover:brightness-[0.92]"
+            : `enabled:hover:bg-[${cssHoverBg}]`,
+          hoverTextMode === "custom"
+            ? `enabled:hover:text-[${hoverTextInput}]`
+            : "",
+          hoverBorderMode === "custom"
+            ? `enabled:hover:border-[${hoverBorderInput}]`
+            : "",
           `enabled:hover:border-[${hoverBorderWidthPx}px]`,
-          exportHoverShadow !== "none" ? `enabled:hover:shadow-[${exportHoverShadow}]` : "",
-          hoverTransform ? `enabled:hover:[transform:${hoverTransform.replace(/ /g, "_")}]` : "",
+          exportHoverShadow !== "none"
+            ? `enabled:hover:shadow-[${exportHoverShadow}]`
+            : "",
+          hoverTransform
+            ? `enabled:hover:[transform:${hoverTransform.replace(/ /g, "_")}]`
+            : "",
         ]
       : [];
     const focusClasses = focusRingEnabled
@@ -849,10 +961,10 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       textTransform === "uppercase"
         ? "uppercase"
         : textTransform === "lowercase"
-          ? "lowercase"
-          : textTransform === "capitalize"
-            ? "capitalize"
-            : "normal-case",
+        ? "lowercase"
+        : textTransform === "capitalize"
+        ? "capitalize"
+        : "normal-case",
       exportShadow !== "none" ? `shadow-[${exportShadow}]` : "shadow-none",
       `disabled:opacity-[${disabledOpacity}]`,
       `disabled:cursor-${disabledCursor}`,
@@ -862,7 +974,9 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       `disabled:border-[${disabledBorderWidthPx}px]`,
       ...radiusClasses,
       ...hoverClasses,
-      ...(exportActiveShadow !== "none" ? [`enabled:active:shadow-[${exportActiveShadow}]`] : []),
+      ...(exportActiveShadow !== "none"
+        ? [`enabled:active:shadow-[${exportActiveShadow}]`]
+        : []),
       ...transformClasses,
       ...focusClasses,
     ]
@@ -885,7 +999,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     ];
     if (animationValue) inlineStyleParts.push(`animation: ${animationValue};`);
     if (!uniformRadius) inlineStyleParts.push(`border-radius: ${rCSS};`);
-    if (textShadowCss !== "none") inlineStyleParts.push(`text-shadow: ${textShadowCss};`);
+    if (textShadowCss !== "none")
+      inlineStyleParts.push(`text-shadow: ${textShadowCss};`);
     const inlineStyle = inlineStyleParts.join(" ");
     const pseudoCss = `
 .uf-btn::before {
@@ -914,11 +1029,17 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
 .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
 .uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
 `.trim();
-    const extraStyleContent = [fontImport, animationCss, pseudoCss].filter(Boolean).join("\n");
-    const extraStyleTag = extraStyleContent ? `<style>${extraStyleContent}</style>\n` : "";
+    const extraStyleContent = [fontImport, animationCss, pseudoCss]
+      .filter(Boolean)
+      .join("\n");
+    const extraStyleTag = extraStyleContent
+      ? `<style>${extraStyleContent}</style>\n`
+      : "";
 
     content = `
-${extraStyleTag}<button class="${tailwindClasses}"${ariaAttr}${inlineStyle ? ` style="${inlineStyle}"` : ""}>
+${extraStyleTag}<button class="${tailwindClasses}"${ariaAttr}${
+      inlineStyle ? ` style="${inlineStyle}"` : ""
+    }>
   ${loading ? loadingLabelText : label}
 </button>
 `.trim();
@@ -1005,15 +1126,23 @@ ${fontImport}
 .uf-btn > * { position: relative; z-index: 1; }
 .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
 ${focusCss}
-${hoverEnabled ? `.uf-btn:hover:not(:disabled) {
+${
+  hoverEnabled
+    ? `.uf-btn:hover:not(:disabled) {
   background: var(--uf-btn-hover-bg);
   color: var(--uf-btn-hover-text);
   border-color: var(--uf-btn-hover-border);
   border-width: ${hoverBorderWidthPx}px;
   filter: ${hoverFilter};
-  box-shadow: var(--uf-btn-shadow-hover);${hoverTransform ? `\n  transform: ${hoverTransform};` : ""}
-}` : ""}
-${activeEnabled ? `.uf-btn:active:not(:disabled) {
+  box-shadow: var(--uf-btn-shadow-hover);${
+    hoverTransform ? `\n  transform: ${hoverTransform};` : ""
+  }
+}`
+    : ""
+}
+${
+  activeEnabled
+    ? `.uf-btn:active:not(:disabled) {
   background: var(--uf-btn-active-bg);
   color: var(--uf-btn-active-text);
   border-color: var(--uf-btn-active-border);
@@ -1021,7 +1150,9 @@ ${activeEnabled ? `.uf-btn:active:not(:disabled) {
   filter: ${cssActiveFilter};
   transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
   box-shadow: var(--uf-btn-shadow-active);
-}` : ""}
+}`
+    : ""
+}
 .uf-btn:disabled {
   background: var(--uf-btn-disabled-bg);
   color: var(--uf-btn-disabled-text);
@@ -1125,16 +1256,24 @@ $uf-btn-disabled-border: ${cssDisabledBorder};
   .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
   .uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
 
-${hoverEnabled ? `  &:hover:not(:disabled) {
+${
+  hoverEnabled
+    ? `  &:hover:not(:disabled) {
     background: $uf-btn-hover-bg;
     color: $uf-btn-hover-text;
     border-color: $uf-btn-hover-border;
     border-width: ${hoverBorderWidthPx}px;
     filter: ${hoverFilter};
-    box-shadow: $uf-btn-shadow-hover;${hoverTransform ? `\n    transform: ${hoverTransform};` : ""}
-  }` : ""}
+    box-shadow: $uf-btn-shadow-hover;${
+      hoverTransform ? `\n    transform: ${hoverTransform};` : ""
+    }
+  }`
+    : ""
+}
 
-${activeEnabled ? `  &:active:not(:disabled) {
+${
+  activeEnabled
+    ? `  &:active:not(:disabled) {
     background: $uf-btn-active-bg;
     color: $uf-btn-active-text;
     border-color: $uf-btn-active-border;
@@ -1142,7 +1281,9 @@ ${activeEnabled ? `  &:active:not(:disabled) {
     filter: ${cssActiveFilter};
     transform: translateY(${activeTranslateYText}px) scale(${activeScaleText});
     box-shadow: $uf-btn-shadow-active;
-  }` : ""}
+  }`
+    : ""
+}
 
   &:disabled {
     background: $uf-btn-disabled-bg;

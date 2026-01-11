@@ -1,394 +1,113 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "./_section/PreviewDownloadPanel";
-import { buildAvatarExport } from "./_utils/exportUtils";
-import { PREVIEW_SRC_DOC } from "./_utils/avatarPreviewDoc";
+import useHydrated from "@/components/hooks/useHydrated";
+import { useMemo } from "react";
 
-// Sections
-import BasicsSection from "./_section/BasicsSection";
-import SizingSection from "./_section/SizingSection";
-import StyleSection from "./_section/StyleSection";
-import StatusSection from "./_section/StatusSection";
-import EffectsSection from "./_section/EffectsSection";
+function buildMiniAvatarPreview() {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: sans-serif; background: #fff; }
+  .avatar { width: 64px; height: 64px; border-radius: 9999px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; font-size: 24px; border: 2px solid #e2e8f0; }
+  .img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+</style>
+</head>
+<body>
+  <div class="avatar">
+    <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Avatar" class="img" />
+  </div>
+</body>
+</html>`;
+}
 
-export default function AvatarPage() {
-  // --- State Inventory (Massive) ---
-
-  // Basics
-  const [src, setSrc] = useState("https://i.pravatar.cc/300");
-  const [srcSet, setSrcSet] = useState("");
-  const [alt, setAlt] = useState("User Avatar");
-  const [initials, setInitials] = useState("JD");
-  const [objectFit, setObjectFit] = useState<
-    "cover" | "contain" | "fill" | "none" | "scale-down"
-  >("cover");
-  const [objectPosition, setObjectPosition] = useState("center");
-
-  // Sizing
-  const [size, setSize] = useState("128px");
-  const [aspectRatio, setAspectRatio] = useState("1/1");
-  const [radiusMode, setRadiusMode] = useState<
-    "circle" | "rounded" | "square" | "custom"
-  >("circle");
-  const [radiusValue, setRadiusValue] = useState(64);
-
-  // Style
-  const [borderWidth, setBorderWidth] = useState(0);
-  const [borderColor, setBorderColor] = useState("#e2e8f0");
-  const [borderStyle, setBorderStyle] = useState<"solid" | "dashed" | "dotted">(
-    "solid"
-  );
-  const [borderOffset, setBorderOffset] = useState(0);
-  const [initialsBg, setInitialsBg] = useState("#f1f5f9");
-  const [initialsColor, setInitialsColor] = useState("#64748b");
-  const [fontFamily, setFontFamily] = useState("sans-serif");
-
-  // Effects
-  const [opacity, setOpacity] = useState(100);
-  const [filterGrayscale, setFilterGrayscale] = useState(0);
-  const [filterBlur, setFilterBlur] = useState(0);
-  const [filterSepia, setFilterSepia] = useState(0);
-  const [filterBrightness, setFilterBrightness] = useState(100);
-  const [filterContrast, setFilterContrast] = useState(100);
-
-  // Status
-  const [status, setStatus] = useState<
-    "none" | "online" | "offline" | "busy" | "away"
-  >("none");
-  const [statusPosition, setStatusPosition] = useState<
-    "top-right" | "bottom-right" | "bottom-left" | "top-left"
-  >("bottom-right");
-  const [statusAnimation, setStatusAnimation] = useState<"none" | "pulse">(
-    "none"
-  );
-  const [badgeCount, setBadgeCount] = useState("");
-
-  // Interactions
-  const [hoverZoom, setHoverZoom] = useState(false);
-  const [hoverGrayscale, setHoverGrayscale] = useState(false);
-
-  // --- Layout & Meta State ---
-  const [activeSection, setActiveSection] = useState("basics");
-  const [isResizing, setIsResizing] = useState(false);
-  const splitRef = useRef<HTMLDivElement>(null);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(520);
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  // Export
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
-  const [downloadName, setDownloadName] = useState("my-avatar");
-
-  // --- Responsive & Resize Logic ---
-  useEffect(() => {
-    setIsDesktop(window.innerWidth >= 1024);
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !splitRef.current) return;
-      const splitRect = splitRef.current.getBoundingClientRect();
-      const newWidth = e.clientX - splitRect.left;
-      if (newWidth > 320 && newWidth < splitRect.width - 360) {
-        setLeftPanelWidth(newWidth);
-      }
-    };
-    const handleMouseUp = () => setIsResizing(false);
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isResizing]);
-
-  // --- Tabs ---
-  const sections = [
-    { id: "basics", label: "Basics" },
-    { id: "sizing", label: "Sizing" },
-    { id: "style", label: "Style" },
-    { id: "effects", label: "Effects" },
-    { id: "status", label: "Status" },
-  ];
-
-  // --- Preview Logic (PostMessage) ---
-  const getPreviewPayload = () => {
-    // Helpers
-    let radiusStyle = "";
-    if (radiusMode === "circle") radiusStyle = "9999px";
-    else if (radiusMode === "square") radiusStyle = "0px";
-    else radiusStyle = `${radiusValue}px`;
-
-    const filters = [
-      filterGrayscale > 0 ? `grayscale(${filterGrayscale}%)` : "",
-      filterBlur > 0 ? `blur(${filterBlur}px)` : "",
-      filterSepia > 0 ? `sepia(${filterSepia}%)` : "",
-      filterBrightness !== 100 ? `brightness(${filterBrightness}%)` : "",
-      filterContrast !== 100 ? `contrast(${filterContrast}%)` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return {
-      src,
-      srcSet,
-      alt,
-      initials,
-      size,
-      radiusStyle,
-      initialsBg,
-      initialsColor,
-      fontFamily,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      objectFit,
-      objectPosition,
-      opacity,
-      filters,
-      status,
-      statusPosition,
-      statusAnimation,
-      hoverZoom,
-      hoverGrayscale,
-    };
-  };
-
-  const previewPayload = getPreviewPayload();
-
-  // Initial Load Only
-  const initialSrcDoc = PREVIEW_SRC_DOC;
-
-  // Live Updates via PostMessage
-  useEffect(() => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(previewPayload, "*");
-    }
-  }, [previewPayload]);
-
-  // --- Export Handler ---
-  const getExportParams = () => ({
-    src,
-    srcSet,
-    alt,
-    initials,
-    objectFit,
-    objectPosition,
-    size,
-    aspectRatio,
-    radiusMode,
-    radiusValue,
-    borderWidth,
-    borderColor,
-    borderStyle,
-    borderOffset,
-    shadow: "",
-    opacity,
-    initialsBg,
-    initialsColor,
-    fontFamily,
-    filterGrayscale,
-    filterBlur,
-    filterBrightness,
-    filterContrast,
-    filterSepia,
-    status,
-    statusPosition,
-    statusAnimation,
-    badgeCount,
-    hoverZoom,
-    hoverGrayscale,
-    downloadFormat: "html" as const,
-    downloadName: "",
-  });
-
-  const handleDownload = () => {
-    const { filename, content } = buildAvatarExport({
-      ...getExportParams(),
-      downloadFormat,
-      downloadName,
-    });
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // --- Section Renderer ---
-  const renderActiveSection = () => {
-    switch (activeSection) {
-      case "basics":
-        return (
-          <BasicsSection
-            src={src}
-            setSrc={setSrc}
-            alt={alt}
-            setAlt={setAlt}
-            initials={initials}
-            setInitials={setInitials}
-            objectFit={objectFit}
-            setObjectFit={setObjectFit}
-          />
-        );
-      case "sizing":
-        return (
-          <SizingSection
-            size={size}
-            setSize={setSize}
-            radiusMode={radiusMode}
-            setRadiusMode={setRadiusMode}
-            radiusValue={radiusValue}
-            setRadiusValue={setRadiusValue}
-          />
-        );
-      case "style":
-        return (
-          <StyleSection
-            borderWidth={borderWidth}
-            setBorderWidth={setBorderWidth}
-            borderColor={borderColor}
-            setBorderColor={setBorderColor}
-            borderStyle={borderStyle}
-            setBorderStyle={setBorderStyle}
-            initialsBg={initialsBg}
-            setInitialsBg={setInitialsBg}
-            initialsColor={initialsColor}
-            setInitialsColor={setInitialsColor}
-          />
-        );
-      case "effects":
-        return (
-          <EffectsSection
-            opacity={opacity}
-            setOpacity={setOpacity}
-            filterGrayscale={filterGrayscale}
-            setFilterGrayscale={setFilterGrayscale}
-            filterBlur={filterBlur}
-            setFilterBlur={setFilterBlur}
-            filterSepia={filterSepia}
-            setFilterSepia={setFilterSepia}
-            filterBrightness={filterBrightness}
-            setFilterBrightness={setFilterBrightness}
-            filterContrast={filterContrast}
-            setFilterContrast={setFilterContrast}
-          />
-        );
-      case "status":
-        return (
-          <StatusSection
-            status={status}
-            setStatus={setStatus}
-            statusPosition={statusPosition}
-            setStatusPosition={setStatusPosition}
-            statusAnimation={statusAnimation}
-            setStatusAnimation={setStatusAnimation}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+export default function AvatarGalleryPage() {
+  const mounted = useHydrated();
+  const srcDoc = useMemo(() => buildMiniAvatarPreview(), []);
 
   return (
-    <AppShell contentOverflow="hidden">
-      <div
-        ref={splitRef}
-        className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={{ userSelect: isResizing ? "none" : "auto" }}
-      >
+    <AppShell>
+      <div className="space-y-6">
         <div
-          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
+          className="rounded-2xl border p-6"
           style={{
-            scrollbarGutter: "stable",
-            ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--card) 70%, transparent)",
           }}
         >
           <h1
-            className="text-2xl font-bold tracking-tight"
+            className="text-2xl font-semibold"
             style={{ color: "var(--text)" }}
           >
             Avatar
           </h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
+            Highly customizable avatar component with advanced features like 3D
+            tilt, groups, and badging.
+          </p>
+        </div>
+
+        <div className="space-y-5">
           <div
-            className="rounded-2xl border p-3"
+            className="rounded-2xl border p-5"
             style={{
               borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
+              background:
+                "color-mix(in oklab, var(--surface) 80%, transparent)",
             }}
           >
-            <div
-              className="text-xs font-semibold"
-              style={{ color: "var(--muted)" }}
-            >
-              Sections
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-              {sections.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setActiveSection(s.id)}
-                  className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      activeSection === s.id ? "var(--primary)" : "transparent",
-                    color: activeSection === s.id ? "white" : "var(--text)",
-                  }}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2
+                  className="text-lg font-semibold"
+                  style={{ color: "var(--text)" }}
                 >
-                  {s.label}
-                </button>
-              ))}
+                  Playground
+                </h2>
+                <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
+                  Full editor with all premium features.
+                </p>
+              </div>
+
+              <Link
+                href="/components/avatar/playground"
+                className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition hover:opacity-90"
+                style={{ background: "var(--primary)", color: "white" }}
+              >
+                Edit
+              </Link>
             </div>
-          </div>
-          {renderActiveSection()}
-        </div>
 
-        <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
-          <div
-            onMouseDown={() => setIsResizing(true)}
-            className="h-full w-2 cursor-col-resize rounded-full transition hover:bg-[var(--primary)]"
-            style={{
-              background: "color-mix(in oklab, var(--border) 80%, transparent)",
-            }}
-          />
-        </div>
+            <div
+              className="mt-4 overflow-hidden rounded-2xl border bg-white"
+              style={{ borderColor: "var(--border)" }}
+            >
+              {mounted ? (
+                <iframe
+                  title="Avatar Preview"
+                  sandbox="allow-scripts"
+                  srcDoc={srcDoc}
+                  className="h-[180px] w-full border-none"
+                />
+              ) : (
+                <div className="h-[180px] w-full" />
+              )}
+            </div>
 
-        <div
-          className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:pb-10 lg:h-full"
-          style={{ minWidth: 360 }}
-        >
-          <div className="sticky top-20">
-            <PreviewDownloadPanel
-              iframeSrcDoc={initialSrcDoc}
-              iframeRef={iframeRef}
-              handleIframeLoad={() => {
-                // Send initial sync when iframe loads
-                if (iframeRef.current?.contentWindow) {
-                  iframeRef.current.contentWindow.postMessage(
-                    previewPayload,
-                    "*"
-                  );
-                }
-              }}
-              downloadFormat={downloadFormat}
-              setDownloadFormat={setDownloadFormat}
-              downloadName={downloadName}
-              setDownloadName={setDownloadName}
-              handleDownload={handleDownload}
-            />
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
+                3D Tilt
+              </span>
+              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
+                Groups
+              </span>
+              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
+                Badges
+              </span>
+            </div>
           </div>
         </div>
       </div>

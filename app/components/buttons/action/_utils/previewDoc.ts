@@ -42,6 +42,8 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
     border-width: var(--btn-border-width);
     filter: none;
     box-shadow: var(--btn-shadow);
+    backdrop-filter: blur(var(--btn-backdrop-blur, 0));
+    -webkit-backdrop-filter: blur(var(--btn-backdrop-blur, 0));
     transform-style: preserve-3d;
   }
 
@@ -414,6 +416,7 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
       btn.style.setProperty('--btn-hover-tilt-y', (d.hoverTiltY || 0) + "deg");
       btn.style.setProperty('--btn-hover-perspective', (d.hoverPerspective || 800) + "px");
       btn.style.setProperty('--btn-top-gradient', d.topGradient || 'none');
+      btn.style.setProperty('--btn-backdrop-blur', d.backdropBlurEnabled && d.backdropBlurText ? (d.backdropBlurText + "px") : "0px");
       btn.style.setProperty('--btn-parallax-opacity', 0);
       btn.style.setProperty('--btn-light-x', '0px');
       btn.style.setProperty('--btn-light-y', '0px');

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SectionCard } from "./ui";
+import { SectionCard, Segmented, LabeledField } from "./ui";
 import SizeControl from "./SizeControl";
 
 export default function EffectsSection(props: {
@@ -17,9 +17,51 @@ export default function EffectsSection(props: {
   setFilterBrightness: (v: number) => void;
   filterContrast: number;
   setFilterContrast: (v: number) => void;
+
+  imageRotation: number;
+  setImageRotation: (v: number) => void;
+  imageScale: number;
+  setImageScale: (v: number) => void;
+  effect3D: "none" | "tilt" | "glitch" | "pulse";
+  setEffect3D: (v: any) => void;
 }) {
   return (
     <div className="space-y-6">
+      <SectionCard title="Adjustments" subtitle="Transform the avatar image.">
+        <div className="space-y-6">
+          <SizeControl
+            label="Rotation (deg)"
+            valueText={String(props.imageRotation)}
+            setValueText={(v) => props.setImageRotation(Number(v))}
+            min={0}
+            max={360}
+          />
+          <SizeControl
+            label="Scale (Zoom)"
+            valueText={String(props.imageScale)}
+            setValueText={(v) => props.setImageScale(Number(v))}
+            min={0.5}
+            max={2}
+            step={0.1}
+          />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="3D Effects" subtitle="Advanced animations and depth.">
+        <LabeledField label="Effect Mode">
+          <Segmented
+            value={props.effect3D}
+            onChange={props.setEffect3D}
+            items={[
+              { value: "none", label: "None" },
+              { value: "tilt", label: "Tilt" },
+              { value: "glitch", label: "Glitch" },
+              { value: "pulse", label: "Pulse" },
+            ]}
+          />
+        </LabeledField>
+      </SectionCard>
+
       <SectionCard title="Opacity" subtitle="Transparency level (0-100%).">
         <SizeControl
           label="Opacity"
