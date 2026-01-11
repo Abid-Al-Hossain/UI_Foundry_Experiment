@@ -325,17 +325,17 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
         ensureFontLink(fam);
     }
 
-    // Alignment Map
+    // Alignment Map: [align-items (vertical), justify-content (horizontal)]
     const map = {
-      'top-left':      ['flex-end',   'flex-start'],
-      'top-center':    ['flex-end',   'center'],
-      'top-right':     ['flex-end',   'flex-end'],
+      'top-left':      ['flex-start', 'flex-start'],
+      'top-center':    ['flex-start', 'center'],
+      'top-right':     ['flex-start', 'flex-end'],
       'middle-left':   ['center',     'flex-start'],
       'middle-center': ['center',     'center'],
       'middle-right':  ['center',     'flex-end'],
-      'bottom-left':   ['flex-start', 'flex-start'],
-      'bottom-center': ['flex-start', 'center'],
-      'bottom-right':  ['flex-start', 'flex-end'],
+      'bottom-left':   ['flex-end',   'flex-start'],
+      'bottom-center': ['flex-end',   'center'],
+      'bottom-right':  ['flex-end',   'flex-end'],
     };
     const [alignItems, justify] = map[d.align] || ['center','center'];
 

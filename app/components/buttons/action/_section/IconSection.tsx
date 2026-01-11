@@ -4,10 +4,10 @@ import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
 import SizeControl from "./SizeControl";
 import ColorControl from "./ColorControl";
+import { IconName, IconSource } from "../_data/buttonConstants";
 
-export type IconName = "none" | "arrowRight" | "check" | "plus" | "x" | "info" | "star";
+export type { IconName, IconSource };
 type IconPosition = "left" | "right";
-export type IconSource = "library" | "custom";
 
 export default function IconSection(props: {
   PALETTE: readonly string[];
@@ -126,7 +126,10 @@ export default function IconSection(props: {
     reader.readAsText(file);
   };
 
-  const handleStateSvgUpload = (file: File | null, setter: (v: string) => void) => {
+  const handleStateSvgUpload = (
+    file: File | null,
+    setter: (v: string) => void
+  ) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
@@ -148,8 +151,14 @@ export default function IconSection(props: {
     setCustomSvg: (v: string) => void,
     note?: string
   ) => (
-    <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-      <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+    <div
+      className="rounded-xl border p-3"
+      style={{ borderColor: "var(--border)" }}
+    >
+      <label
+        className="flex items-center gap-2 text-sm uf-clickable"
+        style={{ color: "var(--text)" }}
+      >
         <input
           type="checkbox"
           checked={enabled}
@@ -186,7 +195,8 @@ export default function IconSection(props: {
                 className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
                 style={{
                   borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                  background:
+                    "color-mix(in oklab, var(--surface) 70%, transparent)",
                   color: "var(--text)",
                 }}
               >
@@ -210,7 +220,8 @@ export default function IconSection(props: {
                   className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                   style={{
                     borderColor: "var(--border)",
-                    background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                    background:
+                      "color-mix(in oklab, var(--surface) 70%, transparent)",
                     color: "var(--text)",
                   }}
                 />
@@ -220,11 +231,17 @@ export default function IconSection(props: {
                 <input
                   type="file"
                   accept=".svg,image/svg+xml"
-                  onChange={(e) => handleStateSvgUpload(e.target.files?.[0] ?? null, setCustomSvg)}
+                  onChange={(e) =>
+                    handleStateSvgUpload(
+                      e.target.files?.[0] ?? null,
+                      setCustomSvg
+                    )
+                  }
                   className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
                   style={{
                     borderColor: "var(--border)",
-                    background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                    background:
+                      "color-mix(in oklab, var(--surface) 70%, transparent)",
                     color: "var(--text)",
                   }}
                 />
@@ -237,7 +254,10 @@ export default function IconSection(props: {
   );
 
   return (
-    <SectionCard title="Icon" subtitle="Built-in icons + position + size + color.">
+    <SectionCard
+      title="Icon"
+      subtitle="Built-in icons + position + size + color."
+    >
       <div className="space-y-4">
         <LabeledField label="Icon source">
           <Segmented
@@ -258,7 +278,8 @@ export default function IconSection(props: {
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
               style={{
                 borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                background:
+                  "color-mix(in oklab, var(--surface) 70%, transparent)",
                 color: "var(--text)",
               }}
             >
@@ -282,7 +303,8 @@ export default function IconSection(props: {
                 className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                 style={{
                   borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                  background:
+                    "color-mix(in oklab, var(--surface) 70%, transparent)",
                   color: "var(--text)",
                 }}
               />
@@ -296,7 +318,8 @@ export default function IconSection(props: {
                 className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
                 style={{
                   borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+                  background:
+                    "color-mix(in oklab, var(--surface) 70%, transparent)",
                   color: "var(--text)",
                 }}
               />
@@ -304,7 +327,8 @@ export default function IconSection(props: {
           </div>
         )}
 
-        {((iconSource === "library" && iconName !== "none") || (iconSource === "custom" && iconCustomSvg.trim())) ? (
+        {(iconSource === "library" && iconName !== "none") ||
+        (iconSource === "custom" && iconCustomSvg.trim()) ? (
           <>
             <LabeledField label="Icon position">
               <Segmented
@@ -351,7 +375,9 @@ export default function IconSection(props: {
                 palette={PALETTE}
                 valueText={iconColorInput}
                 setValueText={setIconColorInput}
-                normalizedHex={iconColorNorm.ok ? iconColorNorm.hex : baseTextHex}
+                normalizedHex={
+                  iconColorNorm.ok ? iconColorNorm.hex : baseTextHex
+                }
                 normalizedRgb={iconColorNorm.rgb}
                 ok={iconColorNorm.ok}
               />
@@ -360,7 +386,10 @@ export default function IconSection(props: {
         ) : null}
 
         <div className="space-y-3">
-          <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             State overrides
           </div>
           {renderStateOverride(
@@ -372,7 +401,7 @@ export default function IconSection(props: {
             hoverIconName,
             setHoverIconName,
             hoverIconCustomSvg,
-            setHoverIconCustomSvg,
+            setHoverIconCustomSvg
           )}
           {renderStateOverride(
             "Active",
@@ -383,7 +412,7 @@ export default function IconSection(props: {
             activeIconName,
             setActiveIconName,
             activeIconCustomSvg,
-            setActiveIconCustomSvg,
+            setActiveIconCustomSvg
           )}
           {renderStateOverride(
             "Loading",

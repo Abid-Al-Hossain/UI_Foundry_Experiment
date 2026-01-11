@@ -27,6 +27,7 @@ export default function AppShell({
     <div
       className="flex h-dvh flex-col overflow-hidden"
       style={{ background: "var(--bg)", color: "var(--text)" }}
+      suppressHydrationWarning
     >
       <Header />
 

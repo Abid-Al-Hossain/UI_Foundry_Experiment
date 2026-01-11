@@ -1,7 +1,16 @@
 "use client";
 
 import type { SystemFontItem } from "../_section/TypographySection";
-import type { IconName } from "../_section/IconSection";
+
+export type IconName =
+  | "none"
+  | "arrowRight"
+  | "check"
+  | "plus"
+  | "x"
+  | "info"
+  | "star";
+export type IconSource = "library" | "custom";
 
 export const PALETTE = [
   "#111827",
@@ -16,29 +25,112 @@ export const PALETTE = [
 
 export const SYSTEM_FONTS: SystemFontItem[] = [
   { label: "Arial", css: "Arial, system-ui" },
-  { label: "Consolas", css: 'Consolas, "Liberation Mono", "Courier New", ui-monospace, monospace' },
+  {
+    label: "Consolas",
+    css: 'Consolas, "Liberation Mono", "Courier New", ui-monospace, monospace',
+  },
   { label: "Courier New", css: '"Courier New", ui-monospace, monospace' },
   { label: "Georgia", css: "Georgia, ui-serif, serif" },
   { label: "Helvetica", css: "Helvetica, Arial, system-ui" },
-  { label: "Menlo", css: 'Menlo, Monaco, Consolas, "Liberation Mono", ui-monospace, monospace' },
-  { label: "Monaco", css: 'Monaco, Menlo, Consolas, "Liberation Mono", ui-monospace, monospace' },
-  { label: "Roboto (system if installed)", css: "Roboto, system-ui, -apple-system, Arial" },
+  {
+    label: "Menlo",
+    css: 'Menlo, Monaco, Consolas, "Liberation Mono", ui-monospace, monospace',
+  },
+  {
+    label: "Monaco",
+    css: 'Monaco, Menlo, Consolas, "Liberation Mono", ui-monospace, monospace',
+  },
+  {
+    label: "Roboto (system if installed)",
+    css: "Roboto, system-ui, -apple-system, Arial",
+  },
   { label: "Segoe UI", css: '"Segoe UI", system-ui, -apple-system, Arial' },
-  { label: "System UI", css: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" },
-  { label: "Times New Roman", css: '"Times New Roman", Times, ui-serif, serif' },
-  { label: "ui-monospace", css: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' },
-  { label: "ui-sans-serif", css: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" },
-  { label: "ui-serif", css: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif' },
+  {
+    label: "System UI",
+    css: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+  },
+  {
+    label: "Times New Roman",
+    css: '"Times New Roman", Times, ui-serif, serif',
+  },
+  {
+    label: "ui-monospace",
+    css: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  },
+  {
+    label: "ui-sans-serif",
+    css: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+  },
+  {
+    label: "ui-serif",
+    css: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+  },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 export const GOOGLE_FONTS = [
-  "Abril Fatface", "Alegreya", "Alegreya Sans", "Archivo", "Archivo Narrow", "Arimo", "Assistant", "Bebas Neue", "Bitter", "Cabin", "Catamaran",
-  "Cormorant Garamond", "Crimson Text", "DM Sans", "DM Serif Display", "Dosis", "EB Garamond", "Figtree", "Fira Sans", "IBM Plex Mono",
-  "IBM Plex Sans", "Inconsolata", "Inter", "Josefin Sans", "Karla", "Lato", "Libre Baskerville", "Libre Franklin", "Lora", "Manrope",
-  "Merriweather", "Montserrat", "Mukta", "Mulish", "Noto Sans", "Noto Serif", "Nunito", "Nunito Sans", "Open Sans", "Oswald", "Overpass",
-  "Playfair Display", "Plus Jakarta Sans", "Poppins", "PT Sans", "PT Serif", "Quicksand", "Raleway", "Recursive", "Red Hat Display",
-  "Roboto", "Roboto Condensed", "Roboto Mono", "Rubik", "Source Code Pro", "Source Sans 3", "Space Grotesk", "Space Mono", "Spectral",
-  "Syne", "Titillium Web", "Urbanist", "Work Sans",
+  "Abril Fatface",
+  "Alegreya",
+  "Alegreya Sans",
+  "Archivo",
+  "Archivo Narrow",
+  "Arimo",
+  "Assistant",
+  "Bebas Neue",
+  "Bitter",
+  "Cabin",
+  "Catamaran",
+  "Cormorant Garamond",
+  "Crimson Text",
+  "DM Sans",
+  "DM Serif Display",
+  "Dosis",
+  "EB Garamond",
+  "Figtree",
+  "Fira Sans",
+  "IBM Plex Mono",
+  "IBM Plex Sans",
+  "Inconsolata",
+  "Inter",
+  "Josefin Sans",
+  "Karla",
+  "Lato",
+  "Libre Baskerville",
+  "Libre Franklin",
+  "Lora",
+  "Manrope",
+  "Merriweather",
+  "Montserrat",
+  "Mukta",
+  "Mulish",
+  "Noto Sans",
+  "Noto Serif",
+  "Nunito",
+  "Nunito Sans",
+  "Open Sans",
+  "Oswald",
+  "Overpass",
+  "Playfair Display",
+  "Plus Jakarta Sans",
+  "Poppins",
+  "PT Sans",
+  "PT Serif",
+  "Quicksand",
+  "Raleway",
+  "Recursive",
+  "Red Hat Display",
+  "Roboto",
+  "Roboto Condensed",
+  "Roboto Mono",
+  "Rubik",
+  "Source Code Pro",
+  "Source Sans 3",
+  "Space Grotesk",
+  "Space Mono",
+  "Spectral",
+  "Syne",
+  "Titillium Web",
+  "Urbanist",
+  "Work Sans",
 ].sort((a, b) => a.localeCompare(b));
 
 export const ICONS_SVG: Record<IconName, string> = {

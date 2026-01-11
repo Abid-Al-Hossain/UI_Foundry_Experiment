@@ -7,6 +7,98 @@ import PreviewDownloadPanel, {
 } from "./_section/PreviewDownloadPanel";
 import { buildAvatarExport } from "./_utils/exportUtils";
 import { PREVIEW_SRC_DOC } from "./_utils/avatarPreviewDoc";
+import { useHistoryState } from "../../../hooks/useHistoryState";
+import {
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+} from "@heroicons/react/24/outline";
+
+// --- Types & Initial State ---
+type AvatarState = {
+  // Basics
+  src: string;
+  srcSet: string;
+  alt: string;
+  initials: string;
+  objectFit: "cover" | "contain" | "fill" | "none" | "scale-down";
+  objectPosition: string;
+  // Sizing
+  size: string;
+  aspectRatio: string;
+  radiusMode: "circle" | "rounded" | "square" | "custom";
+  radiusValue: number;
+  // Style
+  borderWidth: number;
+  borderColor: string;
+  borderStyle: "solid" | "dashed" | "dotted";
+  borderOffset: number;
+  initialsBg: string;
+  initialsColor: string;
+  fontFamily: string;
+  // Effects
+  opacity: number;
+  filterGrayscale: number;
+  filterBlur: number;
+  filterSepia: number;
+  filterBrightness: number;
+  filterContrast: number;
+  // Status
+  status: "none" | "online" | "offline" | "busy" | "away";
+  statusPosition: "top-right" | "bottom-right" | "bottom-left" | "top-left";
+  statusAnimation: "none" | "pulse";
+  badgeCount: string;
+  // Group
+  showGroup: boolean;
+  groupSpacing: number;
+  groupLimit: number;
+  groupDirection: "row" | "column";
+  // Interactions
+  hoverZoom: boolean;
+  hoverGrayscale: boolean;
+  // Transformations & 3D
+  imageRotation: number;
+  imageScale: number;
+  effect3D: "none" | "tilt" | "glitch" | "pulse";
+};
+
+const INITIAL_STATE: AvatarState = {
+  src: "https://i.pravatar.cc/300",
+  srcSet: "",
+  alt: "User Avatar",
+  initials: "JD",
+  objectFit: "cover",
+  objectPosition: "center",
+  size: "128px",
+  aspectRatio: "1/1",
+  radiusMode: "circle",
+  radiusValue: 64,
+  borderWidth: 0,
+  borderColor: "#e2e8f0",
+  borderStyle: "solid",
+  borderOffset: 0,
+  initialsBg: "#f1f5f9",
+  initialsColor: "#64748b",
+  fontFamily: "sans-serif",
+  opacity: 100,
+  filterGrayscale: 0,
+  filterBlur: 0,
+  filterSepia: 0,
+  filterBrightness: 100,
+  filterContrast: 100,
+  status: "none",
+  statusPosition: "bottom-right",
+  statusAnimation: "none",
+  badgeCount: "",
+  showGroup: false,
+  groupSpacing: -12,
+  groupLimit: 5,
+  groupDirection: "row",
+  hoverZoom: false,
+  hoverGrayscale: false,
+  imageRotation: 0,
+  imageScale: 1,
+  effect3D: "none",
+};
 
 // Sections
 import BasicsSection from "./_section/BasicsSection";
@@ -17,82 +109,231 @@ import EffectsSection from "./_section/EffectsSection";
 import GroupPreviewSection from "./_section/GroupPreviewSection";
 
 export default function AvatarPage() {
-  // --- State Inventory (Massive) ---
+  // --- Unified State Management ---
+  const {
+    state,
+    set: updateState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useHistoryState<AvatarState>(INITIAL_STATE);
 
-  // Basics
-  const [src, setSrc] = useState("https://i.pravatar.cc/300");
-  const [srcSet, setSrcSet] = useState("");
-  const [alt, setAlt] = useState("User Avatar");
-  const [initials, setInitials] = useState("JD");
-  const [objectFit, setObjectFit] = useState<
-    "cover" | "contain" | "fill" | "none" | "scale-down"
-  >("cover");
-  const [objectPosition, setObjectPosition] = useState("center");
+  // Destructure state for easier access
+  const {
+    src,
+    srcSet,
+    alt,
+    initials,
+    objectFit,
+    objectPosition,
+    size,
+    aspectRatio,
+    radiusMode,
+    radiusValue,
+    borderWidth,
+    borderColor,
+    borderStyle,
+    borderOffset,
+    initialsBg,
+    initialsColor,
+    fontFamily,
+    opacity,
+    filterGrayscale,
+    filterBlur,
+    filterSepia,
+    filterBrightness,
+    filterContrast,
+    status,
+    statusPosition,
+    statusAnimation,
+    badgeCount,
+    showGroup,
+    groupSpacing,
+    groupLimit,
+    groupDirection,
+    hoverZoom,
+    hoverGrayscale,
+    imageRotation,
+    imageScale,
+    effect3D,
+  } = state;
 
-  // Sizing
-  const [size, setSize] = useState("128px");
-  const [aspectRatio, setAspectRatio] = useState("1/1");
-  const [radiusMode, setRadiusMode] = useState<
-    "circle" | "rounded" | "square" | "custom"
-  >("circle");
-  const [radiusValue, setRadiusValue] = useState(64);
-
-  // Style
-  const [borderWidth, setBorderWidth] = useState(0);
-  const [borderColor, setBorderColor] = useState("#e2e8f0");
-  const [borderStyle, setBorderStyle] = useState<"solid" | "dashed" | "dotted">(
-    "solid"
-  );
-  const [borderOffset, setBorderOffset] = useState(0);
-  const [initialsBg, setInitialsBg] = useState("#f1f5f9");
-  const [initialsColor, setInitialsColor] = useState("#64748b");
-  const [fontFamily, setFontFamily] = useState("sans-serif");
-
-  // Effects
-  const [opacity, setOpacity] = useState(100);
-  const [filterGrayscale, setFilterGrayscale] = useState(0);
-  const [filterBlur, setFilterBlur] = useState(0);
-  const [filterSepia, setFilterSepia] = useState(0);
-  const [filterBrightness, setFilterBrightness] = useState(100);
-  const [filterContrast, setFilterContrast] = useState(100);
-
-  // Status
-  const [status, setStatus] = useState<
-    "none" | "online" | "offline" | "busy" | "away"
-  >("none");
-  const [statusPosition, setStatusPosition] = useState<
-    "top-right" | "bottom-right" | "bottom-left" | "top-left"
-  >("bottom-right");
-  const [statusAnimation, setStatusAnimation] = useState<"none" | "pulse">(
-    "none"
-  );
-  const [badgeCount, setBadgeCount] = useState("");
-
-  // Group
-  const [showGroup, setShowGroup] = useState(false);
-  const [groupSpacing, setGroupSpacing] = useState(-12);
-  const [groupLimit, setGroupLimit] = useState(5);
-  const [groupDirection, setGroupDirection] = useState<"row" | "column">("row");
-
-  // Interactions
-  const [hoverZoom, setHoverZoom] = useState(false);
-  const [hoverGrayscale, setHoverGrayscale] = useState(false);
-
-  // Transformations & 3D
-  const [imageRotation, setImageRotation] = useState(0);
-  const [imageScale, setImageScale] = useState(1);
-  const [effect3D, setEffect3D] = useState<
-    "none" | "tilt" | "glitch" | "pulse"
-  >("none");
-
-  // Filters (Missing in state view previously? check if they exist or I need to add them too?)
-  // Checking file content: I saw filterGrayscale usage but not definition in lines 60-160?
-  // I should check if filterGrayscale is defined.
-  // Wait, I'll add them if missing.
-  // usage in getPreviewPayload suggests they exist or are expected.
-  // I will assume filters exist or add if I see they are missing.
-  // The ERROR was imageRotation.
-  // I will just add imageRotation block.
+  // -- Proxy Setters for Backward Compatibility --
+  const setSrc = (v: any) =>
+    updateState((s) => ({ ...s, src: typeof v === "function" ? v(s.src) : v }));
+  const setSrcSet = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      srcSet: typeof v === "function" ? v(s.srcSet) : v,
+    }));
+  const setAlt = (v: any) =>
+    updateState((s) => ({ ...s, alt: typeof v === "function" ? v(s.alt) : v }));
+  const setInitials = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      initials: typeof v === "function" ? v(s.initials) : v,
+    }));
+  const setObjectFit = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      objectFit: typeof v === "function" ? v(s.objectFit) : v,
+    }));
+  const setObjectPosition = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      objectPosition: typeof v === "function" ? v(s.objectPosition) : v,
+    }));
+  const setSize = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      size: typeof v === "function" ? v(s.size) : v,
+    }));
+  const setAspectRatio = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      aspectRatio: typeof v === "function" ? v(s.aspectRatio) : v,
+    }));
+  const setRadiusMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusMode: typeof v === "function" ? v(s.radiusMode) : v,
+    }));
+  const setRadiusValue = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusValue: typeof v === "function" ? v(s.radiusValue) : v,
+    }));
+  const setBorderWidth = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderWidth: typeof v === "function" ? v(s.borderWidth) : v,
+    }));
+  const setBorderColor = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderColor: typeof v === "function" ? v(s.borderColor) : v,
+    }));
+  const setBorderStyle = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderStyle: typeof v === "function" ? v(s.borderStyle) : v,
+    }));
+  const setBorderOffset = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderOffset: typeof v === "function" ? v(s.borderOffset) : v,
+    }));
+  const setInitialsBg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      initialsBg: typeof v === "function" ? v(s.initialsBg) : v,
+    }));
+  const setInitialsColor = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      initialsColor: typeof v === "function" ? v(s.initialsColor) : v,
+    }));
+  const setFontFamily = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontFamily: typeof v === "function" ? v(s.fontFamily) : v,
+    }));
+  const setOpacity = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      opacity: typeof v === "function" ? v(s.opacity) : v,
+    }));
+  const setFilterGrayscale = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      filterGrayscale: typeof v === "function" ? v(s.filterGrayscale) : v,
+    }));
+  const setFilterBlur = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      filterBlur: typeof v === "function" ? v(s.filterBlur) : v,
+    }));
+  const setFilterSepia = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      filterSepia: typeof v === "function" ? v(s.filterSepia) : v,
+    }));
+  const setFilterBrightness = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      filterBrightness: typeof v === "function" ? v(s.filterBrightness) : v,
+    }));
+  const setFilterContrast = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      filterContrast: typeof v === "function" ? v(s.filterContrast) : v,
+    }));
+  const setStatus = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      status: typeof v === "function" ? v(s.status) : v,
+    }));
+  const setStatusPosition = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      statusPosition: typeof v === "function" ? v(s.statusPosition) : v,
+    }));
+  const setStatusAnimation = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      statusAnimation: typeof v === "function" ? v(s.statusAnimation) : v,
+    }));
+  const setBadgeCount = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      badgeCount: typeof v === "function" ? v(s.badgeCount) : v,
+    }));
+  const setShowGroup = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      showGroup: typeof v === "function" ? v(s.showGroup) : v,
+    }));
+  const setGroupSpacing = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupSpacing: typeof v === "function" ? v(s.groupSpacing) : v,
+    }));
+  const setGroupLimit = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupLimit: typeof v === "function" ? v(s.groupLimit) : v,
+    }));
+  const setGroupDirection = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupDirection: typeof v === "function" ? v(s.groupDirection) : v,
+    }));
+  const setHoverZoom = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverZoom: typeof v === "function" ? v(s.hoverZoom) : v,
+    }));
+  const setHoverGrayscale = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGrayscale: typeof v === "function" ? v(s.hoverGrayscale) : v,
+    }));
+  const setImageRotation = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      imageRotation: typeof v === "function" ? v(s.imageRotation) : v,
+    }));
+  const setImageScale = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      imageScale: typeof v === "function" ? v(s.imageScale) : v,
+    }));
+  const setEffect3D = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      effect3D: typeof v === "function" ? v(s.effect3D) : v,
+    }));
 
   // --- Layout & Meta State ---
   const [activeSection, setActiveSection] = useState("basics");
@@ -374,12 +615,34 @@ export default function AvatarPage() {
             ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
           }}
         >
-          <h1
-            className="text-2xl font-bold tracking-tight"
-            style={{ color: "var(--text)" }}
-          >
-            Avatar
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: "var(--text)" }}
+            >
+              Avatar
+            </h1>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+                className="rounded-full p-2 transition hover:opacity-80 disabled:opacity-30"
+                style={{ color: "var(--text)" }}
+              >
+                <ArrowUturnLeftIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                title="Redo (Ctrl+Shift+Z)"
+                className="rounded-full p-2 transition hover:opacity-80 disabled:opacity-30"
+                style={{ color: "var(--text)" }}
+              >
+                <ArrowUturnRightIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
           <div
             className="rounded-2xl border p-3"
             style={{

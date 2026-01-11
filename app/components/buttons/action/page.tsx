@@ -66,6 +66,260 @@ import {
 } from "./_utils/colorUtils";
 import { buildExportPayload } from "./_utils/exportUtils";
 import { PREVIEW_SRC_DOC } from "./_utils/previewDoc";
+import { useHistoryState } from "../../../hooks/useHistoryState";
+
+type ActionButtonState = {
+  // Basics
+  label: string;
+  variant: ButtonVariant;
+  disabled: boolean;
+  loading: boolean;
+  animation: AnimationPreset;
+  loadingLabel: string;
+  loadingSpinnerMode: LoadingSpinnerMode;
+  loadingSpinnerPosition: LoadingSpinnerPosition;
+  loadingSpinnerSvg: string;
+
+  // Sizing
+  widthText: string;
+  heightText: string;
+  paddingXText: string;
+  paddingYText: string;
+
+  // Colors
+  useGradient: boolean;
+  gradAngleText: string;
+  gradStartInput: string;
+  gradEndInput: string;
+  gradMidEnabled: boolean;
+  gradMidInput: string;
+  bgInput: string;
+  textInput: string;
+
+  // Border
+  borderWidthText: string;
+  borderStyle: "solid" | "dashed" | "dotted" | "double" | "none";
+  borderInput: string;
+  borderHoverWidthText: string;
+  borderActiveWidthText: string;
+
+  // Disabled Styling
+  disabledOpacityText: string;
+  disabledCursor: "not-allowed" | "default" | "pointer";
+  disabledUseCustomColors: boolean;
+  disabledBgInput: string;
+  disabledTextInput: string;
+  disabledBorderInput: string;
+  disabledBorderWidthText: string;
+  disabledHoverSuppressed: boolean;
+  disabledTextShadowEnabled: boolean;
+
+  // Radius
+  linkRadius: boolean;
+  radiusText: string;
+  radiusTLText: string;
+  radiusTRText: string;
+  radiusBRText: string;
+  radiusBLText: string;
+
+  // Shadow
+  shadowEnabled: boolean;
+  shXText: string;
+  shYText: string;
+  shBlurText: string;
+  shSpreadText: string;
+  shOpacityText: string;
+  shColorInput: string;
+  shadowTemp: "neutral" | "warm" | "cool";
+
+  // 3D Shadow & Depth
+  elevationPreset: "flat" | "raised" | "lifted" | "inset";
+  depthText: string;
+  lightDirection:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "custom";
+  lightAngleText: string;
+  shadowStackEnabled: boolean;
+  stack1Enabled: boolean;
+  stack1XText: string;
+  stack1YText: string;
+  stack1BlurText: string;
+  stack1SpreadText: string;
+  stack1OpacityText: string;
+  stack2Enabled: boolean;
+  stack2XText: string;
+  stack2YText: string;
+  stack2BlurText: string;
+  stack2SpreadText: string;
+  stack2OpacityText: string;
+  stack3Enabled: boolean;
+  stack3XText: string;
+  stack3YText: string;
+  stack3BlurText: string;
+  stack3SpreadText: string;
+  stack3OpacityText: string;
+  innerShadowEnabled: boolean;
+  glossEnabled: boolean;
+  glossSizeText: string;
+  glossOpacityText: string;
+  bevelEnabled: boolean;
+  bevelSizeText: string;
+  bevelSoftnessText: string;
+  materialPreset: "custom" | "plastic" | "matte" | "metal" | "glass";
+
+  // Edge / Glass
+  edgeThicknessText: string;
+  edgeGradientEnabled: boolean;
+  edgeGradientSizeText: string;
+  edgeGradientStrengthText: string;
+  backdropBlurEnabled: boolean;
+  backdropBlurText: string;
+  topGradientEnabled: boolean;
+  topGradAngleText: string;
+  topGradStartInput: string;
+  topGradMidEnabled: boolean;
+  topGradMidInput: string;
+  topGradEndInput: string;
+  topGradOpacityText: string;
+  parallaxHighlightEnabled: boolean;
+  parallaxStrengthText: string;
+  rimLightEnabled: boolean;
+  rimLightColorInput: string;
+  rimLightSizeText: string;
+  rimLightOpacityText: string;
+  iconEmbossMode: "off" | "raised" | "inset";
+  iconEmbossDepthText: string;
+  iconEmbossStrengthText: string;
+  borderDepthMode: "none" | "raised" | "inset";
+  borderDepthSizeText: string;
+  baseShadowEnabled: boolean;
+  baseShadowSizeText: string;
+  baseShadowOpacityText: string;
+  pressedDepthText: string;
+  pressedInsetEnabled: boolean;
+  hoverLiftText: string;
+  specularStrengthText: string;
+  roughnessText: string;
+  aoStrengthText: string;
+  hoverTiltXText: string;
+  hoverTiltYText: string;
+  hoverPerspectiveText: string;
+
+  // Typography
+  fontBucket: "system" | "google";
+  fontSearch: string;
+  systemFontIdx: number;
+  googleFontFamily: string;
+  fontSizeText: string;
+  fontSizeUnit: "px" | "rem";
+  fontWeight: FontWeightKey;
+  letterSpacingText: string;
+  letterSpacingUnit: "px" | "em";
+  lineHeightText: string;
+  fontStyle: FontStyleKey;
+  textTransform: TextTransformKey;
+  underline: boolean;
+  align: AlignKey;
+
+  // Text Shadow
+  textShadowEnabled: boolean;
+  tsColorMode: "custom" | "auto" | "contrast";
+  tsXText: string;
+  tsYText: string;
+  tsBlurText: string;
+  tsOpacityText: string;
+  tsColorInput: string;
+
+  // Icon
+  iconName: IconName;
+  iconSource: IconSource;
+  iconCustomSvg: string;
+  iconPosition: "left" | "right";
+  iconSizeText: string;
+  iconGapText: string;
+  iconColorMode: "text" | "custom";
+  iconColorInput: string;
+  hoverIconEnabled: boolean;
+  hoverIconSource: IconSource;
+  hoverIconName: IconName;
+  hoverIconCustomSvg: string;
+  activeIconEnabled: boolean;
+  activeIconSource: IconSource;
+  activeIconName: IconName;
+  activeIconCustomSvg: string;
+  loadingIconEnabled: boolean;
+  loadingIconSource: IconSource;
+  loadingIconName: IconName;
+  loadingIconCustomSvg: string;
+
+  // Group Preview
+  groupEnabled: boolean;
+  groupAlign: GroupAlign;
+  groupGapText: string;
+
+  // Hover
+  hoverEnabled: boolean;
+  hoverBgMode: "auto" | "custom" | "gradient";
+  hoverBgInput: string;
+  hoverGradAngleText: string;
+  hoverGradStartInput: string;
+  hoverGradMidEnabled: boolean;
+  hoverGradMidInput: string;
+  hoverGradEndInput: string;
+  hoverTextMode: "same" | "custom";
+  hoverTextInput: string;
+  hoverBorderMode: "same" | "custom";
+  hoverBorderInput: string;
+
+  // Active
+  activeEnabled: boolean;
+  activeTranslateYText: string;
+  activeScaleText: string;
+  activeBgMode: "same" | "custom" | "gradient";
+  activeBgInput: string;
+  activeGradAngleText: string;
+  activeGradStartInput: string;
+  activeGradMidEnabled: boolean;
+  activeGradMidInput: string;
+  activeGradEndInput: string;
+  activeTextMode: "same" | "custom";
+  activeTextInput: string;
+  activeBorderMode: "same" | "custom";
+  activeBorderInput: string;
+
+  // Focus Ring
+  focusRingEnabled: boolean;
+  focusRingWidthText: string;
+  focusRingOffsetText: string;
+  focusRingInput: string;
+
+  // Transitions
+  transitionColorDurationText: string;
+  transitionColorEasing: TransitionEasing;
+  transitionTransformDurationText: string;
+  transitionTransformEasing: TransitionEasing;
+
+  // Accessibility
+  ariaLabel: string;
+  ariaPressedMode: "off" | "true" | "false";
+  ariaBusyMode: "off" | "auto" | "true" | "false";
+  minTouchMode: MinTouchMode;
+  minTouchSizeText: string;
+
+  // State Preview
+  forceHover: boolean;
+  forceActive: boolean;
+  forceFocus: boolean;
+
+  // Preview & Export
+  previewBgMode: PreviewBgMode;
+  previewBgInput: string;
+  downloadFormat: DownloadFormat;
+  downloadName: string;
+};
 
 type TransitionEasing =
   | "ease"
@@ -73,6 +327,254 @@ type TransitionEasing =
   | "ease-out"
   | "ease-in-out"
   | "linear";
+
+const INITIAL_STATE: ActionButtonState = {
+  // Basics
+  label: "Confirm",
+  variant: "solid",
+  disabled: false,
+  loading: false,
+  animation: "none",
+  loadingLabel: "Loading...",
+  loadingSpinnerMode: "default",
+  loadingSpinnerPosition: "left",
+  loadingSpinnerSvg: "",
+
+  // Sizing
+  widthText: "220",
+  heightText: "44",
+  paddingXText: "14",
+  paddingYText: "0",
+
+  // Colors
+  useGradient: false,
+  gradAngleText: "90",
+  gradStartInput: "#2563eb",
+  gradEndInput: "#8b5cf6",
+  gradMidEnabled: false,
+  gradMidInput: "#6366f1",
+  bgInput: "#111827",
+  textInput: "#ffffff",
+
+  // Border
+  borderWidthText: "1",
+  borderStyle: "solid",
+  borderInput: "rgba(0,0,0,0.06)",
+  borderHoverWidthText: "1",
+  borderActiveWidthText: "1",
+
+  // Disabled Styling
+  disabledOpacityText: "0.6",
+  disabledCursor: "not-allowed",
+  disabledUseCustomColors: false,
+  disabledBgInput: "#e5e7eb",
+  disabledTextInput: "#9ca3af",
+  disabledBorderInput: "rgba(0,0,0,0.08)",
+  disabledBorderWidthText: "1",
+  disabledHoverSuppressed: true,
+  disabledTextShadowEnabled: false,
+
+  // Radius
+  linkRadius: true,
+  radiusText: "14",
+  radiusTLText: "14",
+  radiusTRText: "14",
+  radiusBRText: "14",
+  radiusBLText: "14",
+
+  // Shadow
+  shadowEnabled: true,
+  shXText: "0",
+  shYText: "10",
+  shBlurText: "24",
+  shSpreadText: "0",
+  shOpacityText: "0.10",
+  shColorInput: "#000000",
+  shadowTemp: "neutral",
+
+  // 3D Shadow & Depth
+  elevationPreset: "raised",
+  depthText: "8",
+  lightDirection: "top-left",
+  lightAngleText: "315",
+  shadowStackEnabled: false,
+  stack1Enabled: true,
+  stack1XText: "0",
+  stack1YText: "8",
+  stack1BlurText: "16",
+  stack1SpreadText: "0",
+  stack1OpacityText: "0.18",
+  stack2Enabled: true,
+  stack2XText: "0",
+  stack2YText: "3",
+  stack2BlurText: "8",
+  stack2SpreadText: "0",
+  stack2OpacityText: "0.12",
+  stack3Enabled: false,
+  stack3XText: "0",
+  stack3YText: "1",
+  stack3BlurText: "4",
+  stack3SpreadText: "0",
+  stack3OpacityText: "0.08",
+  innerShadowEnabled: false,
+  glossEnabled: false,
+  glossSizeText: "8",
+  glossOpacityText: "0.22",
+  bevelEnabled: false,
+  bevelSizeText: "3",
+  bevelSoftnessText: "3",
+  materialPreset: "custom",
+
+  // Edge / Glass
+  edgeThicknessText: "0",
+  edgeGradientEnabled: false,
+  edgeGradientSizeText: "2",
+  edgeGradientStrengthText: "0.25",
+  backdropBlurEnabled: false,
+  backdropBlurText: "10",
+  topGradientEnabled: false,
+  topGradAngleText: "180",
+  topGradStartInput: "#ffffff",
+  topGradMidEnabled: false,
+  topGradMidInput: "#e5e7eb",
+  topGradEndInput: "#000000",
+  topGradOpacityText: "0.15",
+  parallaxHighlightEnabled: false,
+  parallaxStrengthText: "0.35",
+  rimLightEnabled: false,
+  rimLightColorInput: "#93c5fd",
+  rimLightSizeText: "10",
+  rimLightOpacityText: "0.35",
+  iconEmbossMode: "off",
+  iconEmbossDepthText: "2",
+  iconEmbossStrengthText: "0.6",
+  borderDepthMode: "none",
+  borderDepthSizeText: "2",
+  baseShadowEnabled: false,
+  baseShadowSizeText: "10",
+  baseShadowOpacityText: "0.22",
+  pressedDepthText: "0",
+  pressedInsetEnabled: false,
+  hoverLiftText: "0",
+  specularStrengthText: "1",
+  roughnessText: "0",
+  aoStrengthText: "0",
+  hoverTiltXText: "0",
+  hoverTiltYText: "0",
+  hoverPerspectiveText: "800",
+
+  // Typography
+  fontBucket: "system",
+  fontSearch: "",
+  systemFontIdx: 0,
+  googleFontFamily: "Inter",
+  fontSizeText: "14",
+  fontSizeUnit: "px",
+  fontWeight: 700,
+  letterSpacingText: "0.2",
+  letterSpacingUnit: "px",
+  lineHeightText: "1",
+  fontStyle: "normal",
+  textTransform: "none",
+  underline: false,
+  align: "middle-center",
+
+  // Text Shadow
+  textShadowEnabled: false,
+  tsColorMode: "custom",
+  tsXText: "0",
+  tsYText: "1",
+  tsBlurText: "2",
+  tsOpacityText: "0.25",
+  tsColorInput: "#000000",
+
+  // Icon
+  iconName: "none",
+  iconSource: "library",
+  iconCustomSvg: "",
+  iconPosition: "left",
+  iconSizeText: "18",
+  iconGapText: "10",
+  iconColorMode: "text",
+  iconColorInput: "#ffffff",
+  hoverIconEnabled: false,
+  hoverIconSource: "library",
+  hoverIconName: "none",
+  hoverIconCustomSvg: "",
+  activeIconEnabled: false,
+  activeIconSource: "library",
+  activeIconName: "none",
+  activeIconCustomSvg: "",
+  loadingIconEnabled: false,
+  loadingIconSource: "library",
+  loadingIconName: "none",
+  loadingIconCustomSvg: "",
+
+  // Group Preview
+  groupEnabled: false,
+  groupAlign: "center",
+  groupGapText: "12",
+
+  // Hover
+  hoverEnabled: true,
+  hoverBgMode: "auto",
+  hoverBgInput: "#0f172a",
+  hoverGradAngleText: "90",
+  hoverGradStartInput: "#2563eb",
+  hoverGradMidEnabled: false,
+  hoverGradMidInput: "#6366f1",
+  hoverGradEndInput: "#8b5cf6",
+  hoverTextMode: "same",
+  hoverTextInput: "#ffffff",
+  hoverBorderMode: "same",
+  hoverBorderInput: "#2563eb",
+
+  // Active
+  activeEnabled: true,
+  activeTranslateYText: "1",
+  activeScaleText: "0.99",
+  activeBgMode: "same",
+  activeBgInput: "#0b1220",
+  activeGradAngleText: "90",
+  activeGradStartInput: "#1d4ed8",
+  activeGradMidEnabled: false,
+  activeGradMidInput: "#3b82f6",
+  activeGradEndInput: "#0ea5e9",
+  activeTextMode: "same",
+  activeTextInput: "#ffffff",
+  activeBorderMode: "same",
+  activeBorderInput: "#2563eb",
+
+  // Focus Ring
+  focusRingEnabled: true,
+  focusRingWidthText: "4",
+  focusRingOffsetText: "2",
+  focusRingInput: "#60a5fa",
+
+  // Transitions
+  transitionColorDurationText: "160",
+  transitionColorEasing: "ease",
+  transitionTransformDurationText: "120",
+  transitionTransformEasing: "ease",
+
+  // Accessibility
+  ariaLabel: "",
+  ariaPressedMode: "off",
+  ariaBusyMode: "off",
+  minTouchMode: "off",
+  minTouchSizeText: "44",
+
+  // State Preview
+  forceHover: false,
+  forceActive: false,
+  forceFocus: false,
+
+  // Preview & Export
+  previewBgMode: "white",
+  previewBgInput: "#0b1220",
+  downloadFormat: "html",
+  downloadName: "action-button",
+};
 
 export default function ActionButtonPage() {
   const mounted = useHydrated();
@@ -82,278 +584,1421 @@ export default function ActionButtonPage() {
   const [leftPanelWidth, setLeftPanelWidth] = useState(520);
   const splitRef = useRef<HTMLDivElement>(null);
 
-  // --- Basics ---
-  const [label, setLabel] = useState("Confirm");
-  const [variant, setVariant] = useState<ButtonVariant>("solid");
-  const [disabled, setDisabled] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [animation, setAnimation] = useState<AnimationPreset>("none");
-  const [loadingLabel, setLoadingLabel] = useState("Loading...");
-  const [loadingSpinnerMode, setLoadingSpinnerMode] =
-    useState<LoadingSpinnerMode>("default");
-  const [loadingSpinnerPosition, setLoadingSpinnerPosition] =
-    useState<LoadingSpinnerPosition>("left");
-  const [loadingSpinnerSvg, setLoadingSpinnerSvg] = useState("");
+  // Initialize unified history state
+  const {
+    state,
+    set: updateState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useHistoryState<ActionButtonState>(INITIAL_STATE);
 
-  // --- Sizing ---
-  const [widthText, setWidthText] = useState("220");
-  const [heightText, setHeightText] = useState("44");
-  const [paddingXText, setPaddingXText] = useState("14");
-  const [paddingYText, setPaddingYText] = useState("0");
+  // Destructure for easy access (read-only)
+  const {
+    label,
+    variant,
+    disabled,
+    loading,
+    animation,
+    loadingLabel,
+    loadingSpinnerMode,
+    loadingSpinnerPosition,
+    loadingSpinnerSvg,
+    widthText,
+    heightText,
+    paddingXText,
+    paddingYText,
+    useGradient,
+    gradAngleText,
+    gradStartInput,
+    gradEndInput,
+    gradMidEnabled,
+    gradMidInput,
+    bgInput,
+    textInput,
+    borderWidthText,
+    borderStyle,
+    borderInput,
+    borderHoverWidthText,
+    borderActiveWidthText,
+    disabledOpacityText,
+    disabledCursor,
+    disabledUseCustomColors,
+    disabledBgInput,
+    disabledTextInput,
+    disabledBorderInput,
+    disabledBorderWidthText,
+    disabledHoverSuppressed,
+    disabledTextShadowEnabled,
+    linkRadius,
+    radiusText,
+    radiusTLText,
+    radiusTRText,
+    radiusBRText,
+    radiusBLText,
+    shadowEnabled,
+    shXText,
+    shYText,
+    shBlurText,
+    shSpreadText,
+    shOpacityText,
+    shColorInput,
+    shadowTemp,
+    elevationPreset,
+    depthText,
+    lightDirection,
+    lightAngleText,
+    shadowStackEnabled,
+    stack1Enabled,
+    stack1XText,
+    stack1YText,
+    stack1BlurText,
+    stack1SpreadText,
+    stack1OpacityText,
+    stack2Enabled,
+    stack2XText,
+    stack2YText,
+    stack2BlurText,
+    stack2SpreadText,
+    stack2OpacityText,
+    stack3Enabled,
+    stack3XText,
+    stack3YText,
+    stack3BlurText,
+    stack3SpreadText,
+    stack3OpacityText,
+    innerShadowEnabled,
+    glossEnabled,
+    glossSizeText,
+    glossOpacityText,
+    bevelEnabled,
+    bevelSizeText,
+    bevelSoftnessText,
+    materialPreset,
+    edgeThicknessText,
+    edgeGradientEnabled,
+    edgeGradientSizeText,
+    edgeGradientStrengthText,
+    backdropBlurEnabled,
+    backdropBlurText,
+    topGradientEnabled,
+    topGradAngleText,
+    topGradStartInput,
+    topGradMidEnabled,
+    topGradMidInput,
+    topGradEndInput,
+    topGradOpacityText,
+    parallaxHighlightEnabled,
+    parallaxStrengthText,
+    rimLightEnabled,
+    rimLightColorInput,
+    rimLightSizeText,
+    rimLightOpacityText,
+    iconEmbossMode,
+    iconEmbossDepthText,
+    iconEmbossStrengthText,
+    borderDepthMode,
+    borderDepthSizeText,
+    baseShadowEnabled,
+    baseShadowSizeText,
+    baseShadowOpacityText,
+    pressedDepthText,
+    pressedInsetEnabled,
+    hoverLiftText,
+    specularStrengthText,
+    roughnessText,
+    aoStrengthText,
+    hoverTiltXText,
+    hoverTiltYText,
+    hoverPerspectiveText,
+    fontBucket,
+    fontSearch,
+    systemFontIdx,
+    googleFontFamily,
+    fontSizeText,
+    fontSizeUnit,
+    fontWeight,
+    letterSpacingText,
+    letterSpacingUnit,
+    lineHeightText,
+    fontStyle,
+    textTransform,
+    underline,
+    align,
+    textShadowEnabled,
+    tsColorMode,
+    tsXText,
+    tsYText,
+    tsBlurText,
+    tsOpacityText,
+    tsColorInput,
+    iconName,
+    iconSource,
+    iconCustomSvg,
+    iconPosition,
+    iconSizeText,
+    iconGapText,
+    iconColorMode,
+    iconColorInput,
+    hoverIconEnabled,
+    hoverIconSource,
+    hoverIconName,
+    hoverIconCustomSvg,
+    activeIconEnabled,
+    activeIconSource,
+    activeIconName,
+    activeIconCustomSvg,
+    loadingIconEnabled,
+    loadingIconSource,
+    loadingIconName,
+    loadingIconCustomSvg,
+    groupEnabled,
+    groupAlign,
+    groupGapText,
+    hoverEnabled,
+    hoverBgMode,
+    hoverBgInput,
+    hoverGradAngleText,
+    hoverGradStartInput,
+    hoverGradMidEnabled,
+    hoverGradMidInput,
+    hoverGradEndInput,
+    hoverTextMode,
+    hoverTextInput,
+    hoverBorderMode,
+    hoverBorderInput,
+    activeEnabled,
+    activeTranslateYText,
+    activeScaleText,
+    activeBgMode,
+    activeBgInput,
+    activeGradAngleText,
+    activeGradStartInput,
+    activeGradMidEnabled,
+    activeGradMidInput,
+    activeGradEndInput,
+    activeTextMode,
+    activeTextInput,
+    activeBorderMode,
+    activeBorderInput,
+    focusRingEnabled,
+    focusRingWidthText,
+    focusRingOffsetText,
+    focusRingInput,
+    transitionColorDurationText,
+    transitionColorEasing,
+    transitionTransformDurationText,
+    transitionTransformEasing,
+    ariaLabel,
+    ariaPressedMode,
+    ariaBusyMode,
+    minTouchMode,
+    minTouchSizeText,
+    forceHover,
+    forceActive,
+    forceFocus,
+    previewBgMode,
+    previewBgInput,
+    downloadFormat,
+    downloadName,
+  } = state;
 
-  // --- Colors ---
-  const [useGradient, setUseGradient] = useState(false);
-  const [gradAngleText, setGradAngleText] = useState("90");
-  const [gradStartInput, setGradStartInput] = useState("#2563eb");
-  const [gradEndInput, setGradEndInput] = useState("#8b5cf6");
-  const [gradMidEnabled, setGradMidEnabled] = useState(false);
-  const [gradMidInput, setGradMidInput] = useState("#6366f1");
+  // --- Proxy Setters ---
+  const setLabel = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      label: v instanceof Function ? v(s.label) : v,
+    }));
+  const setVariant = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      variant: v instanceof Function ? v(s.variant) : v,
+    }));
+  const setDisabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabled: v instanceof Function ? v(s.disabled) : v,
+    }));
+  const setLoading = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loading: v instanceof Function ? v(s.loading) : v,
+    }));
+  const setAnimation = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      animation: v instanceof Function ? v(s.animation) : v,
+    }));
+  const setLoadingLabel = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingLabel: v instanceof Function ? v(s.loadingLabel) : v,
+    }));
+  const setLoadingSpinnerMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingSpinnerMode: v instanceof Function ? v(s.loadingSpinnerMode) : v,
+    }));
+  const setLoadingSpinnerPosition = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingSpinnerPosition:
+        v instanceof Function ? v(s.loadingSpinnerPosition) : v,
+    }));
+  const setLoadingSpinnerSvg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingSpinnerSvg: v instanceof Function ? v(s.loadingSpinnerSvg) : v,
+    }));
 
-  const [bgInput, setBgInput] = useState("#111827");
-  const [textInput, setTextInput] = useState("#ffffff");
+  const setWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      widthText: v instanceof Function ? v(s.widthText) : v,
+    }));
+  const setHeightText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      heightText: v instanceof Function ? v(s.heightText) : v,
+    }));
+  const setPaddingXText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      paddingXText: v instanceof Function ? v(s.paddingXText) : v,
+    }));
+  const setPaddingYText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      paddingYText: v instanceof Function ? v(s.paddingYText) : v,
+    }));
 
-  // --- Border ---
-  const [borderWidthText, setBorderWidthText] = useState("1");
-  const [borderStyle, setBorderStyle] = useState<
-    "solid" | "dashed" | "dotted" | "double" | "none"
-  >("solid");
-  const [borderInput, setBorderInput] = useState("rgba(0,0,0,0.06)");
-  const [borderHoverWidthText, setBorderHoverWidthText] = useState("1");
-  const [borderActiveWidthText, setBorderActiveWidthText] = useState("1");
+  const setUseGradient = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      useGradient: v instanceof Function ? v(s.useGradient) : v,
+    }));
+  const setGradAngleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      gradAngleText: v instanceof Function ? v(s.gradAngleText) : v,
+    }));
+  const setGradStartInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      gradStartInput: v instanceof Function ? v(s.gradStartInput) : v,
+    }));
+  const setGradEndInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      gradEndInput: v instanceof Function ? v(s.gradEndInput) : v,
+    }));
+  const setGradMidEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      gradMidEnabled: v instanceof Function ? v(s.gradMidEnabled) : v,
+    }));
+  const setGradMidInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      gradMidInput: v instanceof Function ? v(s.gradMidInput) : v,
+    }));
+  const setBgInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      bgInput: v instanceof Function ? v(s.bgInput) : v,
+    }));
+  const setTextInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      textInput: v instanceof Function ? v(s.textInput) : v,
+    }));
 
-  // --- Disabled Styling ---
-  const [disabledOpacityText, setDisabledOpacityText] = useState("0.6");
-  const [disabledCursor, setDisabledCursor] = useState<
-    "not-allowed" | "default" | "pointer"
-  >("not-allowed");
-  const [disabledUseCustomColors, setDisabledUseCustomColors] = useState(false);
-  const [disabledBgInput, setDisabledBgInput] = useState("#e5e7eb");
-  const [disabledTextInput, setDisabledTextInput] = useState("#9ca3af");
-  const [disabledBorderInput, setDisabledBorderInput] =
-    useState("rgba(0,0,0,0.08)");
-  const [disabledBorderWidthText, setDisabledBorderWidthText] = useState("1");
-  const [disabledHoverSuppressed, setDisabledHoverSuppressed] = useState(true);
-  const [disabledTextShadowEnabled, setDisabledTextShadowEnabled] =
-    useState(false);
+  const setBorderWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderWidthText: v instanceof Function ? v(s.borderWidthText) : v,
+    }));
+  const setBorderStyle = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderStyle: v instanceof Function ? v(s.borderStyle) : v,
+    }));
+  const setBorderInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderInput: v instanceof Function ? v(s.borderInput) : v,
+    }));
+  const setBorderHoverWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderHoverWidthText:
+        v instanceof Function ? v(s.borderHoverWidthText) : v,
+    }));
+  const setBorderActiveWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderActiveWidthText:
+        v instanceof Function ? v(s.borderActiveWidthText) : v,
+    }));
 
-  // --- Radius ---
-  const [linkRadius, setLinkRadius] = useState(true);
-  const [radiusText, setRadiusText] = useState("14");
-  const [radiusTLText, setRadiusTLText] = useState("14");
-  const [radiusTRText, setRadiusTRText] = useState("14");
-  const [radiusBRText, setRadiusBRText] = useState("14");
-  const [radiusBLText, setRadiusBLText] = useState("14");
+  const setDisabledOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledOpacityText: v instanceof Function ? v(s.disabledOpacityText) : v,
+    }));
+  const setDisabledCursor = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledCursor: v instanceof Function ? v(s.disabledCursor) : v,
+    }));
+  const setDisabledUseCustomColors = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledUseCustomColors:
+        v instanceof Function ? v(s.disabledUseCustomColors) : v,
+    }));
+  const setDisabledBgInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledBgInput: v instanceof Function ? v(s.disabledBgInput) : v,
+    }));
+  const setDisabledTextInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledTextInput: v instanceof Function ? v(s.disabledTextInput) : v,
+    }));
+  const setDisabledBorderInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledBorderInput: v instanceof Function ? v(s.disabledBorderInput) : v,
+    }));
+  const setDisabledBorderWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledBorderWidthText:
+        v instanceof Function ? v(s.disabledBorderWidthText) : v,
+    }));
+  const setDisabledHoverSuppressed = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledHoverSuppressed:
+        v instanceof Function ? v(s.disabledHoverSuppressed) : v,
+    }));
+  const setDisabledTextShadowEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      disabledTextShadowEnabled:
+        v instanceof Function ? v(s.disabledTextShadowEnabled) : v,
+    }));
 
-  // --- Shadow ---
-  const [shadowEnabled, setShadowEnabled] = useState(true);
-  const [shXText, setShXText] = useState("0");
-  const [shYText, setShYText] = useState("10");
-  const [shBlurText, setShBlurText] = useState("24");
-  const [shSpreadText, setShSpreadText] = useState("0");
-  const [shOpacityText, setShOpacityText] = useState("0.10");
-  const [shColorInput, setShColorInput] = useState("#000000");
-  const [shadowTemp, setShadowTemp] = useState<"neutral" | "warm" | "cool">(
-    "neutral"
-  );
+  const setLinkRadius = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      linkRadius: v instanceof Function ? v(s.linkRadius) : v,
+    }));
+  const setRadiusText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusText: v instanceof Function ? v(s.radiusText) : v,
+    }));
+  const setRadiusTLText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusTLText: v instanceof Function ? v(s.radiusTLText) : v,
+    }));
+  const setRadiusTRText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusTRText: v instanceof Function ? v(s.radiusTRText) : v,
+    }));
+  const setRadiusBRText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusBRText: v instanceof Function ? v(s.radiusBRText) : v,
+    }));
+  const setRadiusBLText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      radiusBLText: v instanceof Function ? v(s.radiusBLText) : v,
+    }));
 
-  // --- 3D Shadow & Depth ---
-  const [elevationPreset, setElevationPreset] = useState<
-    "flat" | "raised" | "lifted" | "inset"
-  >("raised");
+  const setShadowEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shadowEnabled: v instanceof Function ? v(s.shadowEnabled) : v,
+    }));
+  const setShXText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shXText: v instanceof Function ? v(s.shXText) : v,
+    }));
+  const setShYText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shYText: v instanceof Function ? v(s.shYText) : v,
+    }));
+  const setShBlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shBlurText: v instanceof Function ? v(s.shBlurText) : v,
+    }));
+  const setShSpreadText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shSpreadText: v instanceof Function ? v(s.shSpreadText) : v,
+    }));
+  const setShOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shOpacityText: v instanceof Function ? v(s.shOpacityText) : v,
+    }));
+  const setShColorInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shColorInput: v instanceof Function ? v(s.shColorInput) : v,
+    }));
+  const setShadowTemp = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shadowTemp: v instanceof Function ? v(s.shadowTemp) : v,
+    }));
 
-  // 3D Press Link: Update active translate when depth changes via preset
+  const setElevationPreset = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      elevationPreset: v instanceof Function ? v(s.elevationPreset) : v,
+    }));
+  const setDepthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      depthText: v instanceof Function ? v(s.depthText) : v,
+    }));
+  const setLightDirection = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      lightDirection: v instanceof Function ? v(s.lightDirection) : v,
+    }));
+  const setLightAngleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      lightAngleText: v instanceof Function ? v(s.lightAngleText) : v,
+    }));
+  const setShadowStackEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      shadowStackEnabled: v instanceof Function ? v(s.shadowStackEnabled) : v,
+    }));
+  const setStack1Enabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1Enabled: v instanceof Function ? v(s.stack1Enabled) : v,
+    }));
+  const setStack1XText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1XText: v instanceof Function ? v(s.stack1XText) : v,
+    }));
+  const setStack1YText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1YText: v instanceof Function ? v(s.stack1YText) : v,
+    }));
+  const setStack1BlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1BlurText: v instanceof Function ? v(s.stack1BlurText) : v,
+    }));
+  const setStack1SpreadText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1SpreadText: v instanceof Function ? v(s.stack1SpreadText) : v,
+    }));
+  const setStack1OpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack1OpacityText: v instanceof Function ? v(s.stack1OpacityText) : v,
+    }));
+  const setStack2Enabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2Enabled: v instanceof Function ? v(s.stack2Enabled) : v,
+    }));
+  const setStack2XText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2XText: v instanceof Function ? v(s.stack2XText) : v,
+    }));
+  const setStack2YText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2YText: v instanceof Function ? v(s.stack2YText) : v,
+    }));
+  const setStack2BlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2BlurText: v instanceof Function ? v(s.stack2BlurText) : v,
+    }));
+  const setStack2SpreadText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2SpreadText: v instanceof Function ? v(s.stack2SpreadText) : v,
+    }));
+  const setStack2OpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack2OpacityText: v instanceof Function ? v(s.stack2OpacityText) : v,
+    }));
+  const setStack3Enabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3Enabled: v instanceof Function ? v(s.stack3Enabled) : v,
+    }));
+  const setStack3XText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3XText: v instanceof Function ? v(s.stack3XText) : v,
+    }));
+  const setStack3YText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3YText: v instanceof Function ? v(s.stack3YText) : v,
+    }));
+  const setStack3BlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3BlurText: v instanceof Function ? v(s.stack3BlurText) : v,
+    }));
+  const setStack3SpreadText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3SpreadText: v instanceof Function ? v(s.stack3SpreadText) : v,
+    }));
+  const setStack3OpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      stack3OpacityText: v instanceof Function ? v(s.stack3OpacityText) : v,
+    }));
+  const setInnerShadowEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      innerShadowEnabled: v instanceof Function ? v(s.innerShadowEnabled) : v,
+    }));
+  const setGlossEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      glossEnabled: v instanceof Function ? v(s.glossEnabled) : v,
+    }));
+  const setGlossSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      glossSizeText: v instanceof Function ? v(s.glossSizeText) : v,
+    }));
+  const setGlossOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      glossOpacityText: v instanceof Function ? v(s.glossOpacityText) : v,
+    }));
+  const setBevelEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      bevelEnabled: v instanceof Function ? v(s.bevelEnabled) : v,
+    }));
+  const setBevelSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      bevelSizeText: v instanceof Function ? v(s.bevelSizeText) : v,
+    }));
+  const setBevelSoftnessText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      bevelSoftnessText: v instanceof Function ? v(s.bevelSoftnessText) : v,
+    }));
+  const setMaterialPreset = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      materialPreset: v instanceof Function ? v(s.materialPreset) : v,
+    }));
+
+  const setEdgeThicknessText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      edgeThicknessText: v instanceof Function ? v(s.edgeThicknessText) : v,
+    }));
+  const setEdgeGradientEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      edgeGradientEnabled: v instanceof Function ? v(s.edgeGradientEnabled) : v,
+    }));
+  const setEdgeGradientSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      edgeGradientSizeText:
+        v instanceof Function ? v(s.edgeGradientSizeText) : v,
+    }));
+  const setEdgeGradientStrengthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      edgeGradientStrengthText:
+        v instanceof Function ? v(s.edgeGradientStrengthText) : v,
+    }));
+  const setBackdropBlurEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      backdropBlurEnabled: v instanceof Function ? v(s.backdropBlurEnabled) : v,
+    }));
+  const setBackdropBlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      backdropBlurText: v instanceof Function ? v(s.backdropBlurText) : v,
+    }));
+  const setTopGradientEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradientEnabled: v instanceof Function ? v(s.topGradientEnabled) : v,
+    }));
+  const setTopGradAngleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradAngleText: v instanceof Function ? v(s.topGradAngleText) : v,
+    }));
+  const setTopGradStartInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradStartInput: v instanceof Function ? v(s.topGradStartInput) : v,
+    }));
+  const setTopGradMidEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradMidEnabled: v instanceof Function ? v(s.topGradMidEnabled) : v,
+    }));
+  const setTopGradMidInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradMidInput: v instanceof Function ? v(s.topGradMidInput) : v,
+    }));
+  const setTopGradEndInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradEndInput: v instanceof Function ? v(s.topGradEndInput) : v,
+    }));
+  const setTopGradOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      topGradOpacityText: v instanceof Function ? v(s.topGradOpacityText) : v,
+    }));
+  const setParallaxHighlightEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      parallaxHighlightEnabled:
+        v instanceof Function ? v(s.parallaxHighlightEnabled) : v,
+    }));
+  const setParallaxStrengthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      parallaxStrengthText:
+        v instanceof Function ? v(s.parallaxStrengthText) : v,
+    }));
+  const setRimLightEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      rimLightEnabled: v instanceof Function ? v(s.rimLightEnabled) : v,
+    }));
+  const setRimLightColorInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      rimLightColorInput: v instanceof Function ? v(s.rimLightColorInput) : v,
+    }));
+  const setRimLightSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      rimLightSizeText: v instanceof Function ? v(s.rimLightSizeText) : v,
+    }));
+  const setRimLightOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      rimLightOpacityText: v instanceof Function ? v(s.rimLightOpacityText) : v,
+    }));
+  const setIconEmbossMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconEmbossMode: v instanceof Function ? v(s.iconEmbossMode) : v,
+    }));
+  const setIconEmbossDepthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconEmbossDepthText: v instanceof Function ? v(s.iconEmbossDepthText) : v,
+    }));
+  const setIconEmbossStrengthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconEmbossStrengthText:
+        v instanceof Function ? v(s.iconEmbossStrengthText) : v,
+    }));
+  const setBorderDepthMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderDepthMode: v instanceof Function ? v(s.borderDepthMode) : v,
+    }));
+  const setBorderDepthSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderDepthSizeText: v instanceof Function ? v(s.borderDepthSizeText) : v,
+    }));
+  const setBaseShadowEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      baseShadowEnabled: v instanceof Function ? v(s.baseShadowEnabled) : v,
+    }));
+  const setBaseShadowSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      baseShadowSizeText: v instanceof Function ? v(s.baseShadowSizeText) : v,
+    }));
+  const setBaseShadowOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      baseShadowOpacityText:
+        v instanceof Function ? v(s.baseShadowOpacityText) : v,
+    }));
+  const setPressedDepthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      pressedDepthText: v instanceof Function ? v(s.pressedDepthText) : v,
+    }));
+  const setPressedInsetEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      pressedInsetEnabled: v instanceof Function ? v(s.pressedInsetEnabled) : v,
+    }));
+  const setHoverLiftText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverLiftText: v instanceof Function ? v(s.hoverLiftText) : v,
+    }));
+  const setSpecularStrengthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      specularStrengthText:
+        v instanceof Function ? v(s.specularStrengthText) : v,
+    }));
+  const setRoughnessText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      roughnessText: v instanceof Function ? v(s.roughnessText) : v,
+    }));
+  const setAoStrengthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      aoStrengthText: v instanceof Function ? v(s.aoStrengthText) : v,
+    }));
+  const setHoverTiltXText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverTiltXText: v instanceof Function ? v(s.hoverTiltXText) : v,
+    }));
+  const setHoverTiltYText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverTiltYText: v instanceof Function ? v(s.hoverTiltYText) : v,
+    }));
+  const setHoverPerspectiveText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverPerspectiveText:
+        v instanceof Function ? v(s.hoverPerspectiveText) : v,
+    }));
+
+  const setFontBucket = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontBucket: v instanceof Function ? v(s.fontBucket) : v,
+    }));
+  const setFontSearch = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontSearch: v instanceof Function ? v(s.fontSearch) : v,
+    }));
+  const setSystemFontIdx = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      systemFontIdx: v instanceof Function ? v(s.systemFontIdx) : v,
+    }));
+  const setGoogleFontFamily = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      googleFontFamily: v instanceof Function ? v(s.googleFontFamily) : v,
+    }));
+  const setFontSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontSizeText: v instanceof Function ? v(s.fontSizeText) : v,
+    }));
+  const setFontSizeUnit = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontSizeUnit: v instanceof Function ? v(s.fontSizeUnit) : v,
+    }));
+  const setFontWeight = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontWeight: v instanceof Function ? v(s.fontWeight) : v,
+    }));
+  const setLetterSpacingText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      letterSpacingText: v instanceof Function ? v(s.letterSpacingText) : v,
+    }));
+  const setLetterSpacingUnit = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      letterSpacingUnit: v instanceof Function ? v(s.letterSpacingUnit) : v,
+    }));
+  const setLineHeightText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      lineHeightText: v instanceof Function ? v(s.lineHeightText) : v,
+    }));
+  const setFontStyle = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      fontStyle: v instanceof Function ? v(s.fontStyle) : v,
+    }));
+  const setTextTransform = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      textTransform: v instanceof Function ? v(s.textTransform) : v,
+    }));
+  const setUnderline = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      underline: v instanceof Function ? v(s.underline) : v,
+    }));
+  const setAlign = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      align: v instanceof Function ? v(s.align) : v,
+    }));
+
+  const setTextShadowEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      textShadowEnabled: v instanceof Function ? v(s.textShadowEnabled) : v,
+    }));
+  const setTsColorMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsColorMode: v instanceof Function ? v(s.tsColorMode) : v,
+    }));
+  const setTsXText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsXText: v instanceof Function ? v(s.tsXText) : v,
+    }));
+  const setTsYText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsYText: v instanceof Function ? v(s.tsYText) : v,
+    }));
+  const setTsBlurText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsBlurText: v instanceof Function ? v(s.tsBlurText) : v,
+    }));
+  const setTsOpacityText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsOpacityText: v instanceof Function ? v(s.tsOpacityText) : v,
+    }));
+  const setTsColorInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      tsColorInput: v instanceof Function ? v(s.tsColorInput) : v,
+    }));
+
+  const setIconName = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconName: v instanceof Function ? v(s.iconName) : v,
+    }));
+  const setIconSource = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconSource: v instanceof Function ? v(s.iconSource) : v,
+    }));
+  const setIconCustomSvg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconCustomSvg: v instanceof Function ? v(s.iconCustomSvg) : v,
+    }));
+  const setIconPosition = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconPosition: v instanceof Function ? v(s.iconPosition) : v,
+    }));
+  const setIconSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconSizeText: v instanceof Function ? v(s.iconSizeText) : v,
+    }));
+  const setIconGapText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconGapText: v instanceof Function ? v(s.iconGapText) : v,
+    }));
+  const setIconColorMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconColorMode: v instanceof Function ? v(s.iconColorMode) : v,
+    }));
+  const setIconColorInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconColorInput: v instanceof Function ? v(s.iconColorInput) : v,
+    }));
+
+  const setHoverIconEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverIconEnabled: v instanceof Function ? v(s.hoverIconEnabled) : v,
+    }));
+  const setHoverIconSource = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverIconSource: v instanceof Function ? v(s.hoverIconSource) : v,
+    }));
+  const setHoverIconName = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverIconName: v instanceof Function ? v(s.hoverIconName) : v,
+    }));
+  const setHoverIconCustomSvg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverIconCustomSvg: v instanceof Function ? v(s.hoverIconCustomSvg) : v,
+    }));
+
+  const setActiveIconEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeIconEnabled: v instanceof Function ? v(s.activeIconEnabled) : v,
+    }));
+  const setActiveIconSource = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeIconSource: v instanceof Function ? v(s.activeIconSource) : v,
+    }));
+  const setActiveIconName = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeIconName: v instanceof Function ? v(s.activeIconName) : v,
+    }));
+  const setActiveIconCustomSvg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeIconCustomSvg: v instanceof Function ? v(s.activeIconCustomSvg) : v,
+    }));
+
+  const setLoadingIconEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingIconEnabled: v instanceof Function ? v(s.loadingIconEnabled) : v,
+    }));
+  const setLoadingIconSource = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingIconSource: v instanceof Function ? v(s.loadingIconSource) : v,
+    }));
+  const setLoadingIconName = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingIconName: v instanceof Function ? v(s.loadingIconName) : v,
+    }));
+  const setLoadingIconCustomSvg = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingIconCustomSvg:
+        v instanceof Function ? v(s.loadingIconCustomSvg) : v,
+    }));
+
+  const setGroupEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupEnabled: v instanceof Function ? v(s.groupEnabled) : v,
+    }));
+  const setGroupAlign = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupAlign: v instanceof Function ? v(s.groupAlign) : v,
+    }));
+  const setGroupGapText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      groupGapText: v instanceof Function ? v(s.groupGapText) : v,
+    }));
+
+  const setHoverEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverEnabled: v instanceof Function ? v(s.hoverEnabled) : v,
+    }));
+  const setHoverBgMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverBgMode: v instanceof Function ? v(s.hoverBgMode) : v,
+    }));
+  const setHoverBgInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverBgInput: v instanceof Function ? v(s.hoverBgInput) : v,
+    }));
+  const setHoverGradAngleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGradAngleText: v instanceof Function ? v(s.hoverGradAngleText) : v,
+    }));
+  const setHoverGradStartInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGradStartInput: v instanceof Function ? v(s.hoverGradStartInput) : v,
+    }));
+  const setHoverGradMidEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGradMidEnabled: v instanceof Function ? v(s.hoverGradMidEnabled) : v,
+    }));
+  const setHoverGradMidInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGradMidInput: v instanceof Function ? v(s.hoverGradMidInput) : v,
+    }));
+  const setHoverGradEndInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverGradEndInput: v instanceof Function ? v(s.hoverGradEndInput) : v,
+    }));
+  const setHoverTextMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverTextMode: v instanceof Function ? v(s.hoverTextMode) : v,
+    }));
+  const setHoverTextInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverTextInput: v instanceof Function ? v(s.hoverTextInput) : v,
+    }));
+  const setHoverBorderMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverBorderMode: v instanceof Function ? v(s.hoverBorderMode) : v,
+    }));
+  const setHoverBorderInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverBorderInput: v instanceof Function ? v(s.hoverBorderInput) : v,
+    }));
+
+  const setActiveEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeEnabled: v instanceof Function ? v(s.activeEnabled) : v,
+    }));
+  const setActiveTranslateYText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeTranslateYText:
+        v instanceof Function ? v(s.activeTranslateYText) : v,
+    }));
+  const setActiveScaleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeScaleText: v instanceof Function ? v(s.activeScaleText) : v,
+    }));
+  const setActiveBgMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeBgMode: v instanceof Function ? v(s.activeBgMode) : v,
+    }));
+  const setActiveBgInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeBgInput: v instanceof Function ? v(s.activeBgInput) : v,
+    }));
+  const setActiveGradAngleText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeGradAngleText: v instanceof Function ? v(s.activeGradAngleText) : v,
+    }));
+  const setActiveGradStartInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeGradStartInput:
+        v instanceof Function ? v(s.activeGradStartInput) : v,
+    }));
+  const setActiveGradMidEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeGradMidEnabled:
+        v instanceof Function ? v(s.activeGradMidEnabled) : v,
+    }));
+  const setActiveGradMidInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeGradMidInput: v instanceof Function ? v(s.activeGradMidInput) : v,
+    }));
+  const setActiveGradEndInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeGradEndInput: v instanceof Function ? v(s.activeGradEndInput) : v,
+    }));
+  const setActiveTextMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeTextMode: v instanceof Function ? v(s.activeTextMode) : v,
+    }));
+  const setActiveTextInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeTextInput: v instanceof Function ? v(s.activeTextInput) : v,
+    }));
+  const setActiveBorderMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeBorderMode: v instanceof Function ? v(s.activeBorderMode) : v,
+    }));
+  const setActiveBorderInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      activeBorderInput: v instanceof Function ? v(s.activeBorderInput) : v,
+    }));
+
+  const setFocusRingEnabled = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      focusRingEnabled: v instanceof Function ? v(s.focusRingEnabled) : v,
+    }));
+  const setFocusRingWidthText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      focusRingWidthText: v instanceof Function ? v(s.focusRingWidthText) : v,
+    }));
+  const setFocusRingOffsetText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      focusRingOffsetText: v instanceof Function ? v(s.focusRingOffsetText) : v,
+    }));
+  const setFocusRingInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      focusRingInput: v instanceof Function ? v(s.focusRingInput) : v,
+    }));
+
+  const setTransitionColorDurationText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      transitionColorDurationText:
+        v instanceof Function ? v(s.transitionColorDurationText) : v,
+    }));
+  const setTransitionColorEasing = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      transitionColorEasing:
+        v instanceof Function ? v(s.transitionColorEasing) : v,
+    }));
+  const setTransitionTransformDurationText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      transitionTransformDurationText:
+        v instanceof Function ? v(s.transitionTransformDurationText) : v,
+    }));
+  const setTransitionTransformEasing = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      transitionTransformEasing:
+        v instanceof Function ? v(s.transitionTransformEasing) : v,
+    }));
+
+  const setAriaLabel = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaLabel: v instanceof Function ? v(s.ariaLabel) : v,
+    }));
+  const setAriaPressedMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaPressedMode: v instanceof Function ? v(s.ariaPressedMode) : v,
+    }));
+  const setAriaBusyMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaBusyMode: v instanceof Function ? v(s.ariaBusyMode) : v,
+    }));
+  const setMinTouchMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      minTouchMode: v instanceof Function ? v(s.minTouchMode) : v,
+    }));
+  const setMinTouchSizeText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      minTouchSizeText: v instanceof Function ? v(s.minTouchSizeText) : v,
+    }));
+
+  const setForceHover = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      forceHover: v instanceof Function ? v(s.forceHover) : v,
+    }));
+  const setForceActive = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      forceActive: v instanceof Function ? v(s.forceActive) : v,
+    }));
+  const setForceFocus = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      forceFocus: v instanceof Function ? v(s.forceFocus) : v,
+    }));
+
+  const setPreviewBgMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      previewBgMode: v instanceof Function ? v(s.previewBgMode) : v,
+    }));
+  const setPreviewBgInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      previewBgInput: v instanceof Function ? v(s.previewBgInput) : v,
+    }));
+  const setDownloadFormat = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      downloadFormat: v instanceof Function ? v(s.downloadFormat) : v,
+    }));
+  const setDownloadName = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      downloadName: v instanceof Function ? v(s.downloadName) : v,
+    }));
+
   const handleApplyElevationPreset = (
     mode: "flat" | "raised" | "lifted" | "inset"
   ) => {
-    setElevationPreset(mode);
-    setShadowEnabled(true);
-    setShadowStackEnabled(false);
-    setBaseShadowEnabled(false);
+    // For bulk updates, we can update multiple fields in one go to keep history clean
+    updateState((s) => {
+      const next = {
+        ...s,
+        elevationPreset: mode,
+        shadowEnabled: true,
+        shadowStackEnabled: false,
+        baseShadowEnabled: false,
+      };
 
-    if (mode === "flat") {
-      setShadowEnabled(false);
-      setDepthText("0");
-      if (activeEnabled) setActiveTranslateYText("0");
-    } else if (mode === "raised") {
-      setShXText("0");
-      setShYText("4");
-      setShBlurText("6");
-      setShSpreadText("-1");
-      setShOpacityText("0.1");
-      setDepthText("4");
-      setBaseShadowEnabled(true);
-      setBaseShadowSizeText("10");
-      if (activeEnabled) setActiveTranslateYText("4");
-    } else if (mode === "lifted") {
-      setShXText("0");
-      setShYText("10");
-      setShBlurText("15");
-      setShSpreadText("-3");
-      setShOpacityText("0.15");
-      setDepthText("8");
-      setBaseShadowEnabled(true);
-      setBaseShadowSizeText("20");
-      if (activeEnabled) setActiveTranslateYText("8");
-    } else if (mode === "inset") {
-      setDepthText("0");
-      setInnerShadowEnabled(true);
-      setShOpacityText("0");
-      if (activeEnabled) setActiveTranslateYText("0");
-    }
+      if (mode === "flat") {
+        Object.assign(next, { shadowEnabled: false, depthText: "0" });
+        if (s.activeEnabled) next.activeTranslateYText = "0";
+      } else if (mode === "raised") {
+        Object.assign(next, {
+          shXText: "0",
+          shYText: "4",
+          shBlurText: "6",
+          shSpreadText: "-1",
+          shOpacityText: "0.1",
+          depthText: "4",
+          baseShadowEnabled: true,
+          baseShadowSizeText: "10",
+        });
+        if (s.activeEnabled) next.activeTranslateYText = "4";
+      } else if (mode === "lifted") {
+        Object.assign(next, {
+          shXText: "0",
+          shYText: "10",
+          shBlurText: "15",
+          shSpreadText: "-3",
+          shOpacityText: "0.15",
+          depthText: "8",
+          baseShadowEnabled: true,
+          baseShadowSizeText: "20",
+        });
+        if (s.activeEnabled) next.activeTranslateYText = "8";
+      } else if (mode === "inset") {
+        Object.assign(next, {
+          depthText: "0",
+          innerShadowEnabled: true,
+          shOpacityText: "0",
+        });
+        if (s.activeEnabled) next.activeTranslateYText = "0";
+      }
+      return next;
+    });
   };
-  const [depthText, setDepthText] = useState("8");
-  const [lightDirection, setLightDirection] = useState<
-    "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom"
-  >("top-left");
-  const [lightAngleText, setLightAngleText] = useState("315");
-  const [shadowStackEnabled, setShadowStackEnabled] = useState(false);
-  const [stack1Enabled, setStack1Enabled] = useState(true);
-  const [stack1XText, setStack1XText] = useState("0");
-  const [stack1YText, setStack1YText] = useState("8");
-  const [stack1BlurText, setStack1BlurText] = useState("16");
-  const [stack1SpreadText, setStack1SpreadText] = useState("0");
-  const [stack1OpacityText, setStack1OpacityText] = useState("0.18");
-  const [stack2Enabled, setStack2Enabled] = useState(true);
-  const [stack2XText, setStack2XText] = useState("0");
-  const [stack2YText, setStack2YText] = useState("3");
-  const [stack2BlurText, setStack2BlurText] = useState("8");
-  const [stack2SpreadText, setStack2SpreadText] = useState("0");
-  const [stack2OpacityText, setStack2OpacityText] = useState("0.12");
-  const [stack3Enabled, setStack3Enabled] = useState(false);
-  const [stack3XText, setStack3XText] = useState("0");
-  const [stack3YText, setStack3YText] = useState("1");
-  const [stack3BlurText, setStack3BlurText] = useState("4");
-  const [stack3SpreadText, setStack3SpreadText] = useState("0");
-  const [stack3OpacityText, setStack3OpacityText] = useState("0.08");
-  const [innerShadowEnabled, setInnerShadowEnabled] = useState(false);
-  const [glossEnabled, setGlossEnabled] = useState(false);
-  const [glossSizeText, setGlossSizeText] = useState("8");
-  const [glossOpacityText, setGlossOpacityText] = useState("0.22");
-  const [bevelEnabled, setBevelEnabled] = useState(false);
-  const [bevelSizeText, setBevelSizeText] = useState("3");
-  const [bevelSoftnessText, setBevelSoftnessText] = useState("3");
-  const [materialPreset, setMaterialPreset] = useState<
-    "custom" | "plastic" | "matte" | "metal" | "glass"
-  >("custom");
 
   const handleApplyMaterialPreset = (
     mode: "custom" | "plastic" | "matte" | "metal" | "glass"
   ) => {
-    setMaterialPreset(mode);
-    if (mode === "custom") return;
+    updateState((s) => {
+      const next = { ...s, materialPreset: mode };
+      if (mode === "custom") return next;
 
-    if (mode === "plastic") {
-      setGlossEnabled(true);
-      setGlossOpacityText("0.4");
-      setSpecularStrengthText("0.5");
-      setRoughnessText("0.1");
-      setBevelEnabled(true);
-      setBevelSizeText("3");
-      setBevelSoftnessText("2");
-      setInnerShadowEnabled(true);
-      setBackdropBlurEnabled(false);
-      setBgInput("#2563eb");
-      setTextInput("#ffffff");
-    } else if (mode === "matte") {
-      setGlossEnabled(false);
-      setSpecularStrengthText("0");
-      setRoughnessText("1");
-      setBevelEnabled(false);
-      setInnerShadowEnabled(false);
-      setBackdropBlurEnabled(false);
-      setBgInput("#2563eb");
-      setTextInput("#ffffff");
-    } else if (mode === "metal") {
-      setGlossEnabled(true);
-      setGlossOpacityText("0.6");
-      setSpecularStrengthText("0.8");
-      setRoughnessText("0.3");
-      setBevelEnabled(true);
-      setBevelSizeText("2");
-      setBevelSoftnessText("1");
-      setInnerShadowEnabled(true);
-      setEdgeGradientEnabled(true);
-      setBackdropBlurEnabled(false);
-      setBgInput("#2563eb");
-      setTextInput("#ffffff");
-    } else if (mode === "glass") {
-      setGlossEnabled(true);
-      setGlossOpacityText("0.3");
-      setSpecularStrengthText("0.4");
-      setRoughnessText("0.1");
-      setBevelEnabled(true);
-      setBevelSizeText("1");
-      setInnerShadowEnabled(true);
-      // Glass specific
-      setBackdropBlurEnabled(true);
-      setBackdropBlurText("10");
-      setShOpacityText("0.1");
-      // For glass, we often want a semi-transparent white/black
-      // effectively overriding current bg to ensure transparency
-      setBgInput("#ffffff55");
-      setTextInput("#000000");
-    }
+      if (mode === "plastic") {
+        Object.assign(next, {
+          glossEnabled: true,
+          glossOpacityText: "0.4",
+          specularStrengthText: "0.5",
+          roughnessText: "0.1",
+          bevelEnabled: true,
+          bevelSizeText: "3",
+          bevelSoftnessText: "2",
+          innerShadowEnabled: true,
+          backdropBlurEnabled: false,
+          bgInput: "#2563eb",
+          textInput: "#ffffff",
+        });
+      } else if (mode === "matte") {
+        Object.assign(next, {
+          glossEnabled: false,
+          specularStrengthText: "0",
+          roughnessText: "1",
+          bevelEnabled: false,
+          innerShadowEnabled: false,
+          backdropBlurEnabled: false,
+          bgInput: "#2563eb",
+          textInput: "#ffffff",
+        });
+      } else if (mode === "metal") {
+        Object.assign(next, {
+          glossEnabled: true,
+          glossOpacityText: "0.6",
+          specularStrengthText: "0.8",
+          roughnessText: "0.3",
+          bevelEnabled: true,
+          bevelSizeText: "2",
+          bevelSoftnessText: "1",
+          innerShadowEnabled: true,
+          edgeGradientEnabled: true,
+          backdropBlurEnabled: false,
+          bgInput: "#2563eb",
+          textInput: "#ffffff",
+        });
+      } else if (mode === "glass") {
+        Object.assign(next, {
+          glossEnabled: true,
+          glossOpacityText: "0.3",
+          specularStrengthText: "0.4",
+          roughnessText: "0.1",
+          bevelEnabled: true,
+          bevelSizeText: "1",
+          innerShadowEnabled: true,
+          backdropBlurEnabled: true,
+          backdropBlurText: "10",
+          shOpacityText: "0.1",
+          bgInput: "#ffffff55",
+          textInput: "#000000",
+        });
+      }
+      return next;
+    });
   };
-  const [edgeThicknessText, setEdgeThicknessText] = useState("0");
-  const [edgeGradientEnabled, setEdgeGradientEnabled] = useState(false);
-  const [edgeGradientSizeText, setEdgeGradientSizeText] = useState("2");
-  const [edgeGradientStrengthText, setEdgeGradientStrengthText] =
-    useState("0.25");
-
-  // Glassmorphism States
-  const [backdropBlurEnabled, setBackdropBlurEnabled] = useState(false);
-  const [backdropBlurText, setBackdropBlurText] = useState("10");
-  const [topGradientEnabled, setTopGradientEnabled] = useState(false);
-  const [topGradAngleText, setTopGradAngleText] = useState("180");
-  const [topGradStartInput, setTopGradStartInput] = useState("#ffffff");
-  const [topGradMidEnabled, setTopGradMidEnabled] = useState(false);
-  const [topGradMidInput, setTopGradMidInput] = useState("#e5e7eb");
-  const [topGradEndInput, setTopGradEndInput] = useState("#000000");
-  const [topGradOpacityText, setTopGradOpacityText] = useState("0.15");
-  const [parallaxHighlightEnabled, setParallaxHighlightEnabled] =
-    useState(false);
-  const [parallaxStrengthText, setParallaxStrengthText] = useState("0.35");
-  const [rimLightEnabled, setRimLightEnabled] = useState(false);
-  const [rimLightColorInput, setRimLightColorInput] = useState("#93c5fd");
-  const [rimLightSizeText, setRimLightSizeText] = useState("10");
-  const [rimLightOpacityText, setRimLightOpacityText] = useState("0.35");
-  const [iconEmbossMode, setIconEmbossMode] = useState<
-    "off" | "raised" | "inset"
-  >("off");
-  const [iconEmbossDepthText, setIconEmbossDepthText] = useState("2");
-  const [iconEmbossStrengthText, setIconEmbossStrengthText] = useState("0.6");
-  const [borderDepthMode, setBorderDepthMode] = useState<
-    "none" | "raised" | "inset"
-  >("none");
-  const [borderDepthSizeText, setBorderDepthSizeText] = useState("2");
-  const [baseShadowEnabled, setBaseShadowEnabled] = useState(false);
-  const [baseShadowSizeText, setBaseShadowSizeText] = useState("10");
-  const [baseShadowOpacityText, setBaseShadowOpacityText] = useState("0.22");
-  const [pressedDepthText, setPressedDepthText] = useState("0");
-  const [pressedInsetEnabled, setPressedInsetEnabled] = useState(false);
-  const [hoverLiftText, setHoverLiftText] = useState("0");
-  const [specularStrengthText, setSpecularStrengthText] = useState("1");
-  const [roughnessText, setRoughnessText] = useState("0");
-  const [aoStrengthText, setAoStrengthText] = useState("0");
-  const [hoverTiltXText, setHoverTiltXText] = useState("0");
-  const [hoverTiltYText, setHoverTiltYText] = useState("0");
-  const [hoverPerspectiveText, setHoverPerspectiveText] = useState("800");
-
-  // --- Typography ---
-  const [fontBucket, setFontBucket] = useState<"system" | "google">("system");
-  const [fontSearch, setFontSearch] = useState("");
-  const [systemFontIdx, setSystemFontIdx] = useState(0);
-  const [googleFontFamily, setGoogleFontFamily] = useState("Inter");
-
-  const [fontSizeText, setFontSizeText] = useState("14");
-  const [fontSizeUnit, setFontSizeUnit] = useState<"px" | "rem">("px");
-  const [fontWeight, setFontWeight] = useState<FontWeightKey>(700);
-  const [letterSpacingText, setLetterSpacingText] = useState("0.2");
-  const [letterSpacingUnit, setLetterSpacingUnit] = useState<"px" | "em">("px");
-  const [lineHeightText, setLineHeightText] = useState("1");
-  const [fontStyle, setFontStyle] = useState<FontStyleKey>("normal");
-  const [textTransform, setTextTransform] = useState<TextTransformKey>("none");
-  const [underline, setUnderline] = useState(false);
 
   const filteredSystemFonts = useMemo(() => {
     const q = fontSearch.trim().toLowerCase();
@@ -370,125 +2015,26 @@ export default function ActionButtonPage() {
   }, [fontSearch]);
 
   // --- Text Position ---
-  const [align, setAlign] = useState<AlignKey>("middle-center");
 
   // --- Text Shadow ---
-  const [textShadowEnabled, setTextShadowEnabled] = useState(false);
-  const [tsColorMode, setTsColorMode] = useState<
-    "custom" | "auto" | "contrast"
-  >("custom");
-  const [tsXText, setTsXText] = useState("0");
-  const [tsYText, setTsYText] = useState("1");
-  const [tsBlurText, setTsBlurText] = useState("2");
-  const [tsOpacityText, setTsOpacityText] = useState("0.25");
-  const [tsColorInput, setTsColorInput] = useState("#000000");
 
   // --- Icon ---
-  const [iconName, setIconName] = useState<IconName>("none");
-  const [iconSource, setIconSource] = useState<IconSource>("library");
-  const [iconCustomSvg, setIconCustomSvg] = useState("");
-  const [iconPosition, setIconPosition] = useState<"left" | "right">("left");
-  const [iconSizeText, setIconSizeText] = useState("18");
-  const [iconGapText, setIconGapText] = useState("10");
-  const [iconColorMode, setIconColorMode] = useState<"text" | "custom">("text");
-  const [iconColorInput, setIconColorInput] = useState("#ffffff");
-  const [hoverIconEnabled, setHoverIconEnabled] = useState(false);
-  const [hoverIconSource, setHoverIconSource] = useState<IconSource>("library");
-  const [hoverIconName, setHoverIconName] = useState<IconName>("none");
-  const [hoverIconCustomSvg, setHoverIconCustomSvg] = useState("");
-  const [activeIconEnabled, setActiveIconEnabled] = useState(false);
-  const [activeIconSource, setActiveIconSource] =
-    useState<IconSource>("library");
-  const [activeIconName, setActiveIconName] = useState<IconName>("none");
-  const [activeIconCustomSvg, setActiveIconCustomSvg] = useState("");
-  const [loadingIconEnabled, setLoadingIconEnabled] = useState(false);
-  const [loadingIconSource, setLoadingIconSource] =
-    useState<IconSource>("library");
-  const [loadingIconName, setLoadingIconName] = useState<IconName>("none");
-  const [loadingIconCustomSvg, setLoadingIconCustomSvg] = useState("");
 
   // --- Group Preview ---
-  const [groupEnabled, setGroupEnabled] = useState(false);
-  const [groupAlign, setGroupAlign] = useState<GroupAlign>("center");
-  const [groupGapText, setGroupGapText] = useState("12");
 
   // --- Hover ---
-  const [hoverEnabled, setHoverEnabled] = useState(true);
-  const [hoverBgMode, setHoverBgMode] = useState<
-    "auto" | "custom" | "gradient"
-  >("auto");
-  const [hoverBgInput, setHoverBgInput] = useState("#0f172a");
-  const [hoverGradAngleText, setHoverGradAngleText] = useState("90");
-  const [hoverGradStartInput, setHoverGradStartInput] = useState("#2563eb");
-  const [hoverGradMidEnabled, setHoverGradMidEnabled] = useState(false);
-  const [hoverGradMidInput, setHoverGradMidInput] = useState("#6366f1");
-  const [hoverGradEndInput, setHoverGradEndInput] = useState("#8b5cf6");
-  const [hoverTextMode, setHoverTextMode] = useState<"same" | "custom">("same");
-  const [hoverTextInput, setHoverTextInput] = useState("#ffffff");
-  const [hoverBorderMode, setHoverBorderMode] = useState<"same" | "custom">(
-    "same"
-  );
-  const [hoverBorderInput, setHoverBorderInput] = useState("#2563eb");
 
   // --- Active ---
-  const [activeEnabled, setActiveEnabled] = useState(true);
-  const [activeTranslateYText, setActiveTranslateYText] = useState("1");
-  const [activeScaleText, setActiveScaleText] = useState("0.99");
-  const [activeBgMode, setActiveBgMode] = useState<
-    "same" | "custom" | "gradient"
-  >("same");
-  const [activeBgInput, setActiveBgInput] = useState("#0b1220");
-  const [activeGradAngleText, setActiveGradAngleText] = useState("90");
-  const [activeGradStartInput, setActiveGradStartInput] = useState("#1d4ed8");
-  const [activeGradMidEnabled, setActiveGradMidEnabled] = useState(false);
-  const [activeGradMidInput, setActiveGradMidInput] = useState("#3b82f6");
-  const [activeGradEndInput, setActiveGradEndInput] = useState("#0ea5e9");
-  const [activeTextMode, setActiveTextMode] = useState<"same" | "custom">(
-    "same"
-  );
-  const [activeTextInput, setActiveTextInput] = useState("#ffffff");
-  const [activeBorderMode, setActiveBorderMode] = useState<"same" | "custom">(
-    "same"
-  );
-  const [activeBorderInput, setActiveBorderInput] = useState("#2563eb");
 
   // --- Focus Ring ---
-  const [focusRingEnabled, setFocusRingEnabled] = useState(true);
-  const [focusRingWidthText, setFocusRingWidthText] = useState("4");
-  const [focusRingOffsetText, setFocusRingOffsetText] = useState("2");
-  const [focusRingInput, setFocusRingInput] = useState("#60a5fa");
 
   // --- Transitions ---
-  const [transitionColorDurationText, setTransitionColorDurationText] =
-    useState("160");
-  const [transitionColorEasing, setTransitionColorEasing] =
-    useState<TransitionEasing>("ease");
-  const [transitionTransformDurationText, setTransitionTransformDurationText] =
-    useState("120");
-  const [transitionTransformEasing, setTransitionTransformEasing] =
-    useState<TransitionEasing>("ease");
 
   // --- Accessibility ---
-  const [ariaLabel, setAriaLabel] = useState("");
-  const [ariaPressedMode, setAriaPressedMode] = useState<
-    "off" | "true" | "false"
-  >("off");
-  const [ariaBusyMode, setAriaBusyMode] = useState<
-    "off" | "auto" | "true" | "false"
-  >("off");
-  const [minTouchMode, setMinTouchMode] = useState<MinTouchMode>("off");
-  const [minTouchSizeText, setMinTouchSizeText] = useState("44");
 
   // --- State Preview ---
-  const [forceHover, setForceHover] = useState(false);
-  const [forceActive, setForceActive] = useState(false);
-  const [forceFocus, setForceFocus] = useState(false);
 
   // --- Preview & Export ---
-  const [previewBgMode, setPreviewBgMode] = useState<PreviewBgMode>("white");
-  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
-  const [downloadName, setDownloadName] = useState("action-button");
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -1216,21 +2762,23 @@ export default function ActionButtonPage() {
   };
 
   const baseIconSvg =
-    iconSource === "custom" ? iconCustomSvg : ICONS_SVG[iconName] || "";
+    iconSource === "custom"
+      ? iconCustomSvg
+      : ICONS_SVG[iconName as IconName] || "";
   const hoverIconSvg = hoverIconEnabled
     ? hoverIconSource === "custom"
       ? hoverIconCustomSvg
-      : ICONS_SVG[hoverIconName] || ""
+      : ICONS_SVG[hoverIconName as IconName] || ""
     : "";
   const activeIconSvg = activeIconEnabled
     ? activeIconSource === "custom"
       ? activeIconCustomSvg
-      : ICONS_SVG[activeIconName] || ""
+      : ICONS_SVG[activeIconName as IconName] || ""
     : "";
   const loadingIconSvg = loadingIconEnabled
     ? loadingIconSource === "custom"
       ? loadingIconCustomSvg
-      : ICONS_SVG[loadingIconName] || ""
+      : ICONS_SVG[loadingIconName as IconName] || ""
     : "";
 
   const topGradStartNorm = norm(topGradStartInput);
@@ -1368,6 +2916,8 @@ export default function ActionButtonPage() {
       previewBgHex,
       fontStyle,
       textTransform,
+      backdropBlurEnabled,
+      backdropBlurText,
     });
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -2358,12 +3908,72 @@ export default function ActionButtonPage() {
             ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
           }}
         >
-          <h1
-            className="text-2xl font-bold tracking-tight"
-            style={{ color: "var(--text)" }}
-          >
-            Action Button
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: "var(--text)" }}
+            >
+              Action Button
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                className="flex items-center justify-center p-2 rounded-lg border transition-all"
+                style={{
+                  borderColor: "var(--border)",
+                  color: canUndo ? "var(--text)" : "var(--muted)",
+                  opacity: canUndo ? 1 : 0.5,
+                  cursor: canUndo ? "pointer" : "not-allowed",
+                  background: canUndo ? "var(--card)" : "transparent",
+                }}
+                title="Undo (Ctrl+Z)"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 7v6h6" />
+                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                className="flex items-center justify-center p-2 rounded-lg border transition-all"
+                style={{
+                  borderColor: "var(--border)",
+                  color: canRedo ? "var(--text)" : "var(--muted)",
+                  opacity: canRedo ? 1 : 0.5,
+                  cursor: canRedo ? "pointer" : "not-allowed",
+                  background: canRedo ? "var(--card)" : "transparent",
+                }}
+                title="Redo (Ctrl+Y)"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 7v6h-6" />
+                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+                </svg>
+              </button>
+            </div>
+          </div>
           <div
             className="rounded-2xl border p-3"
             style={{
