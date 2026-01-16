@@ -113,6 +113,7 @@ export default function ThreeAvatarSection(props: {
               <option value="none">None</option>
               <option value="crown">Floating Crown</option>
               <option value="halo-cyber">Cyber Halo</option>
+              <option value="neural-link">Neural Link (NodeNet)</option>
               <option value="orb-float">Floating Orbs</option>
             </select>
           </LabeledField>

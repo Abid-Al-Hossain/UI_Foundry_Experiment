@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   Float,
   MeshDistortMaterial,
@@ -12,6 +12,7 @@ import {
   MeshWobbleMaterial,
   Torus,
   Icosahedron,
+  Sparkles,
 } from "@react-three/drei";
 import CanvasConfetti from "canvas-confetti";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
@@ -40,6 +41,10 @@ export default function LivePreview(props: {
   iconTransmission: string;
   iconEmissive: string;
 
+  iconDistortion: string;
+  iconThickness: string;
+  iconChromaticAberration: string;
+
   clickEffect: string;
   clickParticleCount: string;
   hoverEffect: string;
@@ -60,7 +65,11 @@ export default function LivePreview(props: {
     iconRoughness,
     iconMetalness,
     iconTransmission,
+
     iconEmissive,
+    iconDistortion,
+    iconThickness,
+    iconChromaticAberration,
     clickEffect,
     clickParticleCount,
     hoverEffect,
@@ -119,9 +128,17 @@ export default function LivePreview(props: {
 
       CanvasConfetti({
         particleCount: count,
-        spread: clickEffect === "explosion" ? 120 : 70,
-        startVelocity: clickEffect === "explosion" ? 50 : 30,
+        spread: clickEffect === "explosion" ? 160 : 70,
+        startVelocity: clickEffect === "explosion" ? 60 : 30,
         origin: { x, y },
+        gravity: clickEffect === "explosion" ? 1.2 : 0.6,
+        scalar: clickEffect === "explosion" ? 1.2 : 1,
+        drift: clickEffect === "explosion" ? 0.5 : 0,
+        ticks: clickEffect === "explosion" ? 300 : 200,
+        colors:
+          clickEffect === "explosion"
+            ? ["#FF0000", "#FFD700", "#FF4500", "#FFFFFF"]
+            : undefined,
       });
     }
   };
@@ -174,22 +191,45 @@ export default function LivePreview(props: {
             }}
           />
         )}
-        {/* 3D Icon Container */}
-        {use3DIcon !== "none" && (
-          <div style={{ width: 24, height: 24, position: "relative" }}>
-            <Canvas>
+        {/* 3D Icon / Sparkles Container */}
+        {(use3DIcon !== "none" || hoverEffect === "sparkles") && (
+          <div
+            style={{
+              width: use3DIcon !== "none" ? 24 : "100%",
+              height: use3DIcon !== "none" ? 24 : "100%",
+              position: use3DIcon !== "none" ? "relative" : "absolute",
+              inset: use3DIcon !== "none" ? undefined : 0,
+              pointerEvents: "none",
+            }}
+          >
+            <Canvas gl={{ alpha: true }}>
               <ambientLight intensity={0.5} />
               <directionalLight position={[2, 5, 2]} />
-              <IconMesh
-                geometry={icon3DGeometry}
-                material={icon3DMaterial}
-                animation={icon3DAnimation}
-                color={iconColor}
-                roughness={Number(iconRoughness)}
-                metalness={Number(iconMetalness)}
-                transmission={Number(iconTransmission)}
-                emissive={Number(iconEmissive)}
-              />
+              {use3DIcon !== "none" && (
+                <IconMesh
+                  geometry={icon3DGeometry}
+                  material={icon3DMaterial}
+                  animation={icon3DAnimation}
+                  color={iconColor}
+                  roughness={Number(iconRoughness)}
+                  metalness={Number(iconMetalness)}
+                  transmission={Number(iconTransmission)}
+                  emissive={Number(iconEmissive)}
+                  distortion={Number(iconDistortion)}
+                  thickness={Number(iconThickness)}
+                  chromaticAberration={Number(iconChromaticAberration)}
+                />
+              )}
+              {hoverEffect === "sparkles" && (
+                <Sparkles
+                  count={50}
+                  scale={use3DIcon !== "none" ? 3 : 6}
+                  size={use3DIcon !== "none" ? 2 : 4}
+                  speed={0.4}
+                  opacity={0.7}
+                  color="#FFD700"
+                />
+              )}
             </Canvas>
           </div>
         )}
@@ -209,6 +249,9 @@ function IconMesh({
   metalness,
   transmission,
   emissive,
+  distortion,
+  thickness,
+  chromaticAberration,
 }: {
   geometry: string;
   material: string;
@@ -218,22 +261,63 @@ function IconMesh({
   metalness: number;
   transmission: number;
   emissive: number;
+  distortion: number;
+  thickness: number;
+  chromaticAberration: number;
 }) {
   // Determine Geometry scale factor (visual balance)
   const scale = 1.8;
+
+  // Pulse Animation for Neon
+  const [pulse, setPulse] = useState(1);
+  useFrame((state) => {
+    if (material === "neon") {
+      const t = state.clock.getElapsedTime();
+      // rhythmic pulse
+      setPulse(1 + Math.sin(t * 3) * 0.3);
+    }
+  });
 
   const MaterialComponent = () => {
     switch (material) {
       case "glass":
         return (
           <MeshTransmissionMaterial
-            samples={4}
-            thickness={0.5}
-            chromaticAberration={0.1}
-            anisotropy={0.3}
+            samples={6}
+            thickness={thickness || 0.5}
+            chromaticAberration={0.05}
+            anisotropy={0.1}
             roughness={roughness}
-            transmission={transmission}
+            transmission={transmission || 0.9}
             color={color}
+          />
+        );
+      case "glass-crystal":
+        return (
+          <MeshTransmissionMaterial
+            samples={8}
+            thickness={thickness || 2}
+            chromaticAberration={chromaticAberration || 0.5}
+            anisotropy={0.5}
+            roughness={0}
+            transmission={1}
+            color={color}
+            toneMapped={false}
+          />
+        );
+      case "liquid":
+        return (
+          <MeshTransmissionMaterial
+            samples={6}
+            thickness={thickness || 1.5}
+            chromaticAberration={chromaticAberration || 0.2}
+            anisotropy={0.2}
+            roughness={0.1}
+            transmission={1}
+            color={color}
+            distortion={distortion || 0.5}
+            distortionScale={0.5}
+            temporalDistortion={0.2}
           />
         );
       case "holographic":
@@ -254,7 +338,7 @@ function IconMesh({
           <meshStandardMaterial
             color={color}
             emissive={color}
-            emissiveIntensity={emissive * 2}
+            emissiveIntensity={emissive * pulse}
             roughness={roughness}
             metalness={metalness}
           />

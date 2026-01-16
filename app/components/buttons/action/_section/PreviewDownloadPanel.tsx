@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { PreviewPanel } from "@/app/components/controls/layout/PreviewPanel";
 
 export type DownloadFormat =
   | "html"
@@ -106,36 +107,32 @@ export default function PreviewDownloadPanel(props: {
         </div>
 
         <div className="mt-4">
-          <div
-            className="rounded-2xl border"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
-            }}
-          >
-            {previewNode ? (
-              <div className="h-[620px] w-full rounded-2xl overflow-hidden flex items-center justify-center bg-transparent">
-                {previewNode}
-              </div>
-            ) : mounted && iframeSrcDoc ? (
-              <iframe
-                ref={iframeRef}
-                onLoad={handleIframeLoad}
-                onFocus={() => {
-                  iframeRef.current?.contentWindow?.postMessage(
-                    { type: "focus-button" },
-                    "*"
-                  );
-                }}
-                title="Action Button Preview"
-                sandbox="allow-scripts"
-                srcDoc={iframeSrcDoc}
-                tabIndex={0}
-                className="h-[620px] w-full rounded-2xl"
-              />
-            ) : (
-              <div className="h-[620px] w-full rounded-2xl" />
-            )}
+          <div className="h-[620px] w-full">
+            <PreviewPanel>
+              {previewNode ? (
+                <div className="h-full w-full flex items-center justify-center">
+                  {previewNode}
+                </div>
+              ) : mounted && iframeSrcDoc ? (
+                <iframe
+                  ref={iframeRef}
+                  onLoad={handleIframeLoad}
+                  onFocus={() => {
+                    iframeRef.current?.contentWindow?.postMessage(
+                      { type: "focus-button" },
+                      "*",
+                    );
+                  }}
+                  title="Action Button Preview"
+                  sandbox="allow-scripts"
+                  srcDoc={iframeSrcDoc}
+                  tabIndex={0}
+                  className="h-full w-full"
+                />
+              ) : (
+                <div className="h-full w-full" />
+              )}
+            </PreviewPanel>
           </div>
         </div>
 

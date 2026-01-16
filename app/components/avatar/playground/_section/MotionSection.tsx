@@ -9,7 +9,7 @@ import {
 } from "../../../buttons/action/_section/ui";
 
 export type MotionEntrance = "none" | "fade" | "scale" | "slide";
-export type MotionHover = "none" | "layout" | "scale";
+export type MotionHover = "none" | "layout" | "scale" | "holo-card" | "float-y";
 
 export default function MotionSection(props: {
   entranceAnimation: MotionEntrance;
@@ -68,6 +68,8 @@ export default function MotionSection(props: {
                 { value: "none", label: "None" },
                 { value: "layout", label: "Layout Id" },
                 { value: "scale", label: "Spring Scale" },
+                { value: "holo-card", label: "Holo Card" },
+                { value: "float-y", label: "Levitate" },
               ]}
             />
           </LabeledField>

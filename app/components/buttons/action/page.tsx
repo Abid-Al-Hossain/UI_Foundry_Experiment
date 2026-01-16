@@ -271,6 +271,11 @@ type ActionButtonState = {
   iconMetalness: string;
   iconTransmission: string;
   iconEmissive: string;
+  icon3DColorMode: "text" | "custom";
+  icon3DColorInput: string;
+  iconDistortion: string;
+  iconThickness: string;
+  iconChromaticAberration: string;
 
   // Motion "Hyper"
   clickEffect: string; // confetti, explosion, shockwave
@@ -608,6 +613,11 @@ const INITIAL_STATE: ActionButtonState = {
   iconMetalness: "0.8",
   iconTransmission: "0.9",
   iconEmissive: "0.5",
+  icon3DColorMode: "text",
+  icon3DColorInput: "#FFD700",
+  iconDistortion: "0.5",
+  iconThickness: "1",
+  iconChromaticAberration: "0.1",
 
   // Motion "Hyper"
   clickEffect: "none",
@@ -798,10 +808,16 @@ export default function ActionButtonPage() {
     icon3DGeometry,
     icon3DMaterial,
     icon3DAnimation,
+    icon3DColorMode,
+    icon3DColorInput,
     iconRoughness,
+
     iconMetalness,
     iconTransmission,
     iconEmissive,
+    iconDistortion,
+    iconThickness,
+    iconChromaticAberration,
     clickEffect,
     clickParticleCount,
     hoverEffect,
@@ -1486,6 +1502,32 @@ export default function ActionButtonPage() {
       ...s,
       iconEmissive: v instanceof Function ? v(s.iconEmissive) : v,
     }));
+  const setIcon3DColorMode = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DColorMode: v instanceof Function ? v(s.icon3DColorMode) : v,
+    }));
+  const setIcon3DColorInput = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DColorInput: v instanceof Function ? v(s.icon3DColorInput) : v,
+    }));
+  const setIconDistortion = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconDistortion: v instanceof Function ? v(s.iconDistortion) : v,
+    }));
+  const setIconThickness = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconThickness: v instanceof Function ? v(s.iconThickness) : v,
+    }));
+  const setIconChromaticAberration = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconChromaticAberration:
+        v instanceof Function ? v(s.iconChromaticAberration) : v,
+    }));
   const setClickParticleCount = (v: any) =>
     updateState((s) => ({
       ...s,
@@ -2002,7 +2044,7 @@ export default function ActionButtonPage() {
     }));
 
   const handleApplyElevationPreset = (
-    mode: "flat" | "raised" | "lifted" | "inset"
+    mode: "flat" | "raised" | "lifted" | "inset",
   ) => {
     // For bulk updates, we can update multiple fields in one go to keep history clean
     updateState((s) => {
@@ -2054,7 +2096,7 @@ export default function ActionButtonPage() {
   };
 
   const handleApplyMaterialPreset = (
-    mode: "custom" | "plastic" | "matte" | "metal" | "glass"
+    mode: "custom" | "plastic" | "matte" | "metal" | "glass",
   ) => {
     updateState((s) => {
       const next = { ...s, materialPreset: mode };
@@ -2179,7 +2221,7 @@ export default function ActionButtonPage() {
     const maxLeft = Math.max(minLeft, rect.width - minRight);
     const initial = clamp(Math.round(rect.width * 0.52), minLeft, maxLeft);
     setLeftPanelWidth((prev) =>
-      prev ? clamp(prev, minLeft, maxLeft) : initial
+      prev ? clamp(prev, minLeft, maxLeft) : initial,
     );
   }, [isDesktop]);
 
@@ -2215,7 +2257,7 @@ export default function ActionButtonPage() {
   const fontSizeValue = clamp(
     Number(fontSizeText) || 14,
     fontSizeMin,
-    fontSizeMax
+    fontSizeMax,
   );
   const fontSizeDisplay = `${fontSizeValue}${fontSizeUnit}`;
 
@@ -2225,7 +2267,7 @@ export default function ActionButtonPage() {
   const letterSpacingValue = clamp(
     Number(letterSpacingText) || 0,
     letterSpacingMin,
-    letterSpacingMax
+    letterSpacingMax,
   );
   const letterSpacingDisplay = `${letterSpacingValue}${letterSpacingUnit}`;
 
@@ -2268,7 +2310,7 @@ export default function ActionButtonPage() {
   const edgeGradientStrength = clamp(
     Number(edgeGradientStrengthText) || 0,
     0,
-    1
+    1,
   );
   const topGradOpacity = clamp(Number(topGradOpacityText) || 0, 0, 1);
   const parallaxStrength = clamp(Number(parallaxStrengthText) || 0, 0, 1);
@@ -2289,7 +2331,7 @@ export default function ActionButtonPage() {
   const hoverPerspective = clamp(
     Number(hoverPerspectiveText) || 800,
     200,
-    2000
+    2000,
   );
   const radiusVal = clamp(Number(radiusText) || 0, 0, 60);
   const rTL = linkRadius ? radiusVal : clamp(Number(radiusTLText) || 0, 0, 60);
@@ -2301,12 +2343,12 @@ export default function ActionButtonPage() {
   const borderHoverWidthPx = clamp(
     Number(borderHoverWidthText) || borderWidthPx,
     0,
-    12
+    12,
   );
   const borderActiveWidthPx = clamp(
     Number(borderActiveWidthText) || borderHoverWidthPx,
     0,
-    12
+    12,
   );
   const hoverBorderWidthPx = hoverEnabled ? borderHoverWidthPx : borderWidthPx;
   const activeBorderWidthPx = activeEnabled
@@ -2315,7 +2357,7 @@ export default function ActionButtonPage() {
   const disabledBorderWidthPx = clamp(
     Number(disabledBorderWidthText) || borderWidthPx,
     0,
-    12
+    12,
   );
 
   const groupGapPx = clamp(Number(groupGapText) || 12, 0, 32);
@@ -2323,12 +2365,12 @@ export default function ActionButtonPage() {
   const transitionColorMs = clamp(
     Number(transitionColorDurationText) || 160,
     0,
-    2000
+    2000,
   );
   const transitionTransformMs = clamp(
     Number(transitionTransformDurationText) || 120,
     0,
-    2000
+    2000,
   );
 
   // --- IDs ---
@@ -2358,14 +2400,14 @@ export default function ActionButtonPage() {
     hoverGradStartInput,
     hoverGradMidEnabled,
     hoverGradMidInput,
-    hoverGradEndInput
+    hoverGradEndInput,
   );
   const activeGradient = buildGradient(
     activeGradAngleText,
     activeGradStartInput,
     activeGradMidEnabled,
     activeGradMidInput,
-    activeGradEndInput
+    activeGradEndInput,
   );
 
   let cssBg = "transparent";
@@ -2467,10 +2509,10 @@ export default function ActionButtonPage() {
     previewBgMode === "white"
       ? "#ffffff"
       : previewBgMode === "black"
-      ? "#000000"
-      : norm(previewBgInput).ok
-      ? norm(previewBgInput).hex
-      : "#0b1220";
+        ? "#000000"
+        : norm(previewBgInput).ok
+          ? norm(previewBgInput).hex
+          : "#0b1220";
 
   const minTouchWarning =
     minTouchMode !== "off" && (wPx < minTouchSizePx || hPx < minTouchSizePx);
@@ -2520,7 +2562,7 @@ export default function ActionButtonPage() {
   const rawLightAngle =
     lightDirection === "custom"
       ? Number(lightAngleText)
-      : lightAngleMap[lightDirection] ?? 315;
+      : (lightAngleMap[lightDirection] ?? 315);
   const safeLightAngle = Number.isFinite(rawLightAngle) ? rawLightAngle : 315;
   const shadowAngle = (safeLightAngle + 180) % 360;
   const shadowRad = (shadowAngle * Math.PI) / 180;
@@ -2532,15 +2574,15 @@ export default function ActionButtonPage() {
     shadowTemp === "warm"
       ? mixHex(shColorNorm.ok ? shColorNorm.hex : "#000000", "#f59e0b", 0.25)
       : shadowTemp === "cool"
-      ? mixHex(shColorNorm.ok ? shColorNorm.hex : "#000000", "#38bdf8", 0.25)
-      : shColorNorm.ok
-      ? shColorNorm.hex
-      : "#000000";
+        ? mixHex(shColorNorm.ok ? shColorNorm.hex : "#000000", "#38bdf8", 0.25)
+        : shColorNorm.ok
+          ? shColorNorm.hex
+          : "#000000";
   const rimLightNorm = norm(rimLightColorInput);
 
   const baseShadowColor = hexWithAlpha(
     shadowBaseHex,
-    Number(shOpacityText) || 0.1
+    Number(shOpacityText) || 0.1,
   );
 
   const buildStackLayer = (
@@ -2549,7 +2591,7 @@ export default function ActionButtonPage() {
     yText: string,
     blurText: string,
     spreadText: string,
-    opacityText: string
+    opacityText: string,
   ) => {
     if (!enabled) return null;
     const opacity = clamp(Number(opacityText) || 0, 0, 1);
@@ -2562,7 +2604,7 @@ export default function ActionButtonPage() {
   };
 
   const buildBoxShadow = (
-    options: { depthOverride?: number; pressedInset?: boolean } = {}
+    options: { depthOverride?: number; pressedInset?: boolean } = {},
   ) => {
     const depth =
       typeof options.depthOverride === "number"
@@ -2577,7 +2619,7 @@ export default function ActionButtonPage() {
       outerShadows.push(
         `${Number(shXText) || 0}px ${Number(shYText) || 0}px ${
           Number(shBlurText) || 0
-        }px ${Number(shSpreadText) || 0}px ${baseShadowColor}`
+        }px ${Number(shSpreadText) || 0}px ${baseShadowColor}`,
       );
     }
 
@@ -2589,7 +2631,7 @@ export default function ActionButtonPage() {
           stack1YText,
           stack1BlurText,
           stack1SpreadText,
-          stack1OpacityText
+          stack1OpacityText,
         ),
         buildStackLayer(
           stack2Enabled,
@@ -2597,7 +2639,7 @@ export default function ActionButtonPage() {
           stack2YText,
           stack2BlurText,
           stack2SpreadText,
-          stack2OpacityText
+          stack2OpacityText,
         ),
         buildStackLayer(
           stack3Enabled,
@@ -2605,7 +2647,7 @@ export default function ActionButtonPage() {
           stack3YText,
           stack3BlurText,
           stack3SpreadText,
-          stack3OpacityText
+          stack3OpacityText,
         ),
       ].filter(Boolean) as string[];
       outerShadows.push(...layers);
@@ -2658,8 +2700,8 @@ export default function ActionButtonPage() {
       const insetBlur = Math.max(4, Math.round(depth * 1.2));
       innerShadows.push(
         `inset ${Math.round(shadowDirX * insetOffset)}px ${Math.round(
-          shadowDirY * insetOffset
-        )}px ${insetBlur}px 0px ${insetColor}`
+          shadowDirY * insetOffset,
+        )}px ${insetBlur}px 0px ${insetColor}`,
       );
     }
 
@@ -2670,8 +2712,8 @@ export default function ActionButtonPage() {
       const insetBlur = Math.max(4, Math.round(depth * 1.2));
       innerShadows.push(
         `inset ${Math.round(shadowDirX * insetOffset)}px ${Math.round(
-          shadowDirY * insetOffset
-        )}px ${insetBlur}px 0px ${insetColor}`
+          shadowDirY * insetOffset,
+        )}px ${insetBlur}px 0px ${insetColor}`,
       );
     }
 
@@ -2684,12 +2726,12 @@ export default function ActionButtonPage() {
       innerShadows.push(
         `inset ${-sign * bx}px ${
           -sign * by
-        }px ${borderDepthPx}px 0px ${borderLight}`
+        }px ${borderDepthPx}px 0px ${borderLight}`,
       );
       innerShadows.push(
         `inset ${sign * bx}px ${
           sign * by
-        }px ${borderDepthPx}px 0px ${borderDark}`
+        }px ${borderDepthPx}px 0px ${borderDark}`,
       );
     }
 
@@ -2697,7 +2739,7 @@ export default function ActionButtonPage() {
       const aoBlur = Math.max(4, Math.round((depth + bevelSizePx) * 1.2));
       const aoOpacity = clamp(aoStrength * 0.35, 0, 0.6);
       innerShadows.push(
-        `inset 0 0 ${aoBlur}px 0px rgba(0, 0, 0, ${aoOpacity})`
+        `inset 0 0 ${aoBlur}px 0px rgba(0, 0, 0, ${aoOpacity})`,
       );
     }
 
@@ -2708,12 +2750,12 @@ export default function ActionButtonPage() {
     ) {
       const edgeInset = Math.max(1, Math.round(edgeGradientSizePx / 2));
       innerShadows.push(
-        `inset 0 ${edgeGradientSizePx}px ${edgeGradientSizePx}px -${edgeInset}px rgba(255, 255, 255, ${edgeGradientStrength})`
+        `inset 0 ${edgeGradientSizePx}px ${edgeGradientSizePx}px -${edgeInset}px rgba(255, 255, 255, ${edgeGradientStrength})`,
       );
       innerShadows.push(
         `inset 0 -${edgeGradientSizePx}px ${edgeGradientSizePx}px -${edgeInset}px rgba(0, 0, 0, ${
           edgeGradientStrength * 0.9
-        })`
+        })`,
       );
     }
 
@@ -2722,13 +2764,13 @@ export default function ActionButtonPage() {
       const glossStrength = clamp(
         glossOpacity * specularStrength * (1 - roughness * 0.3),
         0,
-        1
+        1,
       );
       if (glossStrength > 0) {
         innerShadows.push(
           `inset ${Math.round(-shadowDirX * glossSizePx)}px ${Math.round(
-            -shadowDirY * glossSizePx
-          )}px ${glossBlur}px 0px rgba(255, 255, 255, ${glossStrength})`
+            -shadowDirY * glossSizePx,
+          )}px ${glossBlur}px 0px rgba(255, 255, 255, ${glossStrength})`,
         );
       }
     }
@@ -2738,10 +2780,10 @@ export default function ActionButtonPage() {
       const bevelX = Math.round(shadowDirX * bevelSizePx);
       const bevelY = Math.round(shadowDirY * bevelSizePx);
       innerShadows.push(
-        `inset ${-bevelX}px ${-bevelY}px ${bevelBlur}px 0px rgba(255, 255, 255, 0.35)`
+        `inset ${-bevelX}px ${-bevelY}px ${bevelBlur}px 0px rgba(255, 255, 255, 0.35)`,
       );
       innerShadows.push(
-        `inset ${bevelX}px ${bevelY}px ${bevelBlur}px 0px rgba(0, 0, 0, 0.25)`
+        `inset ${bevelX}px ${bevelY}px ${bevelBlur}px 0px rgba(0, 0, 0, 0.25)`,
       );
     }
 
@@ -2785,7 +2827,7 @@ export default function ActionButtonPage() {
   };
 
   const applyElevationPreset = (
-    preset: "flat" | "raised" | "lifted" | "inset"
+    preset: "flat" | "raised" | "lifted" | "inset",
   ) => {
     setElevationPreset(preset);
     if (preset === "flat") {
@@ -2828,7 +2870,7 @@ export default function ActionButtonPage() {
   };
 
   const applyMaterialPreset = (
-    preset: "custom" | "plastic" | "matte" | "metal" | "glass"
+    preset: "custom" | "plastic" | "matte" | "metal" | "glass",
   ) => {
     setMaterialPreset(preset);
     if (preset === "custom") return;
@@ -2923,15 +2965,15 @@ export default function ActionButtonPage() {
   const embossLight = `rgba(255, 255, 255, ${clamp(
     iconEmbossStrength * 0.6,
     0,
-    1
+    1,
   )})`;
   const embossDark = `rgba(0, 0, 0, ${clamp(iconEmbossStrength * 0.45, 0, 1)})`;
   const iconEmbossFilter =
     iconEmbossMode === "off" || iconEmbossDepthPx <= 0
       ? "none"
       : iconEmbossMode === "raised"
-      ? `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossDark}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossLight})`
-      : `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossLight}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossDark})`;
+        ? `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossDark}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossLight})`
+        : `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossLight}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossDark})`;
   // --- Export Logic ---
   const handleDownload = () => {
     const { filename, content } = buildExportPayload({
@@ -3332,7 +3374,7 @@ export default function ActionButtonPage() {
       transitionColorEasing,
       transitionTransformMs,
       transitionTransformEasing,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -3569,6 +3611,16 @@ export default function ActionButtonPage() {
     setIconTransmission,
     iconEmissive,
     setIconEmissive,
+    icon3DColorMode,
+    setIcon3DColorMode,
+    icon3DColorInput,
+    setIcon3DColorInput,
+    iconDistortion,
+    setIconDistortion,
+    iconThickness,
+    setIconThickness,
+    iconChromaticAberration,
+    setIconChromaticAberration,
     clickEffect,
     setClickEffect,
     clickParticleCount,
@@ -4029,20 +4081,6 @@ export default function ActionButtonPage() {
       label: "Accessibility",
       content: <AccessibilitySection {...accessibilitySectionProps} />,
     },
-    {
-      id: "preview-bg",
-      label: "Preview BG",
-      content: (
-        <PreviewBackgroundSection
-          PALETTE={PALETTE}
-          bgMode={previewBgMode}
-          setBgMode={setPreviewBgMode}
-          previewBgInput={previewBgInput}
-          setPreviewBgInput={setPreviewBgInput}
-          previewBgNorm={norm(previewBgInput)}
-        />
-      ),
-    },
   ];
 
   const activePanel =
@@ -4093,13 +4131,13 @@ export default function ActionButtonPage() {
       alignItems: align.startsWith("top")
         ? "flex-start"
         : align.startsWith("bottom")
-        ? "flex-end"
-        : "center",
+          ? "flex-end"
+          : "center",
       justifyContent: align.includes("left")
         ? "flex-start"
         : align.includes("right")
-        ? "flex-end"
-        : "center",
+          ? "flex-end"
+          : "center",
       gap: `${Number(iconGapText)}px`,
     };
 
@@ -4113,6 +4151,9 @@ export default function ActionButtonPage() {
         iconMetalness={iconMetalness}
         iconTransmission={iconTransmission}
         iconEmissive={iconEmissive}
+        iconDistortion={iconDistortion}
+        iconThickness={iconThickness}
+        iconChromaticAberration={iconChromaticAberration}
         clickEffect={clickEffect as any}
         clickParticleCount={clickParticleCount}
         hoverEffect={hoverEffect}
@@ -4120,7 +4161,7 @@ export default function ActionButtonPage() {
         hoverSpringDamping={hoverSpringDamping}
         buttonStyle={style}
         label={label}
-        iconColor={iconColorMode === "text" ? cssText : iconColorInput}
+        iconColor={icon3DColorMode === "text" ? cssText : icon3DColorInput}
       />
     );
   }
@@ -4272,7 +4313,7 @@ export default function ActionButtonPage() {
                 if (iframeRef.current?.contentWindow) {
                   iframeRef.current.contentWindow.postMessage(
                     previewPayload,
-                    "*"
+                    "*",
                   );
                 }
               }}

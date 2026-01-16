@@ -30,6 +30,17 @@ export default function ThreeJSSection(props: {
   setIconTransmission: (v: string) => void;
   iconEmissive: string;
   setIconEmissive: (v: string) => void;
+  iconDistortion: string;
+  setIconDistortion: (v: string) => void;
+  iconThickness: string;
+  setIconThickness: (v: string) => void;
+  iconChromaticAberration: string;
+
+  setIconChromaticAberration: (v: string) => void;
+  icon3DColorMode: "text" | "custom";
+  setIcon3DColorMode: (v: "text" | "custom") => void;
+  icon3DColorInput: string;
+  setIcon3DColorInput: (v: string) => void;
 
   // Motion
   clickEffect: string;
@@ -91,12 +102,49 @@ export default function ThreeJSSection(props: {
                     onChange={(e) => props.setIcon3DMaterial(e.target.value)}
                   >
                     <option value="glass">Frost Glass</option>
+                    <option value="glass-crystal">Glass - Crystal</option>
+                    <option value="liquid">Liquid Metal</option>
                     <option value="metal">Polished Metal</option>
                     <option value="plastic">Glossy Plastic</option>
                     <option value="holographic">Holographic</option>
                     <option value="neon">Neon Emissive</option>
                   </select>
                 </LabeledField>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <LabeledField label="Color Mode">
+                  <Segmented
+                    value={props.icon3DColorMode}
+                    onChange={(v: any) => props.setIcon3DColorMode(v)}
+                    items={[
+                      { value: "text", label: "Auto (Text)" },
+                      { value: "custom", label: "Custom" },
+                    ]}
+                  />
+                </LabeledField>
+                {props.icon3DColorMode === "custom" && (
+                  <LabeledField label="Custom HEX">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={props.icon3DColorInput}
+                        onChange={(e) =>
+                          props.setIcon3DColorInput(e.target.value)
+                        }
+                        className="h-8 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
+                      />
+                      <input
+                        type="text"
+                        value={props.icon3DColorInput}
+                        onChange={(e) =>
+                          props.setIcon3DColorInput(e.target.value)
+                        }
+                        className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 font-mono"
+                      />
+                    </div>
+                  </LabeledField>
+                )}
               </div>
 
               <LabeledField label="Motion">
@@ -135,14 +183,48 @@ export default function ThreeJSSection(props: {
                     step={0.05}
                   />
                 </LabeledField>
-                {props.icon3DMaterial === "glass" && (
-                  <LabeledField label="Transmission">
+
+                {(props.icon3DMaterial === "glass" ||
+                  props.icon3DMaterial === "glass-crystal" ||
+                  props.icon3DMaterial === "liquid") && (
+                  <>
+                    <LabeledField label="Transmission">
+                      <Slider
+                        value={props.iconTransmission}
+                        onChange={props.setIconTransmission}
+                        min={0}
+                        max={1}
+                        step={0.05}
+                      />
+                    </LabeledField>
+                    <LabeledField label="Thickness">
+                      <Slider
+                        value={props.iconThickness}
+                        onChange={props.setIconThickness}
+                        min={0}
+                        max={3}
+                        step={0.1}
+                      />
+                    </LabeledField>
+                    <LabeledField label="Chromatic Aberration">
+                      <Slider
+                        value={props.iconChromaticAberration}
+                        onChange={props.setIconChromaticAberration}
+                        min={0}
+                        max={1}
+                        step={0.05}
+                      />
+                    </LabeledField>
+                  </>
+                )}
+                {props.icon3DMaterial === "liquid" && (
+                  <LabeledField label="Distortion">
                     <Slider
-                      value={props.iconTransmission}
-                      onChange={props.setIconTransmission}
+                      value={props.iconDistortion}
+                      onChange={props.setIconDistortion}
                       min={0}
-                      max={1}
-                      step={0.05}
+                      max={2}
+                      step={0.1}
                     />
                   </LabeledField>
                 )}
@@ -187,6 +269,7 @@ export default function ThreeJSSection(props: {
               <option value="spotlight">Glow Spotlight</option>
               <option value="tilt">3D Glare Tilt</option>
               <option value="morph">Shape Morph</option>
+              <option value="sparkles">Floating Sparkles</option>
             </select>
           </LabeledField>
           {props.hoverEffect !== "none" && (

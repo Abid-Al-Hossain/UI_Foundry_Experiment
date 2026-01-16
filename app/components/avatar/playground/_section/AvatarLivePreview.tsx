@@ -9,8 +9,15 @@ import {
   Torus,
   Html,
   MeshDistortMaterial,
+  Line,
 } from "@react-three/drei";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import {
   type ThreeDBadgeMode,
   type ThreeDStatusMode,
@@ -86,6 +93,32 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
     },
   };
 
+  // Holo Card Logic
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseX = useSpring(x, { stiffness: 300, damping: 30 });
+  const mouseY = useSpring(y, { stiffness: 300, damping: 30 });
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (hoverEffect !== "holo-card") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   const Wrapper = motion.div;
 
   return (
@@ -95,7 +128,15 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
         animate="visible"
         whileHover="hover"
         variants={variants}
-        style={{ position: "relative", ...containerStyle }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          position: "relative",
+          ...containerStyle,
+          rotateX: hoverEffect === "holo-card" ? rotateX : 0,
+          rotateY: hoverEffect === "holo-card" ? rotateY : 0,
+          transformStyle: "preserve-3d",
+        }}
         layoutId={hoverEffect === "layout" ? "avatar-preview" : undefined}
       >
         {/* Image / Initials */}
@@ -323,6 +364,59 @@ function AccessoryMesh({
               emissiveIntensity={1}
               transparent
               opacity={0.5}
+            />
+          </mesh>
+        </group>
+      </Float>
+    );
+  }
+  if (type === "neural-link") {
+    // Generate nodes
+    const nodes = Array.from({ length: 8 }).map((_, i) => ({
+      position: [
+        Math.sin((i / 8) * Math.PI * 2) * 2.2,
+        Math.sin(i * 3) * 0.5,
+        Math.cos((i / 8) * Math.PI * 2) * 2.2,
+      ] as [number, number, number],
+    }));
+
+    return (
+      <Float speed={speed} rotationIntensity={0.2} floatIntensity={0.2}>
+        <group>
+          {nodes.map((node, i) => (
+            <group key={i} position={node.position}>
+              <mesh>
+                <sphereGeometry args={[0.08, 16, 16]} />
+                <meshStandardMaterial
+                  color={color}
+                  emissive={color}
+                  emissiveIntensity={2}
+                />
+              </mesh>
+              {/* Connections (simplified) */}
+              <Line
+                points={[
+                  [0, 0, 0],
+                  nodes[(i + 1) % nodes.length].position.map(
+                    (v, idx) => v - node.position[idx]
+                  ) as any,
+                ]}
+                color={color}
+                lineWidth={1}
+                transparent
+                opacity={0.3}
+              />
+            </group>
+          ))}
+          {/* Central Ring */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[2.2, 0.01, 16, 100]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={1}
+              transparent
+              opacity={0.2}
             />
           </mesh>
         </group>
