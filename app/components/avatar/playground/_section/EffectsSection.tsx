@@ -23,7 +23,7 @@ export default function EffectsSection(props: {
   imageScale: number;
   setImageScale: (v: number) => void;
   effect3D: "none" | "tilt" | "glitch" | "pulse";
-  setEffect3D: (v: any) => void;
+  setEffect3D: (v: "none" | "tilt" | "glitch" | "pulse") => void;
 }) {
   return (
     <div className="space-y-6">
@@ -51,7 +51,7 @@ export default function EffectsSection(props: {
         <LabeledField label="Effect Mode">
           <Segmented
             value={props.effect3D}
-            onChange={props.setEffect3D}
+            onChange={(v) => props.setEffect3D(v as any)}
             items={[
               { value: "none", label: "None" },
               { value: "tilt", label: "Tilt" },

@@ -13,6 +13,17 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 
+// New Sections
+import ThreeAvatarSection, {
+  ThreeDBadgeMode,
+  ThreeDStatusMode,
+} from "./_section/ThreeAvatarSection";
+import MotionSection, {
+  MotionEntrance,
+  MotionHover,
+} from "./_section/MotionSection";
+import AvatarLivePreview from "./_section/AvatarLivePreview";
+
 // --- Types & Initial State ---
 type AvatarState = {
   // Basics
@@ -59,6 +70,22 @@ type AvatarState = {
   imageRotation: number;
   imageScale: number;
   effect3D: "none" | "tilt" | "glitch" | "pulse";
+  // New 3D & Motion
+  // "Presence" Engine
+  use3DBadge: ThreeDBadgeMode;
+  badgeAnimate: boolean;
+  use3DStatus: ThreeDStatusMode;
+
+  // Advanced 3D Accessories
+  accessoryType: "none" | "crown" | "halo-cyber" | "orb-float";
+  accessoryColor: string;
+  orbitSpeed: string;
+
+  // Motion Textures & Effects
+  entranceAnimation: MotionEntrance;
+  hoverEffect: MotionHover;
+  textureEffect: "none" | "glitch" | "fluid" | "glass";
+  borderEffect: "none" | "snake" | "heartbeat" | "glow-pulse";
 };
 
 const INITIAL_STATE: AvatarState = {
@@ -98,6 +125,16 @@ const INITIAL_STATE: AvatarState = {
   imageRotation: 0,
   imageScale: 1,
   effect3D: "none",
+  use3DBadge: "none",
+  badgeAnimate: true,
+  use3DStatus: "none",
+  accessoryType: "none",
+  accessoryColor: "#facc15",
+  orbitSpeed: "1",
+  entranceAnimation: "none",
+  hoverEffect: "none",
+  textureEffect: "none",
+  borderEffect: "none",
 };
 
 // Sections
@@ -157,6 +194,16 @@ export default function AvatarPage() {
     imageRotation,
     imageScale,
     effect3D,
+    use3DBadge,
+    badgeAnimate,
+    use3DStatus,
+    accessoryType,
+    accessoryColor,
+    orbitSpeed,
+    entranceAnimation,
+    hoverEffect,
+    textureEffect,
+    borderEffect,
   } = state;
 
   // -- Proxy Setters for Backward Compatibility --
@@ -334,6 +381,56 @@ export default function AvatarPage() {
       ...s,
       effect3D: typeof v === "function" ? v(s.effect3D) : v,
     }));
+  const setUse3DBadge = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      use3DBadge: typeof v === "function" ? v(s.use3DBadge) : v,
+    }));
+  const setBadgeAnimate = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      badgeAnimate: typeof v === "function" ? v(s.badgeAnimate) : v,
+    }));
+  const setUse3DStatus = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      use3DStatus: typeof v === "function" ? v(s.use3DStatus) : v,
+    }));
+  const setEntranceAnimation = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      entranceAnimation: typeof v === "function" ? v(s.entranceAnimation) : v,
+    }));
+  const setHoverEffect = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverEffect: typeof v === "function" ? v(s.hoverEffect) : v,
+    }));
+  const setAccessoryType = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      accessoryType: typeof v === "function" ? v(s.accessoryType) : v,
+    }));
+  const setAccessoryColor = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      accessoryColor: typeof v === "function" ? v(s.accessoryColor) : v,
+    }));
+  const setOrbitSpeed = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      orbitSpeed: typeof v === "function" ? v(s.orbitSpeed) : v,
+    }));
+  const setTextureEffect = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      textureEffect: typeof v === "function" ? v(s.textureEffect) : v,
+    }));
+  const setBorderEffect = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      borderEffect: typeof v === "function" ? v(s.borderEffect) : v,
+    }));
 
   // --- Layout & Meta State ---
   const [activeSection, setActiveSection] = useState("basics");
@@ -381,6 +478,8 @@ export default function AvatarPage() {
     { id: "sizing", label: "Sizing" },
     { id: "style", label: "Style" },
     { id: "effects", label: "Effects" },
+    { id: "3d", label: "3D (New)" },
+    { id: "motion", label: "Motion (New)" },
     { id: "status", label: "Status" },
     { id: "group", label: "Group" },
   ];
@@ -486,6 +585,16 @@ export default function AvatarPage() {
     imageRotation,
     imageScale,
     effect3D,
+    use3DBadge,
+    badgeAnimate,
+    use3DStatus,
+    accessoryType,
+    accessoryColor,
+    orbitSpeed,
+    entranceAnimation,
+    hoverEffect,
+    textureEffect,
+    borderEffect,
     downloadFormat: "html" as const,
     downloadName: "",
   });
@@ -493,6 +602,16 @@ export default function AvatarPage() {
   const handleDownload = () => {
     const { filename, content } = buildAvatarExport({
       ...getExportParams(),
+      use3DBadge,
+      badgeAnimate,
+      use3DStatus,
+      accessoryType,
+      accessoryColor,
+      orbitSpeed,
+      entranceAnimation,
+      hoverEffect,
+      textureEffect,
+      borderEffect,
       downloadFormat,
       downloadName,
     });
@@ -570,6 +689,36 @@ export default function AvatarPage() {
             setEffect3D={setEffect3D}
           />
         );
+      case "3d":
+        return (
+          <ThreeAvatarSection
+            use3DBadge={use3DBadge}
+            setUse3DBadge={setUse3DBadge}
+            badgeAnimate={badgeAnimate}
+            setBadgeAnimate={setBadgeAnimate}
+            use3DStatus={use3DStatus}
+            setUse3DStatus={setUse3DStatus}
+            accessoryType={accessoryType as any}
+            setAccessoryType={setAccessoryType}
+            accessoryColor={accessoryColor}
+            setAccessoryColor={setAccessoryColor}
+            orbitSpeed={orbitSpeed}
+            setOrbitSpeed={setOrbitSpeed}
+          />
+        );
+      case "motion":
+        return (
+          <MotionSection
+            entranceAnimation={entranceAnimation}
+            setEntranceAnimation={setEntranceAnimation}
+            hoverEffect={hoverEffect}
+            setHoverEffect={setHoverEffect}
+            textureEffect={textureEffect as any}
+            setTextureEffect={setTextureEffect}
+            borderEffect={borderEffect as any}
+            setBorderEffect={setBorderEffect}
+          />
+        );
       case "status":
         return (
           <StatusSection
@@ -600,6 +749,78 @@ export default function AvatarPage() {
         return null;
     }
   };
+
+  // --- Live Preview Node construction ---
+  const showLivePreview =
+    use3DBadge !== "none" ||
+    use3DStatus !== "none" ||
+    entranceAnimation !== "none" ||
+    hoverEffect !== "none";
+  let livePreviewNode = null;
+
+  if (showLivePreview) {
+    let radiusStyle = "";
+    if (radiusMode === "circle") radiusStyle = "9999px";
+    else if (radiusMode === "square") radiusStyle = "0px";
+    else radiusStyle = `${radiusValue}px`;
+
+    const containerStyle: React.CSSProperties = {
+      width: size,
+      height: size,
+      borderRadius: radiusStyle,
+      borderWidth: `${borderWidth}px`,
+      borderStyle: borderStyle as any,
+      borderColor: borderColor,
+      backgroundColor: initialsBg,
+      color: initialsColor,
+      fontFamily: fontFamily,
+      fontSize: "2rem", // approximate
+      // Filters
+      filter: `grayscale(${filterGrayscale}%) blur(${filterBlur}px) sepia(${filterSepia}%) brightness(${filterBrightness}%) contrast(${filterContrast}%)`,
+      opacity: opacity / 100,
+      transform: `rotate(${imageRotation}deg) scale(${imageScale})`,
+      // internal layout
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    };
+
+    const imageStyle: React.CSSProperties = {
+      width: "100%",
+      height: "100%",
+      objectFit: objectFit as any,
+      objectPosition: objectPosition,
+      display: "block",
+    };
+
+    livePreviewNode = (
+      <AvatarLivePreview
+        src={src}
+        alt={alt}
+        initials={initials}
+        size={size}
+        radiusMode={radiusMode}
+        radiusValue={radiusValue}
+        borderWidth={borderWidth}
+        borderColor={borderColor}
+        borderStyle={borderStyle}
+        objectFit={objectFit}
+        filters=""
+        use3DBadge={use3DBadge}
+        badgeAnimate={badgeAnimate}
+        use3DStatus={use3DStatus}
+        accessoryType={accessoryType}
+        accessoryColor={accessoryColor}
+        orbitSpeed={orbitSpeed}
+        entranceAnimation={entranceAnimation}
+        hoverEffect={hoverEffect}
+        textureEffect={textureEffect}
+        borderEffect={borderEffect}
+        containerStyle={containerStyle}
+        imageStyle={imageStyle}
+      />
+    );
+  }
 
   return (
     <AppShell contentOverflow="hidden">
@@ -710,6 +931,7 @@ export default function AvatarPage() {
               downloadName={downloadName}
               setDownloadName={setDownloadName}
               handleDownload={handleDownload}
+              previewNode={livePreviewNode}
             />
           </div>
         </div>

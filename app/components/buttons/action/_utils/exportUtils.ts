@@ -114,6 +114,10 @@ export type ExportPayloadInput = {
   textTransform: string;
   backdropBlurEnabled: boolean;
   backdropBlurText: string;
+  // 3D & Effects
+  use3DIcon: string;
+  icon3DAnimation: string;
+  clickEffect: string;
 };
 
 export function buildExportPayload(params: ExportPayloadInput) {
@@ -221,6 +225,9 @@ export function buildExportPayload(params: ExportPayloadInput) {
     textTransform,
     backdropBlurEnabled,
     backdropBlurText,
+    use3DIcon,
+    icon3DAnimation,
+    clickEffect,
   } = params;
 
   let content = "";
@@ -627,55 +634,79 @@ ${activeCSS}
 </style>
 ${parallaxScript}`;
   } else if (downloadFormat === "react") {
+    const is3D = use3DIcon && use3DIcon !== "none";
+    const isConfetti = clickEffect === "confetti";
+    const isRipple = clickEffect === "ripple";
+
+    const imports = [
+      `import React, { useState, useRef } from 'react';`,
+      is3D ? `import { Canvas, useFrame } from '@react-three/fiber';` : "",
+      is3D
+        ? `import { Float, MeshDistortMaterial } from '@react-three/drei';`
+        : "",
+      isConfetti ? `import confetti from 'canvas-confetti';` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const iconMeshComponent = is3D
+      ? `
+function IconMesh({ type, animate, color }) {
+  const mesh = useRef(null);
+  useFrame((state) => {
+    if (animate && mesh.current) {
+      mesh.current.rotation.x = state.clock.elapsedTime * 0.5;
+      mesh.current.rotation.y = state.clock.elapsedTime * 0.5;
+    }
+  });
+
+  return (
+    <Float speed={animate ? 4 : 2} rotationIntensity={animate ? 1 : 0.5} floatIntensity={1}>
+      <mesh ref={mesh}>
+        {type === "sphere" && <sphereGeometry args={[1, 32, 32]} />}
+        {type === "box" && <boxGeometry args={[1.5, 1.5, 1.5]} />}
+        {type === "tetra" && <tetrahedronGeometry args={[1.5]} />}
+        <MeshDistortMaterial color={color} speed={2} distort={0.4} radius={1} />
+      </mesh>
+    </Float>
+  );
+}
+`
+      : "";
+
     content = `
-import React, { useState } from 'react';
+${imports}
+
+${iconMeshComponent}
 
 export const CustomButton = ({ onClick, disabled = false, loading = false }) => {
   const [hover, setHover] = useState(false);
   const [active, setActive] = useState(false);
   const isDisabled = disabled || loading;
-  const defaultLabel = ${JSON.stringify(label)};
-  const loadingLabel = ${exportLoadingLabelLiteral};
-  const spinnerSvg = ${exportSpinnerSvgLiteral};
-  const spinnerPosition = "${loadingSpinnerPosition}";
-  const spinnerGap = ${spinnerGap};
-  const spinnerSize = ${spinnerSize};
-  const baseIconSvg = ${exportBaseIconSvgLiteral};
-  const hoverIconSvg = ${exportHoverIconSvgLiteral};
-  const activeIconSvg = ${exportActiveIconSvgLiteral};
-  const loadingIconSvg = ${exportLoadingIconSvgLiteral};
-  const iconPosition = "${iconPosition}";
-  const iconColor = ${exportIconColorLiteral};
-  const hasBaseIcon = ${exportHasIconLiteral};
-  const hasHoverIcon = ${exportHasHoverIconLiteral};
-  const hasActiveIcon = ${exportHasActiveIconLiteral};
-  const hasLoadingIcon = ${exportHasLoadingIconLiteral};
-  const ariaLabel = ${JSON.stringify(ariaLabel)};
-  const ariaPressedMode = ${JSON.stringify(ariaPressedMode)};
-  const ariaBusyMode = ${JSON.stringify(ariaBusyMode)};
-  const hoverEnabled = ${JSON.stringify(hoverEnabled)};
-  const activeEnabled = ${JSON.stringify(activeEnabled)};
-  const hoverTransform = ${JSON.stringify(hoverTransform)};
-  const parallaxStrength = ${parallaxOpacity};
-
-  const updateParallax = (e) => {
-    if (!parallaxStrength) return;
+  
+  // Params
+  const label = ${JSON.stringify(label)};
+  
+  const handleInteraction = (e) => {
+    if (isDisabled) return;
+    if (onClick) onClick(e);
+    
+    ${
+      isConfetti
+        ? `
+    // Confetti Effect
     const rect = e.currentTarget.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const nx = e.clientX - rect.left - rect.width / 2;
-    const ny = e.clientY - rect.top - rect.height / 2;
-    const maxShift = Math.min(rect.width, rect.height) * 0.35 * parallaxStrength;
-    const shiftX = Math.max(-maxShift, Math.min(maxShift, nx));
-    const shiftY = Math.max(-maxShift, Math.min(maxShift, ny));
-    e.currentTarget.style.setProperty('--uf-btn-light-x', Math.round(shiftX) + 'px');
-    e.currentTarget.style.setProperty('--uf-btn-light-y', Math.round(shiftY) + 'px');
-    e.currentTarget.style.setProperty('--uf-btn-parallax-opacity', String(parallaxStrength));
-  };
-  const resetParallax = (target) => {
-    if (!target) return;
-    target.style.setProperty('--uf-btn-light-x', '0px');
-    target.style.setProperty('--uf-btn-light-y', '0px');
-    target.style.setProperty('--uf-btn-parallax-opacity', '0');
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+    confetti({
+      origin: { x, y },
+      particleCount: 100,
+      spread: 70,
+      zIndex: 9999,
+    });
+    `
+        : ""
+    }
   };
 
   const baseStyle = {
@@ -703,178 +734,78 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
     backdropFilter: '${backdropFilterCss}',
     WebkitBackdropFilter: '${backdropFilterCss}',
     ['--uf-btn-parallax-opacity']: 0,
-    ['--uf-btn-light-x']: '0px',
-    ['--uf-btn-light-y']: '0px',
     ['--uf-icon-emboss-filter']: '${iconEmbossCss}',
     display: 'inline-flex',
     alignItems: '${alignItems}',
     justifyContent: '${justify}',
     cursor: 'pointer',
     transition: '${transitionCss}',
+    gap: '${iconGapText}px',
   };
 
-  const ariaPressedValue = ariaPressedMode !== 'off' ? ariaPressedMode : undefined;
-  const ariaBusyValue = ariaBusyMode === 'auto'
-    ? (loading ? 'true' : undefined)
-    : (ariaBusyMode !== 'off' ? ariaBusyMode : undefined);
-
-  const disabledStyle = {
-    background: '${cssDisabledBg}',
-    color: '${cssDisabledText}',
-    borderColor: '${cssDisabledBorder}',
-    borderWidth: '${disabledBorderWidthPx}px',
-    textShadow: '${disabledTextShadowCss}',
-    opacity: ${disabledOpacity},
-    cursor: '${disabledCursor}',
-    filter: 'none',
-    transform: 'none',
-  };
-
-  const hoverStyle = {
-    background: '${cssHoverBg}',
-    color: '${cssHoverText}',
-    borderColor: '${cssHoverBorder}',
-    borderWidth: '${hoverBorderWidthPx}px',
-    filter: '${hoverFilter}',
-    boxShadow: '${exportHoverShadow}',
-    ...(hoverTransform ? { transform: hoverTransform } : {}),
-  };
-
-  const activeStyle = {
-    background: '${cssActiveBg}',
-    color: '${cssActiveText}',
-    borderColor: '${cssActiveBorder}',
-    filter: '${cssActiveFilter}',
-    transform: 'translateY(${activeTranslateYText}px) scale(${activeScaleText})',
-    borderWidth: '${activeBorderWidthPx}px',
-    boxShadow: '${exportActiveShadow}',
-  };
-
-  const spinnerWrapStyle = {
-    width: spinnerSize,
-    height: spinnerSize,
-    display: 'inline-flex',
-    ...(spinnerPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
-  };
-
-  const useLoadingIcon = loading && hasLoadingIcon && loadingIconSvg;
-  const spinnerNode = !useLoadingIcon && spinnerSvg ? (
-    <span className="uf-spinner-wrap" style={spinnerWrapStyle} dangerouslySetInnerHTML={{ __html: spinnerSvg }} />
-  ) : null;
-  const labelNode = <span className="uf-label">{loading ? loadingLabel : defaultLabel}</span>;
-  const iconWrapStyle = {
-    width: spinnerSize,
-    height: spinnerSize,
-    display: 'inline-flex',
-    color: iconColor,
-    ...(iconPosition === 'left' ? { marginRight: spinnerGap } : { marginLeft: spinnerGap }),
-  };
-  const resolveIconSvg = () => {
-    if (useLoadingIcon) return loadingIconSvg;
-    if (active && hasActiveIcon && activeIconSvg) return activeIconSvg;
-    if (hover && hasHoverIcon && hoverIconSvg) return hoverIconSvg;
-    if (hasBaseIcon && baseIconSvg) return baseIconSvg;
-    return "";
-  };
-  const resolvedIconSvg = resolveIconSvg();
-  const iconNode = resolvedIconSvg ? (
-    <span className="uf-icon-wrap" style={iconWrapStyle} dangerouslySetInnerHTML={{ __html: resolvedIconSvg }} />
-  ) : null;
+   // State Interactions (Inline for simplicity, usually cleaner with CSS modules)
+   const currentStyle = {
+     ...baseStyle,
+     ...(hover && !isDisabled ? {
+        background: '${cssHoverBg}',
+        color: '${cssHoverText}',
+        borderColor: '${cssHoverBorder}',
+        boxShadow: '${exportHoverShadow}',
+        filter: '${hoverFilter}',
+        transform: '${hoverTransform || "none"}',
+     } : {}),
+     ...(active && !isDisabled ? {
+        background: '${cssActiveBg}',
+        color: '${cssActiveText}',
+        borderColor: '${cssActiveBorder}',
+        boxShadow: '${exportActiveShadow}',
+        filter: '${cssActiveFilter}',
+        transform: 'translateY(${activeTranslateYText}px) scale(${activeScaleText})',
+     } : {}),
+     ...(isDisabled ? {
+        background: '${cssDisabledBg}',
+        color: '${cssDisabledText}',
+        borderColor: '${cssDisabledBorder}',
+        opacity: ${disabledOpacity},
+        cursor: '${disabledCursor}',
+     } : {}),
+   };
 
   return (
     <>
       <style>{\`
         ${fontImport}
         @keyframes spin { to { transform: rotate(360deg); } }
-        .uf-spinner-wrap svg { display: block; width: 100%; height: 100%; animation: spin 0.8s linear infinite; }
-        .uf-icon-wrap svg { display: block; width: 100%; height: 100%; }
-        .uf-icon-wrap { filter: var(--uf-icon-emboss-filter); }
-        .uf-spinner-wrap { filter: var(--uf-icon-emboss-filter); }
-        .uf-btn::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          background: var(--uf-btn-top-gradient);
-          pointer-events: none;
-          z-index: 0;
-        }
-        .uf-btn::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          background: radial-gradient(
-            circle at calc(50% + var(--uf-btn-light-x)) calc(20% + var(--uf-btn-light-y)),
-            rgba(255, 255, 255, var(--uf-btn-parallax-opacity)),
-            rgba(255, 255, 255, 0) 60%
-          );
-          pointer-events: none;
-          z-index: 0;
-        }
-        .uf-btn > * { position: relative; z-index: 1; }
-        ${focusCss}
-        ${animationCss}
       \`}</style>
       <button
-      className="uf-btn"
-      onClick={onClick}
-      onMouseEnter={() => !isDisabled && hoverEnabled && setHover(true)}
-      onMouseMove={updateParallax}
-      onMouseLeave={(e) => { resetParallax(e.currentTarget); setHover(false); setActive(false); }}
-      onMouseDown={() => !isDisabled && activeEnabled && setActive(true)}
-      onMouseUp={() => setActive(false)}
-      disabled={isDisabled}
-      aria-label={ariaLabel || undefined}
-      aria-pressed={ariaPressedValue}
-      aria-busy={ariaBusyValue}
-      style={{
-        ...baseStyle,
-        ...(hoverEnabled && hover ? hoverStyle : {}),
-        ...(activeEnabled && active ? activeStyle : {}),
-        ...(isDisabled ? disabledStyle : {}),
-      }}
-    >
-      {loading ? (
-        useLoadingIcon ? (
-          iconPosition === 'right' ? (
-            <>
-              {labelNode}
-              {iconNode}
-            </>
-          ) : (
-            <>
-              {iconNode}
-              {labelNode}
-            </>
-          )
-        ) : (
-          spinnerPosition === 'right' ? (
-            <>
-              {labelNode}
-              {spinnerNode}
-            </>
-          ) : (
-            <>
-              {spinnerNode}
-              {labelNode}
-            </>
-          )
-        )
-      ) : (
-        iconPosition === 'right' ? (
-          <>
-            {labelNode}
-            {iconNode}
-          </>
-        ) : (
-          <>
-            {iconNode}
-            {labelNode}
-          </>
-        )
-      )}
-    </button>
+        type="button"
+        onClick={handleInteraction}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => { setHover(false); setActive(false); }}
+        onMouseDown={() => setActive(true)}
+        onMouseUp={() => setActive(false)}
+        disabled={isDisabled}
+        style={currentStyle}
+      >
+        {/* Content */}
+        ${
+          is3D
+            ? `
+        <div style={{ width: 40, height: 40, position: 'relative' }}>
+           <Canvas resize={{ scroll: false, resize: true }}>
+             <ambientLight intensity={0.5} />
+             <pointLight position={[10, 10, 10]} />
+             <IconMesh type="${use3DIcon}" animate={${
+                icon3DAnimation === "spin" || icon3DAnimation === "float"
+              }} color="${iconColorInput}" />
+           </Canvas>
+        </div>
+        `
+            : ""
+        }
+        
+        <span>{label}</span>
+      </button>
     </>
   );
 };

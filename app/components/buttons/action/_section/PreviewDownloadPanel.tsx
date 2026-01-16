@@ -2,7 +2,14 @@
 
 import React from "react";
 
-export type DownloadFormat = "html" | "react" | "tailwind" | "css-vars" | "scss" | "tailwind-config" | "figma-tokens";
+export type DownloadFormat =
+  | "html"
+  | "react"
+  | "tailwind"
+  | "css-vars"
+  | "scss"
+  | "tailwind-config"
+  | "figma-tokens";
 
 export default function PreviewDownloadPanel(props: {
   mounted: boolean;
@@ -18,6 +25,8 @@ export default function PreviewDownloadPanel(props: {
   setDownloadName: (v: string) => void;
 
   handleDownload: () => void;
+  // Optional override for React-based previews (Three.js/Framer)
+  previewNode?: React.ReactNode;
 }) {
   const {
     mounted,
@@ -29,6 +38,7 @@ export default function PreviewDownloadPanel(props: {
     downloadName,
     setDownloadName,
     handleDownload,
+    previewNode,
   } = props;
 
   return (
@@ -41,7 +51,10 @@ export default function PreviewDownloadPanel(props: {
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             Preview
           </div>
 
@@ -62,7 +75,9 @@ export default function PreviewDownloadPanel(props: {
 
             <select
               value={downloadFormat}
-              onChange={(e) => setDownloadFormat(e.target.value as DownloadFormat)}
+              onChange={(e) =>
+                setDownloadFormat(e.target.value as DownloadFormat)
+              }
               className="rounded-xl border px-3 py-2 text-sm font-semibold outline-none uf-clickable"
               style={{
                 borderColor: "var(--border)",
@@ -98,12 +113,19 @@ export default function PreviewDownloadPanel(props: {
               background: "color-mix(in oklab, var(--card) 70%, transparent)",
             }}
           >
-            {mounted && iframeSrcDoc ? (
+            {previewNode ? (
+              <div className="h-[620px] w-full rounded-2xl overflow-hidden flex items-center justify-center bg-transparent">
+                {previewNode}
+              </div>
+            ) : mounted && iframeSrcDoc ? (
               <iframe
                 ref={iframeRef}
                 onLoad={handleIframeLoad}
                 onFocus={() => {
-                  iframeRef.current?.contentWindow?.postMessage({ type: "focus-button" }, "*");
+                  iframeRef.current?.contentWindow?.postMessage(
+                    { type: "focus-button" },
+                    "*"
+                  );
                 }}
                 title="Action Button Preview"
                 sandbox="allow-scripts"
@@ -118,7 +140,8 @@ export default function PreviewDownloadPanel(props: {
         </div>
 
         <div className="mt-4 text-xs" style={{ color: "var(--muted)" }}>
-          Tip: If you want the button centered/bottom in preview too, we can add a “Preview alignment” control.
+          Tip: If you want the button centered/bottom in preview too, we can add
+          a “Preview alignment” control.
         </div>
       </div>
     </div>

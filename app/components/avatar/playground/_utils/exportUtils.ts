@@ -52,6 +52,19 @@ export type AvatarExportInput = {
   groupLimit: number;
   groupDirection: "row" | "column";
 
+  // 3D & Motion
+  // 3D & Motion ("Presence" Engine)
+  use3DBadge: string;
+  badgeAnimate: boolean;
+  use3DStatus: string;
+  accessoryType: string;
+  accessoryColor: string;
+  orbitSpeed: string;
+  entranceAnimation: string;
+  hoverEffect: string;
+  textureEffect: string;
+  borderEffect: string;
+
   // Meta
   downloadFormat:
     | "html"
@@ -105,6 +118,16 @@ export function buildAvatarExport(params: AvatarExportInput) {
     groupDirection,
     downloadFormat,
     downloadName,
+    use3DBadge,
+    badgeAnimate,
+    use3DStatus,
+    accessoryType,
+    accessoryColor,
+    orbitSpeed,
+    entranceAnimation,
+    hoverEffect,
+    textureEffect,
+    borderEffect,
   } = params;
 
   let content = "";
@@ -383,35 +406,239 @@ export function buildAvatarExport(params: AvatarExportInput) {
       'className="'
     );
 
-    const singleJsx = `
-    <div className="${twContainerClasses}" style={{ width: '${size}', height: '${size}' }}>
-      ${
-        src
-          ? `<img src="${src}" alt="${alt}" className="${twImgClasses}" />`
-          : `<div className="${twImgClasses} flex items-center justify-center bg-[${initialsBg}] text-[${initialsColor}]">${initials}</div>`
-      }
-      ${
-        status !== "none" || hasBadge
-          ? (() => {
-              const bg =
-                status === "none" && hasBadge
-                  ? "bg-red-500"
-                  : `bg-[${statusColor}]`;
-              const badgeCls = hasBadge
-                ? `absolute ${twStatusPos} w-auto h-auto min-w-[12px] min-h-[12px] px-1.5 py-0.5 rounded-full border-2 border-white ${bg} ${
-                    statusAnimation === "pulse" ? "animate-pulse" : ""
-                  } flex items-center justify-center text-[10px] font-bold leading-none text-white`
-                : `absolute ${twStatusPos} w-1/4 h-1/4 min-w-[12px] min-h-[12px] rounded-full border-2 border-white ${bg} ${
-                    statusAnimation === "pulse" ? "animate-pulse" : ""
-                  }`;
-              return `<span className="${badgeCls}">${badgeCount || ""}</span>`;
-            })()
-          : ""
-      }
-    </div>`;
+    const is3D =
+      (use3DBadge && use3DBadge !== "none") ||
+      (use3DStatus && use3DStatus !== "none") ||
+      (accessoryType && accessoryType !== "none");
+    const isMotion =
+      (entranceAnimation && entranceAnimation !== "none") ||
+      (hoverEffect && hoverEffect !== "none") ||
+      (textureEffect && textureEffect !== "none") ||
+      (borderEffect && borderEffect !== "none");
+
+    const imports = [
+      `import React from 'react';`,
+      is3D ? `import { Canvas } from '@react-three/fiber';` : "",
+      is3D
+        ? `import { Float, MeshDistortMaterial } from '@react-three/drei';`
+        : "",
+      isMotion ? `import { motion } from 'framer-motion';` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    // Helper Component Strings
+    const badgeHelper = is3D
+      ? `
+function BadgeMesh({ type, animate }) {
+  return (
+    <Float speed={animate ? 4 : 2} rotationIntensity={animate ? 2 : 0.5} floatIntensity={1}>
+        <mesh position={[1.2, 1.2, 0]}>
+             {type === "sphere" && <sphereGeometry args={[0.4, 32, 32]} />}
+             {type === "cube" && <boxGeometry args={[0.6, 0.6, 0.6]} />}
+             {type === "star" && <octahedronGeometry args={[0.5]} />}
+             <meshStandardMaterial color="#ef4444" roughness={0.3} />
+        </mesh>
+    </Float>
+  );
+}
+
+function StatusMesh({ type }) {
+  return (
+    <group rotation={[Math.PI / 2, 0, 0]}>
+      {type === "ring" && (
+        <mesh>
+          <torusGeometry args={[1.6, 0.1, 16, 100]} />
+          <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={2} toneMapped={false} />
+        </mesh>
+      )}
+      {type === "halo" && (
+        <mesh>
+          <torusGeometry args={[1.8, 0.05, 16, 100]} />
+          <meshStandardMaterial color="#3b82f6" emissive="#3b82f6" emissiveIntensity={1} transparent opacity={0.5} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+function AccessoryMesh({ type, color, speed }) {
+   if (type === "crown") {
+       return (
+           <Float speed={speed} rotationIntensity={0.5} floatIntensity={0.5}>
+              <group position={[0, 1.4, 0]} rotation={[0.2, 0, 0]}>
+                 <mesh>
+                    <cylinderGeometry args={[0.5, 0.5, 0.2, 5]} />
+                    <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} emissive={color} emissiveIntensity={0.5} />
+                 </mesh>
+                 {[0, 1, 2, 3, 4].map((i) => (
+                    <mesh key={i} position={[Math.sin(i * Math.PI * 0.4) * 0.5, 0.2, Math.cos(i * Math.PI * 0.4) * 0.5]}>
+                        <coneGeometry args={[0.1, 0.3, 4]} />
+                        <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} />
+                    </mesh>
+                 ))}
+              </group>
+           </Float>
+       );
+   }
+   if (type === "halo-cyber") {
+        return (
+            <Float speed={speed * 2} rotationIntensity={0} floatIntensity={0.2}>
+               <group rotation={[Math.PI / 3, 0, 0]}>
+                   <mesh>
+                       <torusGeometry args={[1.6, 0.02, 16, 100]} />
+                       <meshStandardMaterial color={color} emissive={color} emissiveIntensity={3} toneMapped={false} />
+                   </mesh>
+                    <mesh rotation={[0, Math.PI/2, 0]}>
+                       <torusGeometry args={[1.8, 0.01, 16, 100]} />
+                       <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} transparent opacity={0.5} />
+                   </mesh>
+               </group>
+            </Float>
+        );
+   }
+   if (type === "orb-float") {
+       return (
+           <group>
+               <Float speed={speed} rotationIntensity={1} floatIntensity={2}>
+                    <mesh position={[1.5, 0.5, 0.5]}>
+                        <sphereGeometry args={[0.2, 16, 16]} />
+                         <MeshDistortMaterial color={color} speed={2} distort={0.6} radius={1} />
+                    </mesh>
+               </Float>
+                <Float speed={speed * 1.5} rotationIntensity={1} floatIntensity={2}>
+                    <mesh position={[-1.5, -0.5, 0.5]}>
+                        <sphereGeometry args={[0.15, 16, 16]} />
+                         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2} />
+                    </mesh>
+               </Float>
+           </group>
+       );
+   }
+   return null;
+}
+`
+      : "";
+
+    const singleInner = `
+      <${isMotion ? "motion.div" : "div"}
+        className="${twContainerClassesJSX}" 
+        style={{ width: '${size}', height: '${size}' }}
+        ${
+          isMotion
+            ? `
+        initial={${JSON.stringify({
+          opacity: entranceAnimation === "fade" ? 0 : 1,
+          scale: entranceAnimation === "scale" ? 0 : 1,
+          x: entranceAnimation === "slide" ? -50 : 0,
+        })}}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        whileHover={{ scale: ${hoverEffect === "scale" ? 1.1 : 1} }}
+        layoutId=${hoverEffect === "layout" ? '"avatar"' : "undefined"}
+        `
+            : ""
+        }
+      >
+        ${
+          src
+            ? `<img src="${src}" alt="${alt}" className="${twImgClasses}" />`
+            : `<div className="${twImgClasses} flex items-center justify-center bg-[${initialsBg}] text-[${initialsColor}]">${initials}</div>`
+        }
+        ${
+          !is3D && (status !== "none" || hasBadge)
+            ? (() => {
+                const bg =
+                  status === "none" && hasBadge
+                    ? "bg-red-500"
+                    : `bg-[${statusColor}]`;
+                const badgeCls = hasBadge
+                  ? `absolute ${twStatusPos} w-auto h-auto min-w-[12px] min-h-[12px] px-1.5 py-0.5 rounded-full border-2 border-white ${bg} ${
+                      statusAnimation === "pulse" ? "animate-pulse" : ""
+                    } flex items-center justify-center text-[10px] font-bold leading-none text-white`
+                  : `absolute ${twStatusPos} w-1/4 h-1/4 min-w-[12px] min-h-[12px] rounded-full border-2 border-white ${bg} ${
+                      statusAnimation === "pulse" ? "animate-pulse" : ""
+                    }`;
+                return `<span className="${badgeCls}">${
+                  badgeCount || ""
+                }</span>`;
+              })()
+            : ""
+        }
+        ${
+          is3D
+            ? `
+        <div style={{ position: "absolute", inset: -20, pointerEvents: "none" }}>
+            <Canvas>
+                <ambientLight intensity={0.5} />
+                <pointLight position={[5, 5, 5]} />
+                {${
+                  use3DBadge !== "none"
+                } && <BadgeMesh type="${use3DBadge}" animate={${badgeAnimate}} />}
+                {${
+                  use3DStatus !== "none"
+                } && <StatusMesh type="${use3DStatus}" />}
+                {${
+                  accessoryType !== "none"
+                } && <AccessoryMesh type="${accessoryType}" color="${accessoryColor}" speed={${orbitSpeed}} />}
+            </Canvas>
+        </div>
+
+        {/* Motion Textures */}
+        {${textureEffect === "glitch"} && (
+           <motion.div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay"
+              animate={{ x: [-2, 2, -2], opacity: [0.5, 0.8, 0.5] }}
+              transition={{ repeat: Infinity, duration: 0.2 }}
+              style={{ background: "linear-gradient(transparent 50%, rgba(0,0,0,0.5) 50%)", backgroundSize: "100% 4px" }}
+           />
+        )}
+        {${textureEffect === "fluid"} && (
+           <motion.div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-color-dodge"
+              style={{ background: "radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)" }}
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+           />
+        )}
+
+        {/* Border Effects */}
+        {${borderEffect === "snake"} && (
+           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: "visible" }}>
+              <motion.rect 
+                 width="100%" height="100%" 
+                 fill="none" 
+                 stroke="${borderColor}" 
+                 strokeWidth={${borderWidth || 2}}
+                 rx={${radiusValue}}
+                 initial={{ pathLength: 0, pathOffset: 0 }}
+                 animate={{ pathLength: 0.4, pathOffset: 1 }}
+                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              />
+           </svg>
+        )}
+        {${borderEffect === "heartbeat"} && (
+           <motion.div 
+              className="absolute inset-0 pointer-events-none"
+              style={{ borderRadius: '${radiusStyle}', border: '${
+                borderWidth || 2
+              }px solid ${borderColor}' }}
+              animate={{ scale: [1, 1.05, 1], borderColor: ['${borderColor}', '#ef4444', '${borderColor}'] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+           />
+        )}
+        `
+            : ""
+        }
+      </${isMotion ? "motion.div" : "div"}>
+    `;
 
     if (showGroup) {
-      content = `export default function ${componentName}Group() {
+      content = `
+${imports}
+
+${badgeHelper}
+
+export default function ${componentName}Group() {
   const avatars = [1, 2, 3, 4, 5]; // Example data
   return (
     <div className="flex ${
@@ -421,14 +648,25 @@ export function buildAvatarExport(params: AvatarExportInput) {
         <div key={i} style={{ ${
           groupDirection === "column" ? "marginTop" : "marginLeft"
         }: i > 0 ? '${groupSpacing}px' : 0 }}>
-          ${singleJsx.trim().replace(/^/gm, "          ")}
+          ${singleInner.trim().replace(/^/gm, "          ")}
         </div>
       ))}
     </div>
   );
-}`;
+}
+`;
     } else {
-      content = `export default function ${componentName}() {\n  return (\n    ${singleJsx.trim()}\n  );\n}`;
+      content = `
+${imports}
+
+${badgeHelper}
+
+export default function ${componentName}() {
+  return (
+    ${singleInner.trim()}
+  );
+}
+`;
     }
   } else if (downloadFormat === "tailwind") {
     if (showGroup) {

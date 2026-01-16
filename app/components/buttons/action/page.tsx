@@ -49,6 +49,11 @@ import AccessibilitySection, {
   type MinTouchMode,
 } from "./_section/AccessibilitySection";
 import StatePreviewSection from "./_section/StatePreviewSection";
+import ThreeJSSection, {
+  type ThreeDIconMode,
+  type ThreeDAnimation,
+  type ClickEffect,
+} from "./_section/ThreeJSSection";
 
 import {
   PALETTE,
@@ -56,6 +61,7 @@ import {
   GOOGLE_FONTS,
   ICONS_SVG,
 } from "./_data/buttonConstants";
+import LivePreview from "./_section/LivePreview";
 import {
   buildGradient,
   clamp,
@@ -242,6 +248,7 @@ type ActionButtonState = {
   iconGapText: string;
   iconColorMode: "text" | "custom";
   iconColorInput: string;
+  // 3D & Effects
   hoverIconEnabled: boolean;
   hoverIconSource: IconSource;
   hoverIconName: IconName;
@@ -252,8 +259,25 @@ type ActionButtonState = {
   activeIconCustomSvg: string;
   loadingIconEnabled: boolean;
   loadingIconSource: IconSource;
-  loadingIconName: IconName;
   loadingIconCustomSvg: string;
+  loadingIconName: IconName;
+
+  // 3D Engine "Hyper"
+  use3DIcon: string;
+  icon3DGeometry: string;
+  icon3DMaterial: string;
+  icon3DAnimation: string;
+  iconRoughness: string;
+  iconMetalness: string;
+  iconTransmission: string;
+  iconEmissive: string;
+
+  // Motion "Hyper"
+  clickEffect: string; // confetti, explosion, shockwave
+  clickParticleCount: string;
+  hoverEffect: string; // none, magnetic, spotlight, tilt, morph
+  hoverSpringStiffness: string;
+  hoverSpringDamping: string;
 
   // Group Preview
   groupEnabled: boolean;
@@ -574,6 +598,23 @@ const INITIAL_STATE: ActionButtonState = {
   previewBgInput: "#0b1220",
   downloadFormat: "html",
   downloadName: "action-button",
+  // 3D & Effects (Missing in INITIAL_STATE)
+  // 3D Engine "Hyper"
+  use3DIcon: "none",
+  icon3DGeometry: "cube",
+  icon3DMaterial: "glass",
+  icon3DAnimation: "spin",
+  iconRoughness: "0.2",
+  iconMetalness: "0.8",
+  iconTransmission: "0.9",
+  iconEmissive: "0.5",
+
+  // Motion "Hyper"
+  clickEffect: "none",
+  clickParticleCount: "50",
+  hoverEffect: "none",
+  hoverSpringStiffness: "300",
+  hoverSpringDamping: "20",
 };
 
 export default function ActionButtonPage() {
@@ -753,6 +794,19 @@ export default function ActionButtonPage() {
     loadingIconSource,
     loadingIconName,
     loadingIconCustomSvg,
+    use3DIcon,
+    icon3DGeometry,
+    icon3DMaterial,
+    icon3DAnimation,
+    iconRoughness,
+    iconMetalness,
+    iconTransmission,
+    iconEmissive,
+    clickEffect,
+    clickParticleCount,
+    hoverEffect,
+    hoverSpringStiffness,
+    hoverSpringDamping,
     groupEnabled,
     groupAlign,
     groupGapText,
@@ -1386,6 +1440,72 @@ export default function ActionButtonPage() {
     updateState((s) => ({
       ...s,
       roughnessText: v instanceof Function ? v(s.roughnessText) : v,
+    }));
+  const setUse3DIcon = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      use3DIcon: v instanceof Function ? v(s.use3DIcon) : v,
+    }));
+  const setIcon3DAnimation = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DAnimation: v instanceof Function ? v(s.icon3DAnimation) : v,
+    }));
+  const setClickEffect = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      clickEffect: v instanceof Function ? v(s.clickEffect) : v,
+    }));
+  const setIcon3DGeometry = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DGeometry: v instanceof Function ? v(s.icon3DGeometry) : v,
+    }));
+  const setIcon3DMaterial = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DMaterial: v instanceof Function ? v(s.icon3DMaterial) : v,
+    }));
+  const setIconRoughness = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconRoughness: v instanceof Function ? v(s.iconRoughness) : v,
+    }));
+  const setIconMetalness = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconMetalness: v instanceof Function ? v(s.iconMetalness) : v,
+    }));
+  const setIconTransmission = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconTransmission: v instanceof Function ? v(s.iconTransmission) : v,
+    }));
+  const setIconEmissive = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconEmissive: v instanceof Function ? v(s.iconEmissive) : v,
+    }));
+  const setClickParticleCount = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      clickParticleCount: v instanceof Function ? v(s.clickParticleCount) : v,
+    }));
+  const setHoverEffect = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverEffect: v instanceof Function ? v(s.hoverEffect) : v,
+    }));
+  const setHoverSpringStiffness = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverSpringStiffness:
+        v instanceof Function ? v(s.hoverSpringStiffness) : v,
+    }));
+  const setHoverSpringDamping = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      hoverSpringDamping: v instanceof Function ? v(s.hoverSpringDamping) : v,
     }));
   const setAoStrengthText = (v: any) =>
     updateState((s) => ({
@@ -2918,6 +3038,9 @@ export default function ActionButtonPage() {
       textTransform,
       backdropBlurEnabled,
       backdropBlurText,
+      use3DIcon,
+      icon3DAnimation,
+      clickEffect,
     });
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -3429,6 +3552,35 @@ export default function ActionButtonPage() {
     setLoadingIconCustomSvg,
   };
 
+  const threeJSSectionProps = {
+    use3DIcon,
+    setUse3DIcon,
+    icon3DGeometry,
+    setIcon3DGeometry,
+    icon3DMaterial,
+    setIcon3DMaterial,
+    icon3DAnimation,
+    setIcon3DAnimation,
+    iconRoughness,
+    setIconRoughness,
+    iconMetalness,
+    setIconMetalness,
+    iconTransmission,
+    setIconTransmission,
+    iconEmissive,
+    setIconEmissive,
+    clickEffect,
+    setClickEffect,
+    clickParticleCount,
+    setClickParticleCount,
+    hoverEffect,
+    setHoverEffect,
+    hoverSpringStiffness,
+    setHoverSpringStiffness,
+    hoverSpringDamping,
+    setHoverSpringDamping,
+  };
+
   const disabledSectionProps = {
     PALETTE,
     disabledOpacityText,
@@ -3751,6 +3903,11 @@ export default function ActionButtonPage() {
       ),
     },
     {
+      id: "effects",
+      label: "Effects (New)",
+      content: <ThreeJSSection {...(threeJSSectionProps as any)} />,
+    },
+    {
       id: "text-position",
       label: "Text Position",
       content: <TextPositionSection align={align} setAlign={setAlign} />,
@@ -3890,6 +4047,83 @@ export default function ActionButtonPage() {
 
   const activePanel =
     sectionItems.find((item) => item.id === activeSection) ?? sectionItems[0];
+
+  // --- Live Preview Node construction ---
+  const showLivePreview = use3DIcon !== "none" || clickEffect !== "none";
+  let livePreviewNode = null;
+
+  if (showLivePreview) {
+    const style: React.CSSProperties = {
+      backgroundColor: cssBg,
+      color: cssText,
+      borderColor: cssBorder,
+      borderWidth: `${borderWidthPx}px`,
+      borderStyle: borderStyle as any,
+      borderRadius: `${rTL}px ${rTR}px ${rBR}px ${rBL}px`,
+      paddingTop: `${padY}px`,
+      paddingBottom: `${padY}px`,
+      paddingLeft: `${padX}px`,
+      paddingRight: `${padX}px`,
+      width: `${wPx}px`,
+      height: `${hPx}px`,
+      fontSize: fontSizeDisplay,
+      fontFamily: fontFamily,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacingDisplay,
+      lineHeight: lHeight,
+      fontStyle: fontStyle,
+      textTransform: textTransform,
+      textDecoration: underline ? "underline" : "none",
+      // Shadows
+      boxShadow: boxShadowCss,
+      // Transforms
+      transform:
+        activeEnabled && forceActive
+          ? `scale(${parseFloat(activeScaleText) || 1}) translateY(${
+              parseFloat(activeTranslateYText) || 0
+            }px)`
+          : "none",
+      cursor: disabled ? disabledCursor : "pointer",
+      opacity: disabled ? disabledOpacity : 1,
+      // Transitions
+      transition: `all ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}`,
+
+      // Flex
+      display: "flex",
+      alignItems: align.startsWith("top")
+        ? "flex-start"
+        : align.startsWith("bottom")
+        ? "flex-end"
+        : "center",
+      justifyContent: align.includes("left")
+        ? "flex-start"
+        : align.includes("right")
+        ? "flex-end"
+        : "center",
+      gap: `${Number(iconGapText)}px`,
+    };
+
+    livePreviewNode = (
+      <LivePreview
+        use3DIcon={use3DIcon as any}
+        icon3DGeometry={icon3DGeometry}
+        icon3DMaterial={icon3DMaterial}
+        icon3DAnimation={icon3DAnimation}
+        iconRoughness={iconRoughness}
+        iconMetalness={iconMetalness}
+        iconTransmission={iconTransmission}
+        iconEmissive={iconEmissive}
+        clickEffect={clickEffect as any}
+        clickParticleCount={clickParticleCount}
+        hoverEffect={hoverEffect}
+        hoverSpringStiffness={hoverSpringStiffness}
+        hoverSpringDamping={hoverSpringDamping}
+        buttonStyle={style}
+        label={label}
+        iconColor={iconColorMode === "text" ? cssText : iconColorInput}
+      />
+    );
+  }
 
   // --- Render ---
   return (
@@ -4047,6 +4281,7 @@ export default function ActionButtonPage() {
               downloadName={downloadName}
               setDownloadName={setDownloadName}
               handleDownload={handleDownload}
+              previewNode={livePreviewNode}
             />
           </div>
         </div>

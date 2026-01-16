@@ -3,11 +3,13 @@ import { SectionCard, LabeledField, Segmented } from "./ui";
 
 export default function StatusSection(props: {
   status: "none" | "online" | "offline" | "busy" | "away";
-  setStatus: (v: any) => void;
+  setStatus: (v: "none" | "online" | "offline" | "busy" | "away") => void;
   statusPosition: "top-right" | "bottom-right" | "bottom-left" | "top-left";
-  setStatusPosition: (v: any) => void;
+  setStatusPosition: (
+    v: "top-right" | "bottom-right" | "bottom-left" | "top-left"
+  ) => void;
   statusAnimation: "none" | "pulse";
-  setStatusAnimation: (v: any) => void;
+  setStatusAnimation: (v: "none" | "pulse") => void;
   badgeCount: string;
   setBadgeCount: (v: string) => void;
 }) {
@@ -21,7 +23,7 @@ export default function StatusSection(props: {
           <LabeledField label="Status">
             <Segmented
               value={props.status}
-              onChange={props.setStatus}
+              onChange={(v) => props.setStatus(v as any)}
               items={[
                 { value: "none", label: "None" },
                 { value: "online", label: "Online" },
@@ -51,7 +53,7 @@ export default function StatusSection(props: {
           <LabeledField label="Position">
             <Segmented
               value={props.statusPosition}
-              onChange={props.setStatusPosition}
+              onChange={(v) => props.setStatusPosition(v as any)}
               items={[
                 { value: "top-left", label: "TL" },
                 { value: "top-right", label: "TR" },
@@ -64,7 +66,7 @@ export default function StatusSection(props: {
           <LabeledField label="Animation">
             <Segmented
               value={props.statusAnimation}
-              onChange={props.setStatusAnimation}
+              onChange={(v) => props.setStatusAnimation(v as any)}
               items={[
                 { value: "none", label: "None" },
                 { value: "pulse", label: "Pulse" },
