@@ -2,7 +2,8 @@
 
 import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export default function StyleSection(props: {
   borderWidth: number;
@@ -22,34 +23,18 @@ export default function StyleSection(props: {
         <div className="space-y-4">
           <SizeControl
             label="Width (px)"
-            valueText={String(props.borderWidth)}
-            setValueText={(v) => props.setBorderWidth(Number(v))}
+            value={props.borderWidth}
+            onChange={(v) => props.setBorderWidth(v)}
             min={0}
             max={20}
+            step={1}
           />
 
-          <LabeledField label="Color">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={props.borderColor}
-                onChange={(e) => props.setBorderColor(e.target.value)}
-                className="h-9 w-9 cursor-pointer rounded border-none p-0"
-              />
-              <input
-                type="text"
-                value={props.borderColor}
-                onChange={(e) => props.setBorderColor(e.target.value)}
-                className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
-            </div>
-          </LabeledField>
+          <ColorControl
+            label="Color"
+            value={props.borderColor}
+            onChange={props.setBorderColor}
+          />
 
           <LabeledField label="Style">
             <Segmented
@@ -70,50 +55,16 @@ export default function StyleSection(props: {
         subtitle="Colors when image is missing."
       >
         <div className="space-y-4">
-          <LabeledField label="Background Color">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={props.initialsBg}
-                onChange={(e) => props.setInitialsBg(e.target.value)}
-                className="h-9 w-9 cursor-pointer rounded border-none p-0"
-              />
-              <input
-                type="text"
-                value={props.initialsBg}
-                onChange={(e) => props.setInitialsBg(e.target.value)}
-                className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
-            </div>
-          </LabeledField>
-          <LabeledField label="Text Color">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={props.initialsColor}
-                onChange={(e) => props.setInitialsColor(e.target.value)}
-                className="h-9 w-9 cursor-pointer rounded border-none p-0"
-              />
-              <input
-                type="text"
-                value={props.initialsColor}
-                onChange={(e) => props.setInitialsColor(e.target.value)}
-                className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
-            </div>
-          </LabeledField>
+          <ColorControl
+            label="Background Color"
+            value={props.initialsBg}
+            onChange={props.setInitialsBg}
+          />
+          <ColorControl
+            label="Text Color"
+            value={props.initialsColor}
+            onChange={props.setInitialsColor}
+          />
         </div>
       </SectionCard>
     </div>

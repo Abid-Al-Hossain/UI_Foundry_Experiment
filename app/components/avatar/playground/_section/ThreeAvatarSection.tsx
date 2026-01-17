@@ -7,6 +7,9 @@ import {
   LabeledField,
   ExportWarningBadge,
 } from "../../../buttons/action/_section/ui";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import Select from "@/app/components/controls/input/Select";
+import Slider from "@/app/components/controls/input/Slider";
 
 export type ThreeDBadgeMode = "none" | "sphere" | "cube" | "star";
 export type ThreeDStatusMode = "none" | "ring" | "halo";
@@ -105,46 +108,33 @@ export default function ThreeAvatarSection(props: {
               </div>
             }
           >
-            <select
-              className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            <Select
               value={props.accessoryType}
-              onChange={(e) => props.setAccessoryType(e.target.value)}
-            >
-              <option value="none">None</option>
-              <option value="crown">Floating Crown</option>
-              <option value="halo-cyber">Cyber Halo</option>
-              <option value="neural-link">Neural Link (NodeNet)</option>
-              <option value="orb-float">Floating Orbs</option>
-            </select>
+              onChange={props.setAccessoryType}
+              options={[
+                { value: "none", label: "None" },
+                { value: "crown", label: "Floating Crown" },
+                { value: "halo-cyber", label: "Cyber Halo" },
+                { value: "neural-link", label: "Neural Link (NodeNet)" },
+                { value: "orb-float", label: "Floating Orbs" },
+              ]}
+            />
           </LabeledField>
-
           {props.accessoryType !== "none" && (
             <>
-              <LabeledField label="Color">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={props.accessoryColor}
-                    onChange={(e) => props.setAccessoryColor(e.target.value)}
-                    className="h-6 w-6 rounded cursor-pointer border-none p-0"
-                  />
-                  <input
-                    type="text"
-                    value={props.accessoryColor}
-                    onChange={(e) => props.setAccessoryColor(e.target.value)}
-                    className="flex-1 bg-transparent text-xs text-slate-400 focus:outline-none"
-                  />
-                </div>
-              </LabeledField>
+              {/* ColorControl handles Color */}
+              <ColorControl
+                label="Color"
+                value={props.accessoryColor}
+                onChange={props.setAccessoryColor}
+              />
               <LabeledField label="Animation Speed">
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.5"
+                <Slider
+                  min={0}
+                  max={5}
+                  step={0.5}
                   value={props.orbitSpeed}
-                  onChange={(e) => props.setOrbitSpeed(e.target.value)}
-                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                  onChange={props.setOrbitSpeed}
                 />
               </LabeledField>
             </>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 export default function SizingSection(props: {
   size: string;
@@ -17,10 +17,11 @@ export default function SizingSection(props: {
       <SectionCard title="Dimensions" subtitle="Size of the avatar component.">
         <SizeControl
           label="Size (px)"
-          valueText={props.size.replace("px", "")}
-          setValueText={(v) => props.setSize(v + "px")}
+          value={parseInt(props.size) || 96}
+          onChange={(v) => props.setSize(v + "px")}
           min={16}
           max={256}
+          step={4}
         />
       </SectionCard>
 
@@ -40,10 +41,11 @@ export default function SizingSection(props: {
           {props.radiusMode === "custom" && (
             <SizeControl
               label="Radius (px)"
-              valueText={String(props.radiusValue)}
-              setValueText={(v) => props.setRadiusValue(Number(v))}
+              value={props.radiusValue}
+              onChange={(v) => props.setRadiusValue(v)}
               min={0}
               max={128}
+              step={1}
             />
           )}
         </div>

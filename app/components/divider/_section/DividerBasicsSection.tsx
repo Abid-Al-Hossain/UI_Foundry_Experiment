@@ -5,9 +5,8 @@ import {
   LabeledField,
   Segmented,
 } from "../../buttons/action/_section/ui";
-import ColorControl from "../../buttons/action/_section/ColorControl";
-import SizeControl from "../../buttons/action/_section/SizeControl";
-import { norm } from "../../buttons/action/_utils/colorUtils";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -21,7 +20,7 @@ const PRESET_COLORS = [
   "#ffffff",
 ];
 
-export default function DividerBasicsSection({ state, setKey, setFloat }: any) {
+export default function DividerBasicsSection({ state, setKey }: any) {
   const { orientation, width, thickness, gap, color, variant, borderRadius } =
     state;
 
@@ -51,13 +50,10 @@ export default function DividerBasicsSection({ state, setKey, setFloat }: any) {
 
         {/* Replaced raw color input with ColorControl */}
         <ColorControl
-          title="Color"
+          label="Color"
           palette={PRESET_COLORS}
-          valueText={color}
-          setValueText={setKey("color")}
-          normalizedHex={norm(color).hex}
-          normalizedRgb={norm(color).rgb}
-          ok={norm(color).ok}
+          value={color}
+          onChange={setKey("color")}
         />
 
         <LabeledField label="Variant">
@@ -76,8 +72,8 @@ export default function DividerBasicsSection({ state, setKey, setFloat }: any) {
         <div className="pt-4 border-t border-slate-700/50 space-y-4">
           <SizeControl
             label="Thickness (px)"
-            valueText={String(thickness)}
-            setValueText={setFloat("thickness")}
+            value={thickness}
+            onChange={(v) => setKey("thickness")(v)}
             min={1}
             max={40}
             step={1}
@@ -85,8 +81,8 @@ export default function DividerBasicsSection({ state, setKey, setFloat }: any) {
 
           <SizeControl
             label="Gap / Spacing (px)"
-            valueText={String(gap)}
-            setValueText={setFloat("gap")}
+            value={gap}
+            onChange={(v) => setKey("gap")(v)}
             min={0}
             max={100}
             step={4}
@@ -94,8 +90,8 @@ export default function DividerBasicsSection({ state, setKey, setFloat }: any) {
 
           <SizeControl
             label="Border Radius (px)"
-            valueText={String(borderRadius)}
-            setValueText={setFloat("borderRadius")}
+            value={borderRadius}
+            onChange={(v) => setKey("borderRadius")(v)}
             min={0}
             max={50}
             step={1}

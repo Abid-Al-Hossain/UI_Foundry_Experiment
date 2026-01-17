@@ -2,8 +2,9 @@
 
 import React from "react";
 import { SectionCard, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import GradientControl from "@/app/components/controls/effects/GradientControl";
 
 export default function HoverSection(props: {
   PALETTE: readonly string[];
@@ -51,16 +52,30 @@ export default function HoverSection(props: {
   transitionColorDurationText: string;
   setTransitionColorDurationText: (v: string) => void;
   transitionColorMs: number;
-  transitionColorEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
-  setTransitionColorEasing: (v: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear") => void;
+  transitionColorEasing:
+    | "ease"
+    | "ease-in"
+    | "ease-out"
+    | "ease-in-out"
+    | "linear";
+  setTransitionColorEasing: (
+    v: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear",
+  ) => void;
 }) {
   return (
-    <SectionCard title="Hover" subtitle="Configure hover background, text, and border colors.">
+    <SectionCard
+      title="Hover"
+      subtitle="Configure hover background, text, and border colors."
+    >
       <div className="text-xs" style={{ color: "var(--muted)" }}>
-        Tip: Use State Preview to force hover, and adjust color transition timing here.
+        Tip: Use State Preview to force hover, and adjust color transition
+        timing here.
       </div>
 
-      <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+      <label
+        className="flex items-center gap-2 text-sm uf-clickable"
+        style={{ color: "var(--text)" }}
+      >
         <input
           type="checkbox"
           checked={props.hoverEnabled}
@@ -72,20 +87,27 @@ export default function HoverSection(props: {
 
       <div className="mt-4 space-y-5">
         <div className="space-y-3">
-          <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             Color transitions
           </div>
           <SizeControl
             label={`Color duration (${props.transitionColorMs}ms)`}
-            valueText={props.transitionColorDurationText}
-            setValueText={props.setTransitionColorDurationText}
+            value={Number(props.transitionColorDurationText) || 0}
+            onChange={(v) => props.setTransitionColorDurationText(String(v))}
             min={0}
             max={2000}
             step={10}
           />
           <Segmented
             value={props.transitionColorEasing}
-            onChange={(v) => props.setTransitionColorEasing(v as "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear")}
+            onChange={(v) =>
+              props.setTransitionColorEasing(
+                v as "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear",
+              )
+            }
             items={[
               { value: "ease", label: "Ease" },
               { value: "ease-in", label: "Ease in" },
@@ -115,70 +137,29 @@ export default function HoverSection(props: {
           {props.hoverBgMode === "custom" ? (
             <div className="mt-3">
               <ColorControl
-                title="Custom hover background"
+                label="Custom hover background"
                 palette={props.PALETTE}
-                valueText={props.hoverBgInput}
-                setValueText={props.setHoverBgInput}
-                normalizedHex={props.hoverBgHex}
-                normalizedRgb={props.hoverBgRgb}
-                ok={props.hoverBgOk}
+                value={props.hoverBgInput}
+                onChange={props.setHoverBgInput}
               />
             </div>
           ) : null}
 
           {props.hoverBgMode === "gradient" ? (
-            <div className="mt-3 space-y-4">
-              <SizeControl
-                label="Hover gradient angle (deg)"
-                valueText={props.hoverGradAngleText}
-                setValueText={props.setHoverGradAngleText}
-                min={0}
-                max={360}
-              />
-
-              <ColorControl
-                title="Hover gradient start"
+            <div className="mt-3">
+              <GradientControl
+                label="Hover Gradient"
+                angle={Number(props.hoverGradAngleText) || 0}
+                setAngle={(v) => props.setHoverGradAngleText(String(v))}
+                startColor={props.hoverGradStartInput}
+                setStartColor={props.setHoverGradStartInput}
+                endColor={props.hoverGradEndInput}
+                setEndColor={props.setHoverGradEndInput}
+                midEnabled={props.hoverGradMidEnabled}
+                setMidEnabled={props.setHoverGradMidEnabled}
+                midColor={props.hoverGradMidInput}
+                setMidColor={props.setHoverGradMidInput}
                 palette={props.PALETTE}
-                valueText={props.hoverGradStartInput}
-                setValueText={props.setHoverGradStartInput}
-                normalizedHex={props.hoverGradStartNorm.hex}
-                normalizedRgb={props.hoverGradStartNorm.rgb}
-                ok={props.hoverGradStartNorm.ok}
-              />
-
-              <div className="flex items-center gap-2">
-                <input
-                  id="hover-grad-mid-toggle"
-                  type="checkbox"
-                  checked={props.hoverGradMidEnabled}
-                  onChange={(e) => props.setHoverGradMidEnabled(e.target.checked)}
-                  className="uf-clickable"
-                />
-                <label htmlFor="hover-grad-mid-toggle" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
-                  Use middle stop
-                </label>
-              </div>
-
-              {props.hoverGradMidEnabled ? (
-                <ColorControl
-                  title="Hover gradient middle"
-                  palette={props.PALETTE}
-                  valueText={props.hoverGradMidInput}
-                  setValueText={props.setHoverGradMidInput}
-                  normalizedHex={props.hoverGradMidNorm.hex}
-                  normalizedRgb={props.hoverGradMidNorm.rgb}
-                  ok={props.hoverGradMidNorm.ok}
-                />
-              ) : null}
-
-              <ColorControl
-                title="Hover gradient end"
-                palette={props.PALETTE}
-                valueText={props.hoverGradEndInput}
-                setValueText={props.setHoverGradEndInput}
-                normalizedHex={props.hoverGradEndNorm.hex}
-                normalizedRgb={props.hoverGradEndNorm.rgb}
-                ok={props.hoverGradEndNorm.ok}
               />
             </div>
           ) : null}
@@ -202,13 +183,10 @@ export default function HoverSection(props: {
           {props.hoverTextMode === "custom" ? (
             <div className="mt-3">
               <ColorControl
-                title="Custom hover text"
+                label="Custom hover text"
                 palette={props.PALETTE}
-                valueText={props.hoverTextInput}
-                setValueText={props.setHoverTextInput}
-                normalizedHex={props.hoverTextHex}
-                normalizedRgb={props.hoverTextRgb}
-                ok={props.hoverTextOk}
+                value={props.hoverTextInput}
+                onChange={props.setHoverTextInput}
               />
             </div>
           ) : null}
@@ -232,13 +210,10 @@ export default function HoverSection(props: {
           {props.hoverBorderMode === "custom" ? (
             <div className="mt-3">
               <ColorControl
-                title="Custom hover border"
+                label="Custom hover border"
                 palette={props.PALETTE}
-                valueText={props.hoverBorderInput}
-                setValueText={props.setHoverBorderInput}
-                normalizedHex={props.hoverBorderHex}
-                normalizedRgb={props.hoverBorderRgb}
-                ok={props.hoverBorderOk}
+                value={props.hoverBorderInput}
+                onChange={props.setHoverBorderInput}
               />
             </div>
           ) : null}

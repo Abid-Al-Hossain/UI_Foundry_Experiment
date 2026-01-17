@@ -5,15 +5,12 @@ import {
   LabeledField,
   Segmented,
 } from "../../buttons/action/_section/ui";
-import ColorControl from "../../buttons/action/_section/ColorControl";
-import SizeControl from "../../buttons/action/_section/SizeControl";
-import { norm } from "../../buttons/action/_utils/colorUtils";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
+import Input from "@/app/components/controls/input/Input";
 
-export default function DividerContentSection({
-  state,
-  setKey,
-  setFloat,
-}: any) {
+export default function DividerContentSection({ state, setKey }: any) {
   const {
     showLabel,
     labelText,
@@ -26,26 +23,18 @@ export default function DividerContentSection({
   return (
     <SectionCard title="Content" subtitle="Embedded text or icons">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-300">
-            Show Label
-          </label>
-          <input
-            type="checkbox"
-            checked={showLabel}
-            onChange={(e) => setKey("showLabel")(e.target.checked)}
-            className="accent-blue-500 scale-125"
-          />
-        </div>
+        <Switch
+          label="Show Label"
+          checked={showLabel}
+          onChange={(v) => setKey("showLabel")(v)}
+        />
 
         {showLabel && (
           <div className="space-y-4 pl-4 border-l-2 border-slate-700/50">
             <LabeledField label="Text">
-              <input
-                type="text"
+              <Input
                 value={labelText}
                 onChange={(e) => setKey("labelText")(e.target.value)}
-                className="w-full h-9 px-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 outline-none focus:border-blue-500 transition-colors"
               />
             </LabeledField>
 
@@ -62,29 +51,23 @@ export default function DividerContentSection({
             </LabeledField>
 
             <ColorControl
-              title="Text Color"
+              label="Text Color"
               palette={["#64748b", "#cbd5e1", "#ffffff", "#000000"]}
-              valueText={labelColor}
-              setValueText={setKey("labelColor")}
-              normalizedHex={norm(labelColor).hex}
-              normalizedRgb={norm(labelColor).rgb}
-              ok={norm(labelColor).ok}
+              value={labelColor}
+              onChange={setKey("labelColor")}
             />
 
             <ColorControl
-              title="Background Color"
+              label="Background Color"
               palette={["transparent", "#ffffff", "#000000", "#1e293b"]}
-              valueText={labelBackground}
-              setValueText={setKey("labelBackground")}
-              normalizedHex={norm(labelBackground).hex}
-              normalizedRgb={norm(labelBackground).rgb}
-              ok={norm(labelBackground).ok}
+              value={labelBackground}
+              onChange={setKey("labelBackground")}
             />
 
             <SizeControl
               label="Padding (px)"
-              valueText={String(labelPadding)}
-              setValueText={setFloat("labelPadding")}
+              value={labelPadding}
+              onChange={(v) => setKey("labelPadding")(v)}
               min={0}
               max={40}
               step={2}

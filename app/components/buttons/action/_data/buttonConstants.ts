@@ -2,14 +2,7 @@
 
 import type { SystemFontItem } from "../_section/TypographySection";
 
-export type IconName =
-  | "none"
-  | "arrowRight"
-  | "check"
-  | "plus"
-  | "x"
-  | "info"
-  | "star";
+export type IconName = string;
 export type IconSource = "library" | "custom";
 
 export const PALETTE = [

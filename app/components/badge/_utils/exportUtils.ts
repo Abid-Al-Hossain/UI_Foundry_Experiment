@@ -1,6 +1,6 @@
 "use client";
 
-import type { DownloadFormat } from "../../buttons/action/_section/PreviewDownloadPanel";
+import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import {
   type BadgeVariant,
   type BadgeShape,
@@ -155,10 +155,10 @@ export function buildBadgeExportPayload(params: BadgeExportInput) {
     shape === "pill"
       ? "9999px"
       : shape === "circle"
-      ? "50%"
-      : shape === "square"
-      ? "0px"
-      : `${borderRadius}px`;
+        ? "50%"
+        : shape === "square"
+          ? "0px"
+          : `${borderRadius}px`;
 
   const baseCss = `
     display: inline-flex;

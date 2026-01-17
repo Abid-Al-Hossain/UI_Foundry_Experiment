@@ -2,7 +2,8 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import SpacingControl from "@/app/components/controls/layout/SpacingControl";
 
 export default function SizingSection(props: {
   subtitle: string;
@@ -26,27 +27,32 @@ export default function SizingSection(props: {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <SizeControl
-            label="Width (px)"
-            valueText={props.widthText}
-            setValueText={props.setWidthText}
+            label={`Width (px, ${props.effectiveWidthPx})`}
+            value={Number(props.widthText) || 40}
+            onChange={(v) => props.setWidthText(String(v))}
             min={40}
             max={720}
-            computedValue={props.effectiveWidthPx}
+            step={1}
           />
           <SizeControl
-            label="Height (px)"
-            valueText={props.heightText}
-            setValueText={props.setHeightText}
+            label={`Height (px, ${props.effectiveHeightPx})`}
+            value={Number(props.heightText) || 24}
+            onChange={(v) => props.setHeightText(String(v))}
             min={24}
             max={240}
-            computedValue={props.effectiveHeightPx}
+            step={1}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <SizeControl label="Padding X (px)" valueText={props.paddingXText} setValueText={props.setPaddingXText} min={0} max={80} />
-          <SizeControl label="Padding Y (px)" valueText={props.paddingYText} setValueText={props.setPaddingYText} min={0} max={40} />
-        </div>
+        <SpacingControl
+          label="Padding"
+          x={Number(props.paddingXText) || 0}
+          setX={(v) => props.setPaddingXText(String(v))}
+          y={Number(props.paddingYText) || 0}
+          setY={(v) => props.setPaddingYText(String(v))}
+          min={0}
+          max={80}
+        />
       </div>
     </SectionCard>
   );

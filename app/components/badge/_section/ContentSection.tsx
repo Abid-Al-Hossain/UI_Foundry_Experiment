@@ -5,6 +5,9 @@ import {
   LabeledField,
   Segmented,
 } from "../../buttons/action/_section/ui";
+import Select from "@/app/components/controls/input/Select";
+import Switch from "@/app/components/controls/input/Switch";
+import Input from "@/app/components/controls/input/Input";
 
 export default function ContentSection(props: {
   label: string;
@@ -24,50 +27,43 @@ export default function ContentSection(props: {
     <SectionCard title="Content" subtitle="Text, numbers, and icons.">
       <div className="space-y-4">
         <LabeledField label="Label">
-          <input
-            type="text"
+          <Input
             value={props.label}
             onChange={(e) => props.setLabel(e.target.value)}
-            className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300"
           />
         </LabeledField>
 
         <LabeledField label="Count / Value">
           <div className="flex gap-2">
-            <input
-              type="text"
+            <Input
               placeholder="e.g. 5, 99+, New"
               value={props.count}
               onChange={(e) => props.setCount(e.target.value)}
-              className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300"
             />
           </div>
         </LabeledField>
 
         <hr className="border-slate-800" />
 
-        <div className="flex items-center justify-between">
-          <label className="text-xs text-slate-400">Show Icon</label>
-          <input
-            type="checkbox"
-            checked={props.showIcon}
-            onChange={(e) => props.setShowIcon(e.target.checked)}
-          />
-        </div>
+        <Switch
+          label="Show Icon"
+          checked={props.showIcon}
+          onChange={props.setShowIcon}
+        />
 
         {props.showIcon && (
           <>
             <LabeledField label="Icon Name">
-              <select
+              <Select
                 value={props.iconName}
-                onChange={(e) => props.setIconName(e.target.value)}
-                className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300"
-              >
-                <option value="star">Star</option>
-                <option value="check">Check</option>
-                <option value="alert">Alert</option>
-                <option value="notification">Bell</option>
-              </select>
+                onChange={props.setIconName}
+                options={[
+                  { value: "star", label: "Star" },
+                  { value: "check", label: "Check" },
+                  { value: "alert", label: "Alert" },
+                  { value: "notification", label: "Bell" },
+                ]}
+              />
             </LabeledField>
             <LabeledField label="Position">
               <Segmented

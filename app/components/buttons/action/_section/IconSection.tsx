@@ -2,21 +2,29 @@
 
 import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
-import { IconName, IconSource } from "../_data/buttonConstants";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import IconPickerControl, {
+  IconName,
+  IconSource,
+} from "@/app/components/controls/layout/IconPickerControl";
+import {
+  type IconName as LocalIconName,
+  type IconSource as LocalIconSource,
+} from "../_data/buttonConstants";
 
+// Re-export for compatibility if needed, or just align types
 export type { IconName, IconSource };
 type IconPosition = "left" | "right";
 
 export default function IconSection(props: {
   PALETTE: readonly string[];
 
-  iconName: IconName;
-  setIconName: (v: IconName) => void;
+  iconName: LocalIconName;
+  setIconName: (v: LocalIconName) => void;
 
-  iconSource: IconSource;
-  setIconSource: (v: IconSource) => void;
+  iconSource: LocalIconSource;
+  setIconSource: (v: LocalIconSource) => void;
 
   iconCustomSvg: string;
   setIconCustomSvg: (v: string) => void;
@@ -43,28 +51,28 @@ export default function IconSection(props: {
 
   hoverIconEnabled: boolean;
   setHoverIconEnabled: (v: boolean) => void;
-  hoverIconSource: IconSource;
-  setHoverIconSource: (v: IconSource) => void;
-  hoverIconName: IconName;
-  setHoverIconName: (v: IconName) => void;
+  hoverIconSource: LocalIconSource;
+  setHoverIconSource: (v: LocalIconSource) => void;
+  hoverIconName: LocalIconName;
+  setHoverIconName: (v: LocalIconName) => void;
   hoverIconCustomSvg: string;
   setHoverIconCustomSvg: (v: string) => void;
 
   activeIconEnabled: boolean;
   setActiveIconEnabled: (v: boolean) => void;
-  activeIconSource: IconSource;
-  setActiveIconSource: (v: IconSource) => void;
-  activeIconName: IconName;
-  setActiveIconName: (v: IconName) => void;
+  activeIconSource: LocalIconSource;
+  setActiveIconSource: (v: LocalIconSource) => void;
+  activeIconName: LocalIconName;
+  setActiveIconName: (v: LocalIconName) => void;
   activeIconCustomSvg: string;
   setActiveIconCustomSvg: (v: string) => void;
 
   loadingIconEnabled: boolean;
   setLoadingIconEnabled: (v: boolean) => void;
-  loadingIconSource: IconSource;
-  setLoadingIconSource: (v: IconSource) => void;
-  loadingIconName: IconName;
-  setLoadingIconName: (v: IconName) => void;
+  loadingIconSource: LocalIconSource;
+  setLoadingIconSource: (v: LocalIconSource) => void;
+  loadingIconName: LocalIconName;
+  setLoadingIconName: (v: LocalIconName) => void;
   loadingIconCustomSvg: string;
   setLoadingIconCustomSvg: (v: string) => void;
 }) {
@@ -88,8 +96,6 @@ export default function IconSection(props: {
     setIconColorMode,
     iconColorInput,
     setIconColorInput,
-    iconColorNorm,
-    baseTextHex,
     hoverIconEnabled,
     setHoverIconEnabled,
     hoverIconSource,
@@ -116,40 +122,17 @@ export default function IconSection(props: {
     setLoadingIconCustomSvg,
   } = props;
 
-  const handleSvgUpload = (file: File | null) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === "string" ? reader.result : "";
-      setIconCustomSvg(text);
-    };
-    reader.readAsText(file);
-  };
-
-  const handleStateSvgUpload = (
-    file: File | null,
-    setter: (v: string) => void
-  ) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === "string" ? reader.result : "";
-      setter(text);
-    };
-    reader.readAsText(file);
-  };
-
   const renderStateOverride = (
     label: string,
     enabled: boolean,
     setEnabled: (v: boolean) => void,
-    source: IconSource,
-    setSource: (v: IconSource) => void,
-    name: IconName,
-    setName: (v: IconName) => void,
+    source: LocalIconSource,
+    setSource: (v: LocalIconSource) => void,
+    name: LocalIconName,
+    setName: (v: LocalIconName) => void,
     customSvg: string,
     setCustomSvg: (v: string) => void,
-    note?: string
+    note?: string,
   ) => (
     <div
       className="rounded-xl border p-3"
@@ -176,78 +159,15 @@ export default function IconSection(props: {
 
       {enabled ? (
         <div className="mt-3 space-y-3">
-          <LabeledField label="Icon source">
-            <Segmented
-              value={source}
-              onChange={(v) => setSource(v as IconSource)}
-              items={[
-                { value: "library", label: "Library" },
-                { value: "custom", label: "Custom SVG" },
-              ]}
-            />
-          </LabeledField>
-
-          {source === "library" ? (
-            <LabeledField label="Icon">
-              <select
-                value={name}
-                onChange={(e) => setName(e.target.value as IconName)}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              >
-                <option value="none">None</option>
-                <option value="arrowRight">Arrow Right</option>
-                <option value="check">Check</option>
-                <option value="plus">Plus</option>
-                <option value="x">X</option>
-                <option value="info">Info</option>
-                <option value="star">Star</option>
-              </select>
-            </LabeledField>
-          ) : (
-            <div className="space-y-3">
-              <LabeledField label="Paste SVG">
-                <textarea
-                  value={customSvg}
-                  onChange={(e) => setCustomSvg(e.target.value)}
-                  placeholder="<svg ...>...</svg>"
-                  rows={4}
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      "color-mix(in oklab, var(--surface) 70%, transparent)",
-                    color: "var(--text)",
-                  }}
-                />
-              </LabeledField>
-
-              <LabeledField label="Upload SVG">
-                <input
-                  type="file"
-                  accept=".svg,image/svg+xml"
-                  onChange={(e) =>
-                    handleStateSvgUpload(
-                      e.target.files?.[0] ?? null,
-                      setCustomSvg
-                    )
-                  }
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      "color-mix(in oklab, var(--surface) 70%, transparent)",
-                    color: "var(--text)",
-                  }}
-                />
-              </LabeledField>
-            </div>
-          )}
+          <IconPickerControl
+            label="Override Icon"
+            source={source}
+            setSource={setSource}
+            name={name}
+            setName={setName}
+            customSvg={customSvg}
+            setCustomSvg={setCustomSvg}
+          />
         </div>
       ) : null}
     </div>
@@ -259,73 +179,15 @@ export default function IconSection(props: {
       subtitle="Built-in icons + position + size + color."
     >
       <div className="space-y-4">
-        <LabeledField label="Icon source">
-          <Segmented
-            value={iconSource}
-            onChange={(v) => setIconSource(v as IconSource)}
-            items={[
-              { value: "library", label: "Library" },
-              { value: "custom", label: "Custom SVG" },
-            ]}
-          />
-        </LabeledField>
-
-        {iconSource === "library" ? (
-          <LabeledField label="Icon">
-            <select
-              value={iconName}
-              onChange={(e) => setIconName(e.target.value as IconName)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            >
-              <option value="none">None</option>
-              <option value="arrowRight">Arrow Right</option>
-              <option value="check">Check</option>
-              <option value="plus">Plus</option>
-              <option value="x">X</option>
-              <option value="info">Info</option>
-              <option value="star">Star</option>
-            </select>
-          </LabeledField>
-        ) : (
-          <div className="space-y-3">
-            <LabeledField label="Paste SVG">
-              <textarea
-                value={iconCustomSvg}
-                onChange={(e) => setIconCustomSvg(e.target.value)}
-                placeholder="<svg ...>...</svg>"
-                rows={4}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
-            </LabeledField>
-
-            <LabeledField label="Upload SVG">
-              <input
-                type="file"
-                accept=".svg,image/svg+xml"
-                onChange={(e) => handleSvgUpload(e.target.files?.[0] ?? null)}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
-            </LabeledField>
-          </div>
-        )}
+        <IconPickerControl
+          label="Base Icon"
+          source={iconSource}
+          setSource={setIconSource}
+          name={iconName}
+          setName={setIconName}
+          customSvg={iconCustomSvg}
+          setCustomSvg={setIconCustomSvg}
+        />
 
         {(iconSource === "library" && iconName !== "none") ||
         (iconSource === "custom" && iconCustomSvg.trim()) ? (
@@ -344,17 +206,19 @@ export default function IconSection(props: {
             <div className="grid grid-cols-2 gap-3">
               <SizeControl
                 label={`Icon size (${iconSize}px)`}
-                valueText={iconSizeText}
-                setValueText={setIconSizeText}
+                value={Number(iconSizeText) || 10}
+                onChange={(v) => setIconSizeText(String(v))}
                 min={10}
                 max={40}
+                step={1}
               />
               <SizeControl
                 label={`Icon gap (${iconGap}px)`}
-                valueText={iconGapText}
-                setValueText={setIconGapText}
+                value={Number(iconGapText) || 0}
+                onChange={(v) => setIconGapText(String(v))}
                 min={0}
                 max={30}
+                step={1}
               />
             </div>
 
@@ -371,15 +235,10 @@ export default function IconSection(props: {
 
             {iconColorMode === "custom" ? (
               <ColorControl
-                title="Icon Color"
+                label="Icon Color"
                 palette={PALETTE}
-                valueText={iconColorInput}
-                setValueText={setIconColorInput}
-                normalizedHex={
-                  iconColorNorm.ok ? iconColorNorm.hex : baseTextHex
-                }
-                normalizedRgb={iconColorNorm.rgb}
-                ok={iconColorNorm.ok}
+                value={iconColorInput}
+                onChange={setIconColorInput}
               />
             ) : null}
           </>
@@ -401,7 +260,7 @@ export default function IconSection(props: {
             hoverIconName,
             setHoverIconName,
             hoverIconCustomSvg,
-            setHoverIconCustomSvg
+            setHoverIconCustomSvg,
           )}
           {renderStateOverride(
             "Active",
@@ -412,7 +271,7 @@ export default function IconSection(props: {
             activeIconName,
             setActiveIconName,
             activeIconCustomSvg,
-            setActiveIconCustomSvg
+            setActiveIconCustomSvg,
           )}
           {renderStateOverride(
             "Loading",
@@ -424,7 +283,7 @@ export default function IconSection(props: {
             setLoadingIconName,
             loadingIconCustomSvg,
             setLoadingIconCustomSvg,
-            "Overrides the spinner when enabled."
+            "Overrides the spinner when enabled.",
           )}
         </div>
       </div>

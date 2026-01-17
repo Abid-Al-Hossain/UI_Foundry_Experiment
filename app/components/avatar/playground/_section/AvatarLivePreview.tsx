@@ -121,6 +121,15 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
 
   const Wrapper = motion.div;
 
+  const [imgError, setImgError] = React.useState(false);
+  const [imgLoaded, setImgLoaded] = React.useState(false);
+
+  // Reset states when src changes
+  React.useEffect(() => {
+    setImgError(false);
+    setImgLoaded(false);
+  }, [src]);
+
   return (
     <div className="flex h-full w-full items-center justify-center bg-transparent">
       <Wrapper
@@ -136,19 +145,33 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
           rotateX: hoverEffect === "holo-card" ? rotateX : 0,
           rotateY: hoverEffect === "holo-card" ? rotateY : 0,
           transformStyle: "preserve-3d",
+          overflow: "hidden", // Ensure image clips to border radius
         }}
         layoutId={hoverEffect === "layout" ? "avatar-preview" : undefined}
       >
-        {/* Image / Initials */}
-        {src ? (
-          <img src={src} alt={alt} style={imageStyle} />
-        ) : (
-          <div
-            style={imageStyle}
-            className="flex items-center justify-center text-xl font-bold text-gray-400"
-          >
-            {initials}
-          </div>
+        {/* Always render Initials/Background as base layer */}
+        <div
+          style={{ ...imageStyle, position: "absolute", inset: 0 }}
+          className="flex items-center justify-center text-xl font-bold"
+        >
+          {initials}
+        </div>
+
+        {/* Image Overlay - Fades in when loaded */}
+        {src && !imgError && (
+          <img
+            src={src}
+            alt={alt}
+            style={{
+              ...imageStyle,
+              position: "absolute",
+              inset: 0,
+              opacity: imgLoaded ? 1 : 0,
+              transition: "opacity 0.2s ease-in-out",
+            }}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+          />
         )}
 
         {/* 3D Overlay */}
@@ -398,7 +421,7 @@ function AccessoryMesh({
                 points={[
                   [0, 0, 0],
                   nodes[(i + 1) % nodes.length].position.map(
-                    (v, idx) => v - node.position[idx]
+                    (v, idx) => v - node.position[idx],
                   ) as any,
                 ]}
                 color={color}

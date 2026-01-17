@@ -8,7 +8,7 @@ import LivePreview from "../_section/LivePreview";
 // Fix IDE staleness
 import PreviewDownloadPanel, {
   DownloadFormat,
-} from "../../buttons/action/_section/PreviewDownloadPanel";
+} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 
 // --- Sections (we will create these next) ---
 import ContentSection from "../_section/ContentSection";

@@ -2,8 +2,8 @@
 
 import React from "react";
 import { SectionCard, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export default function DisabledSection(props: {
   PALETTE: readonly string[];
@@ -43,9 +43,9 @@ export default function DisabledSection(props: {
     <SectionCard title="Disabled" subtitle="Colors, opacity, and cursor.">
       <div className="space-y-4">
         <SizeControl
-          label="Opacity"
-          valueText={props.disabledOpacityText}
-          setValueText={props.setDisabledOpacityText}
+          label="Opacity (0-1)"
+          value={Number(props.disabledOpacityText) || 1}
+          onChange={(v) => props.setDisabledOpacityText(String(v))}
           min={0}
           max={1}
           step={0.05}
@@ -58,7 +58,11 @@ export default function DisabledSection(props: {
           <div className="mt-2">
             <Segmented
               value={props.disabledCursor}
-              onChange={(v) => props.setDisabledCursor(v as "not-allowed" | "default" | "pointer")}
+              onChange={(v) =>
+                props.setDisabledCursor(
+                  v as "not-allowed" | "default" | "pointer",
+                )
+              }
               items={[
                 { value: "not-allowed", label: "Not allowed" },
                 { value: "default", label: "Default" },
@@ -70,8 +74,8 @@ export default function DisabledSection(props: {
 
         <SizeControl
           label={`Border width (${props.disabledBorderWidthPx}px)`}
-          valueText={props.disabledBorderWidthText}
-          setValueText={props.setDisabledBorderWidthText}
+          value={Number(props.disabledBorderWidthText) || 0}
+          onChange={(v) => props.setDisabledBorderWidthText(String(v))}
           min={0}
           max={12}
           step={1}
@@ -85,12 +89,19 @@ export default function DisabledSection(props: {
             onChange={(e) => props.setDisabledUseCustomColors(e.target.checked)}
             className="uf-clickable"
           />
-          <label htmlFor="disabled-colors" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <label
+            htmlFor="disabled-colors"
+            className="text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             Custom disabled colors
           </label>
         </div>
 
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <label
+          className="flex items-center gap-2 text-sm uf-clickable"
+          style={{ color: "var(--text)" }}
+        >
           <input
             type="checkbox"
             checked={props.disabledHoverSuppressed}
@@ -100,11 +111,16 @@ export default function DisabledSection(props: {
           Suppress hover styles while disabled
         </label>
 
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <label
+          className="flex items-center gap-2 text-sm uf-clickable"
+          style={{ color: "var(--text)" }}
+        >
           <input
             type="checkbox"
             checked={props.disabledTextShadowEnabled}
-            onChange={(e) => props.setDisabledTextShadowEnabled(e.target.checked)}
+            onChange={(e) =>
+              props.setDisabledTextShadowEnabled(e.target.checked)
+            }
             className="uf-clickable"
           />
           Use text shadow when disabled
@@ -116,33 +132,24 @@ export default function DisabledSection(props: {
         {props.disabledUseCustomColors ? (
           <div className="space-y-5">
             <ColorControl
-              title="Background"
+              label="Background"
               palette={props.PALETTE}
-              valueText={props.disabledBgInput}
-              setValueText={props.setDisabledBgInput}
-              normalizedHex={props.disabledBgNorm.hex}
-              normalizedRgb={props.disabledBgNorm.rgb}
-              ok={props.disabledBgNorm.ok}
+              value={props.disabledBgInput}
+              onChange={props.setDisabledBgInput}
             />
 
             <ColorControl
-              title="Text"
+              label="Text"
               palette={props.PALETTE}
-              valueText={props.disabledTextInput}
-              setValueText={props.setDisabledTextInput}
-              normalizedHex={props.disabledTextNorm.hex}
-              normalizedRgb={props.disabledTextNorm.rgb}
-              ok={props.disabledTextNorm.ok}
+              value={props.disabledTextInput}
+              onChange={props.setDisabledTextInput}
             />
 
             <ColorControl
-              title="Border"
+              label="Border"
               palette={props.PALETTE}
-              valueText={props.disabledBorderInput}
-              setValueText={props.setDisabledBorderInput}
-              normalizedHex={props.disabledBorderNorm.hex}
-              normalizedRgb={props.disabledBorderNorm.rgb}
-              ok={props.disabledBorderNorm.ok}
+              value={props.disabledBorderInput}
+              onChange={props.setDisabledBorderInput}
             />
           </div>
         ) : null}

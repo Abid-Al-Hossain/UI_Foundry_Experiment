@@ -2,8 +2,9 @@
 
 import React from "react";
 import { SectionCard, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export default function ShadowSection(props: {
   PALETTE: readonly string[];
@@ -44,8 +45,15 @@ export default function ShadowSection(props: {
   setDepthText: (v: string) => void;
   depthPx: number;
 
-  lightDirection: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom";
-  setLightDirection: (v: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom") => void;
+  lightDirection:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "custom";
+  setLightDirection: (
+    v: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom",
+  ) => void;
   lightAngleText: string;
   setLightAngleText: (v: string) => void;
 
@@ -109,8 +117,12 @@ export default function ShadowSection(props: {
   setBevelSoftnessText: (v: string) => void;
 
   materialPreset: "custom" | "plastic" | "matte" | "metal" | "glass";
-  setMaterialPreset: (v: "custom" | "plastic" | "matte" | "metal" | "glass") => void;
-  onApplyMaterialPreset: (v: "custom" | "plastic" | "matte" | "metal" | "glass") => void;
+  setMaterialPreset: (
+    v: "custom" | "plastic" | "matte" | "metal" | "glass",
+  ) => void;
+  onApplyMaterialPreset: (
+    v: "custom" | "plastic" | "matte" | "metal" | "glass",
+  ) => void;
 
   edgeThicknessText: string;
   setEdgeThicknessText: (v: string) => void;
@@ -199,35 +211,24 @@ export default function ShadowSection(props: {
 }) {
   return (
     <SectionCard title="Shadow" subtitle="Box shadow plus 3D depth styling.">
-      <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
-        <input
-          type="checkbox"
-          checked={props.shadowEnabled}
-          onChange={(e) => props.setShadowEnabled(e.target.checked)}
-          className="uf-clickable"
-        />
-        Enable shadow
-      </label>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <SizeControl label="X offset (px)" valueText={props.shXText} setValueText={props.setShXText} min={-50} max={50} step={1} />
-        <SizeControl label="Y offset (px)" valueText={props.shYText} setValueText={props.setShYText} min={-50} max={50} step={1} />
-        <SizeControl label="Blur (px)" valueText={props.shBlurText} setValueText={props.setShBlurText} min={0} max={120} step={1} />
-        <SizeControl label="Spread (px)" valueText={props.shSpreadText} setValueText={props.setShSpreadText} min={-40} max={40} step={1} />
-        <SizeControl label="Opacity (0-1)" valueText={props.shOpacityText} setValueText={props.setShOpacityText} min={0} max={1} step={0.01} />
-      </div>
-
-      <div className="mt-4">
-        <ColorControl
-          title="Shadow color"
-          palette={props.PALETTE}
-          valueText={props.shColorInput}
-          setValueText={props.setShColorInput}
-          normalizedHex={props.shColorHex}
-          normalizedRgb={props.shColorRgb}
-          ok={props.shColorOk}
-        />
-      </div>
+      <ShadowLayerControl
+        label="Main Shadow"
+        enabled={props.shadowEnabled}
+        setEnabled={props.setShadowEnabled}
+        x={Number(props.shXText) || 0}
+        setX={(v) => props.setShXText(String(v))}
+        y={Number(props.shYText) || 0}
+        setY={(v) => props.setShYText(String(v))}
+        blur={Number(props.shBlurText) || 0}
+        setBlur={(v) => props.setShBlurText(String(v))}
+        spread={Number(props.shSpreadText) || 0}
+        setSpread={(v) => props.setShSpreadText(String(v))}
+        opacity={Number(props.shOpacityText) || 0}
+        setOpacity={(v) => props.setShOpacityText(String(v))}
+        palette={props.PALETTE}
+        color={props.shColorInput}
+        setColor={props.setShColorInput}
+      />
 
       <div className="mt-4 space-y-2">
         <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
@@ -235,7 +236,9 @@ export default function ShadowSection(props: {
         </div>
         <Segmented
           value={props.shadowTemp}
-          onChange={(v) => props.setShadowTemp(v as "neutral" | "warm" | "cool")}
+          onChange={(v) =>
+            props.setShadowTemp(v as "neutral" | "warm" | "cool")
+          }
           items={[
             { value: "neutral", label: "Neutral" },
             { value: "warm", label: "Warm" },
@@ -244,8 +247,14 @@ export default function ShadowSection(props: {
         />
       </div>
 
-      <div className="mt-6 space-y-5 border-t pt-5" style={{ borderColor: "var(--border)" }}>
-        <div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>
+      <div
+        className="mt-6 space-y-5 border-t pt-5"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <div
+          className="text-xs font-semibold"
+          style={{ color: "var(--muted)" }}
+        >
           3D & Depth
         </div>
 
@@ -255,7 +264,11 @@ export default function ShadowSection(props: {
           </div>
           <Segmented
             value={props.materialPreset}
-            onChange={(v) => props.onApplyMaterialPreset(v as "custom" | "plastic" | "matte" | "metal" | "glass")}
+            onChange={(v) =>
+              props.onApplyMaterialPreset(
+                v as "custom" | "plastic" | "matte" | "metal" | "glass",
+              )
+            }
             items={[
               { value: "custom", label: "Custom" },
               { value: "plastic", label: "Plastic" },
@@ -272,7 +285,11 @@ export default function ShadowSection(props: {
           </div>
           <Segmented
             value={props.elevationPreset}
-            onChange={(v) => props.onApplyElevationPreset(v as "flat" | "raised" | "lifted" | "inset")}
+            onChange={(v) =>
+              props.onApplyElevationPreset(
+                v as "flat" | "raised" | "lifted" | "inset",
+              )
+            }
             items={[
               { value: "flat", label: "Flat" },
               { value: "raised", label: "Raised" },
@@ -284,8 +301,8 @@ export default function ShadowSection(props: {
 
         <SizeControl
           label={`Depth (z-height, ${props.depthPx}px)`}
-          valueText={props.depthText}
-          setValueText={props.setDepthText}
+          value={Number(props.depthText) || 0}
+          onChange={(v) => props.setDepthText(String(v))}
           min={0}
           max={40}
           step={1}
@@ -293,8 +310,8 @@ export default function ShadowSection(props: {
 
         <SizeControl
           label="Edge thickness (px)"
-          valueText={props.edgeThicknessText}
-          setValueText={props.setEdgeThicknessText}
+          value={Number(props.edgeThicknessText) || 0}
+          onChange={(v) => props.setEdgeThicknessText(String(v))}
           min={0}
           max={20}
           step={1}
@@ -306,7 +323,16 @@ export default function ShadowSection(props: {
           </div>
           <Segmented
             value={props.lightDirection}
-            onChange={(v) => props.setLightDirection(v as "top-left" | "top-right" | "bottom-left" | "bottom-right" | "custom")}
+            onChange={(v) =>
+              props.setLightDirection(
+                v as
+                  | "top-left"
+                  | "top-right"
+                  | "bottom-left"
+                  | "bottom-right"
+                  | "custom",
+              )
+            }
             items={[
               { value: "top-left", label: "Top Left" },
               { value: "top-right", label: "Top Right" },
@@ -318,8 +344,8 @@ export default function ShadowSection(props: {
           {props.lightDirection === "custom" ? (
             <SizeControl
               label="Light angle (deg)"
-              valueText={props.lightAngleText}
-              setValueText={props.setLightAngleText}
+              value={Number(props.lightAngleText) || 0}
+              onChange={(v) => props.setLightAngleText(String(v))}
               min={0}
               max={360}
               step={1}
@@ -327,8 +353,17 @@ export default function ShadowSection(props: {
           ) : null}
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.edgeGradientEnabled}
@@ -338,13 +373,36 @@ export default function ShadowSection(props: {
             3D border gradient
           </label>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Gradient size (px)" valueText={props.edgeGradientSizeText} setValueText={props.setEdgeGradientSizeText} min={0} max={12} step={1} />
-            <SizeControl label="Gradient strength (0-1)" valueText={props.edgeGradientStrengthText} setValueText={props.setEdgeGradientStrengthText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Gradient size (px)"
+              value={Number(props.edgeGradientSizeText) || 0}
+              onChange={(v) => props.setEdgeGradientSizeText(String(v))}
+              min={0}
+              max={12}
+              step={1}
+            />
+            <SizeControl
+              label="Gradient strength (0-1)"
+              value={Number(props.edgeGradientStrengthText) || 0}
+              onChange={(v) => props.setEdgeGradientStrengthText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.topGradientEnabled}
@@ -355,19 +413,33 @@ export default function ShadowSection(props: {
           </label>
           <div className="mt-3 space-y-3">
             <div className="grid gap-3 md:grid-cols-2">
-              <SizeControl label="Angle (deg)" valueText={props.topGradAngleText} setValueText={props.setTopGradAngleText} min={0} max={360} step={1} />
-              <SizeControl label="Opacity (0-1)" valueText={props.topGradOpacityText} setValueText={props.setTopGradOpacityText} min={0} max={1} step={0.01} />
+              <SizeControl
+                label="Angle (deg)"
+                value={Number(props.topGradAngleText) || 0}
+                onChange={(v) => props.setTopGradAngleText(String(v))}
+                min={0}
+                max={360}
+                step={1}
+              />
+              <SizeControl
+                label="Opacity (0-1)"
+                value={Number(props.topGradOpacityText) || 0}
+                onChange={(v) => props.setTopGradOpacityText(String(v))}
+                min={0}
+                max={1}
+                step={0.01}
+              />
             </div>
             <ColorControl
-              title="Top gradient start"
+              label="Top gradient start"
               palette={props.PALETTE}
-              valueText={props.topGradStartInput}
-              setValueText={props.setTopGradStartInput}
-              normalizedHex={props.topGradStartNorm.hex}
-              normalizedRgb={props.topGradStartNorm.rgb}
-              ok={props.topGradStartNorm.ok}
+              value={props.topGradStartInput}
+              onChange={props.setTopGradStartInput}
             />
-            <label className="flex items-center gap-2 text-xs uf-clickable" style={{ color: "var(--muted)" }}>
+            <label
+              className="flex items-center gap-2 text-xs uf-clickable"
+              style={{ color: "var(--muted)" }}
+            >
               <input
                 type="checkbox"
                 checked={props.topGradMidEnabled}
@@ -378,44 +450,65 @@ export default function ShadowSection(props: {
             </label>
             {props.topGradMidEnabled ? (
               <ColorControl
-                title="Top gradient middle"
+                label="Top gradient middle"
                 palette={props.PALETTE}
-                valueText={props.topGradMidInput}
-                setValueText={props.setTopGradMidInput}
-                normalizedHex={props.topGradMidNorm.hex}
-                normalizedRgb={props.topGradMidNorm.rgb}
-                ok={props.topGradMidNorm.ok}
+                value={props.topGradMidInput}
+                onChange={props.setTopGradMidInput}
               />
             ) : null}
             <ColorControl
-              title="Top gradient end"
+              label="Top gradient end"
               palette={props.PALETTE}
-              valueText={props.topGradEndInput}
-              setValueText={props.setTopGradEndInput}
-              normalizedHex={props.topGradEndNorm.hex}
-              normalizedRgb={props.topGradEndNorm.rgb}
-              ok={props.topGradEndNorm.ok}
+              value={props.topGradEndInput}
+              onChange={props.setTopGradEndInput}
             />
           </div>
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.parallaxHighlightEnabled}
-              onChange={(e) => props.setParallaxHighlightEnabled(e.target.checked)}
+              onChange={(e) =>
+                props.setParallaxHighlightEnabled(e.target.checked)
+              }
               className="uf-clickable"
             />
             Parallax highlight
           </label>
           <div className="mt-3">
-            <SizeControl label="Parallax strength (0-1)" valueText={props.parallaxStrengthText} setValueText={props.setParallaxStrengthText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Parallax strength (0-1)"
+              value={Number(props.parallaxStrengthText) || 0}
+              onChange={(v) => props.setParallaxStrengthText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.rimLightEnabled}
@@ -425,18 +518,29 @@ export default function ShadowSection(props: {
             Rim light
           </label>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Glow size (px)" valueText={props.rimLightSizeText} setValueText={props.setRimLightSizeText} min={0} max={30} step={1} />
-            <SizeControl label="Glow opacity (0-1)" valueText={props.rimLightOpacityText} setValueText={props.setRimLightOpacityText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Glow size (px)"
+              value={Number(props.rimLightSizeText) || 0}
+              onChange={(v) => props.setRimLightSizeText(String(v))}
+              min={0}
+              max={30}
+              step={1}
+            />
+            <SizeControl
+              label="Glow opacity (0-1)"
+              value={Number(props.rimLightOpacityText) || 0}
+              onChange={(v) => props.setRimLightOpacityText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
           <div className="mt-3">
             <ColorControl
-              title="Rim light color"
+              label="Rim light color"
               palette={props.PALETTE}
-              valueText={props.rimLightColorInput}
-              setValueText={props.setRimLightColorInput}
-              normalizedHex={props.rimLightHex}
-              normalizedRgb={props.rimLightRgb}
-              ok={props.rimLightOk}
+              value={props.rimLightColorInput}
+              onChange={props.setRimLightColorInput}
             />
           </div>
         </div>
@@ -447,18 +551,36 @@ export default function ShadowSection(props: {
           </div>
           <Segmented
             value={props.borderDepthMode}
-            onChange={(v) => props.setBorderDepthMode(v as "none" | "raised" | "inset")}
+            onChange={(v) =>
+              props.setBorderDepthMode(v as "none" | "raised" | "inset")
+            }
             items={[
               { value: "none", label: "None" },
               { value: "raised", label: "Raised" },
               { value: "inset", label: "Inset" },
             ]}
           />
-          <SizeControl label="Border depth (px)" valueText={props.borderDepthSizeText} setValueText={props.setBorderDepthSizeText} min={0} max={8} step={1} />
+          <SizeControl
+            label="Border depth (px)"
+            value={Number(props.borderDepthSizeText) || 0}
+            onChange={(v) => props.setBorderDepthSizeText(String(v))}
+            min={0}
+            max={8}
+            step={1}
+          />
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.baseShadowEnabled}
@@ -468,12 +590,29 @@ export default function ShadowSection(props: {
             Bottom edge shadow
           </label>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Base size (px)" valueText={props.baseShadowSizeText} setValueText={props.setBaseShadowSizeText} min={0} max={30} step={1} />
-            <SizeControl label="Base opacity (0-1)" valueText={props.baseShadowOpacityText} setValueText={props.setBaseShadowOpacityText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Base size (px)"
+              value={Number(props.baseShadowSizeText) || 0}
+              onChange={(v) => props.setBaseShadowSizeText(String(v))}
+              min={0}
+              max={30}
+              step={1}
+            />
+            <SizeControl
+              label="Base opacity (0-1)"
+              value={Number(props.baseShadowOpacityText) || 0}
+              onChange={(v) => props.setBaseShadowOpacityText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <label
+          className="flex items-center gap-2 text-sm uf-clickable"
+          style={{ color: "var(--text)" }}
+        >
           <input
             type="checkbox"
             checked={props.shadowStackEnabled}
@@ -532,38 +671,33 @@ export default function ShadowSection(props: {
                 setOpacityText: props.setStack3OpacityText,
               },
             ].map((layer) => (
-              <div
+              <ShadowLayerControl
                 key={layer.label}
-                className="rounded-xl border p-3"
-                style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-                    {layer.label}
-                  </div>
-                  <label className="inline-flex items-center gap-2 text-xs uf-clickable" style={{ color: "var(--muted)" }}>
-                    <input
-                      type="checkbox"
-                      checked={layer.enabled}
-                      onChange={(e) => layer.setEnabled(e.target.checked)}
-                      className="uf-clickable"
-                    />
-                    Enabled
-                  </label>
-                </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <SizeControl label="X offset (px)" valueText={layer.xText} setValueText={layer.setXText} min={-60} max={60} step={1} />
-                  <SizeControl label="Y offset (px)" valueText={layer.yText} setValueText={layer.setYText} min={-60} max={60} step={1} />
-                  <SizeControl label="Blur (px)" valueText={layer.blurText} setValueText={layer.setBlurText} min={0} max={120} step={1} />
-                  <SizeControl label="Spread (px)" valueText={layer.spreadText} setValueText={layer.setSpreadText} min={-40} max={40} step={1} />
-                  <SizeControl label="Opacity (0-1)" valueText={layer.opacityText} setValueText={layer.setOpacityText} min={0} max={1} step={0.01} />
-                </div>
-              </div>
+                label={layer.label}
+                enabled={layer.enabled}
+                setEnabled={layer.setEnabled}
+                x={Number(layer.xText) || 0}
+                setX={(v) => layer.setXText(String(v))}
+                y={Number(layer.yText) || 0}
+                setY={(v) => layer.setYText(String(v))}
+                blur={Number(layer.blurText) || 0}
+                setBlur={(v) => layer.setBlurText(String(v))}
+                spread={Number(layer.spreadText) || 0}
+                setSpread={(v) => layer.setSpreadText(String(v))}
+                opacity={Number(layer.opacityText) || 0}
+                setOpacity={(v) => layer.setOpacityText(String(v))}
+                palette={props.PALETTE}
+                color={props.shColorInput}
+                setColor={() => {}}
+              />
             ))}
           </div>
         ) : null}
 
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <label
+          className="flex items-center gap-2 text-sm uf-clickable"
+          style={{ color: "var(--text)" }}
+        >
           <input
             type="checkbox"
             checked={props.innerShadowEnabled}
@@ -575,15 +709,24 @@ export default function ShadowSection(props: {
 
         <SizeControl
           label="Ambient occlusion strength (0-1)"
-          valueText={props.aoStrengthText}
-          setValueText={props.setAoStrengthText}
+          value={Number(props.aoStrengthText) || 0}
+          onChange={(v) => props.setAoStrengthText(String(v))}
           min={0}
           max={1}
           step={0.01}
         />
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.glossEnabled}
@@ -593,15 +736,52 @@ export default function ShadowSection(props: {
             Highlight / gloss
           </label>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Gloss size (px)" valueText={props.glossSizeText} setValueText={props.setGlossSizeText} min={0} max={40} step={1} />
-            <SizeControl label="Gloss opacity (0-1)" valueText={props.glossOpacityText} setValueText={props.setGlossOpacityText} min={0} max={1} step={0.01} />
-            <SizeControl label="Specular strength (0-1)" valueText={props.specularStrengthText} setValueText={props.setSpecularStrengthText} min={0} max={1} step={0.01} />
-            <SizeControl label="Surface roughness (0-1)" valueText={props.roughnessText} setValueText={props.setRoughnessText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Gloss size (px)"
+              value={Number(props.glossSizeText) || 0}
+              onChange={(v) => props.setGlossSizeText(String(v))}
+              min={0}
+              max={40}
+              step={1}
+            />
+            <SizeControl
+              label="Gloss opacity (0-1)"
+              value={Number(props.glossOpacityText) || 0}
+              onChange={(v) => props.setGlossOpacityText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
+            <SizeControl
+              label="Specular strength (0-1)"
+              value={Number(props.specularStrengthText) || 0}
+              onChange={(v) => props.setSpecularStrengthText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
+            <SizeControl
+              label="Surface roughness (0-1)"
+              value={Number(props.roughnessText) || 0}
+              onChange={(v) => props.setRoughnessText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.bevelEnabled}
@@ -611,8 +791,22 @@ export default function ShadowSection(props: {
             Bevel / emboss
           </label>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Bevel size (px)" valueText={props.bevelSizeText} setValueText={props.setBevelSizeText} min={0} max={24} step={1} />
-            <SizeControl label="Softness (px)" valueText={props.bevelSoftnessText} setValueText={props.setBevelSoftnessText} min={0} max={24} step={1} />
+            <SizeControl
+              label="Bevel size (px)"
+              value={parseInt(props.bevelSizeText) || 0}
+              onChange={(v) => props.setBevelSizeText(String(v))}
+              min={0}
+              max={24}
+              step={1}
+            />
+            <SizeControl
+              label="Softness (px)"
+              value={parseInt(props.bevelSoftnessText) || 0}
+              onChange={(v) => props.setBevelSoftnessText(String(v))}
+              min={0}
+              max={24}
+              step={1}
+            />
           </div>
         </div>
 
@@ -622,7 +816,9 @@ export default function ShadowSection(props: {
           </div>
           <Segmented
             value={props.iconEmbossMode}
-            onChange={(v) => props.setIconEmbossMode(v as "off" | "raised" | "inset")}
+            onChange={(v) =>
+              props.setIconEmbossMode(v as "off" | "raised" | "inset")
+            }
             items={[
               { value: "off", label: "Off" },
               { value: "raised", label: "Raised" },
@@ -630,8 +826,22 @@ export default function ShadowSection(props: {
             ]}
           />
           <div className="grid gap-3 md:grid-cols-2">
-            <SizeControl label="Emboss depth (px)" valueText={props.iconEmbossDepthText} setValueText={props.setIconEmbossDepthText} min={0} max={8} step={1} />
-            <SizeControl label="Emboss strength (0-1)" valueText={props.iconEmbossStrengthText} setValueText={props.setIconEmbossStrengthText} min={0} max={1} step={0.01} />
+            <SizeControl
+              label="Emboss depth (px)"
+              value={parseInt(props.iconEmbossDepthText) || 0}
+              onChange={(v) => props.setIconEmbossDepthText(String(v))}
+              min={0}
+              max={8}
+              step={1}
+            />
+            <SizeControl
+              label="Emboss strength (0-1)"
+              value={parseFloat(props.iconEmbossStrengthText) || 0}
+              onChange={(v) => props.setIconEmbossStrengthText(String(v))}
+              min={0}
+              max={1}
+              step={0.01}
+            />
           </div>
         </div>
 
@@ -640,10 +850,27 @@ export default function ShadowSection(props: {
             Interaction depth
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <SizeControl label="Hover lift (px)" valueText={props.hoverLiftText} setValueText={props.setHoverLiftText} min={0} max={24} step={1} />
-            <SizeControl label="Pressed depth (px)" valueText={props.pressedDepthText} setValueText={props.setPressedDepthText} min={0} max={30} step={1} />
+            <SizeControl
+              label="Hover lift (px)"
+              value={parseInt(props.hoverLiftText) || 0}
+              onChange={(v) => props.setHoverLiftText(String(v))}
+              min={0}
+              max={24}
+              step={1}
+            />
+            <SizeControl
+              label="Pressed depth (px)"
+              value={parseInt(props.pressedDepthText) || 0}
+              onChange={(v) => props.setPressedDepthText(String(v))}
+              min={0}
+              max={30}
+              step={1}
+            />
           </div>
-          <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <label
+            className="flex items-center gap-2 text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             <input
               type="checkbox"
               checked={props.pressedInsetEnabled}
@@ -654,14 +881,41 @@ export default function ShadowSection(props: {
           </label>
         </div>
 
-        <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)" }}>
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+          }}
+        >
           <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
             Perspective tilt (hover)
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <SizeControl label="Tilt X (deg)" valueText={props.hoverTiltXText} setValueText={props.setHoverTiltXText} min={-20} max={20} step={1} />
-            <SizeControl label="Tilt Y (deg)" valueText={props.hoverTiltYText} setValueText={props.setHoverTiltYText} min={-20} max={20} step={1} />
-            <SizeControl label="Perspective (px)" valueText={props.hoverPerspectiveText} setValueText={props.setHoverPerspectiveText} min={200} max={2000} step={10} />
+            <SizeControl
+              label="Tilt X (deg)"
+              value={parseInt(props.hoverTiltXText) || 0}
+              onChange={(v) => props.setHoverTiltXText(String(v))}
+              min={-20}
+              max={20}
+              step={1}
+            />
+            <SizeControl
+              label="Tilt Y (deg)"
+              value={parseInt(props.hoverTiltYText) || 0}
+              onChange={(v) => props.setHoverTiltYText(String(v))}
+              min={-20}
+              max={20}
+              step={1}
+            />
+            <SizeControl
+              label="Perspective (px)"
+              value={parseInt(props.hoverPerspectiveText) || 200}
+              onChange={(v) => props.setHoverPerspectiveText(String(v))}
+              min={200}
+              max={2000}
+              step={10}
+            />
           </div>
         </div>
       </div>

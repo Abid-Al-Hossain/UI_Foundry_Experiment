@@ -1,6 +1,6 @@
 "use client";
 
-import type { DownloadFormat } from "../_section/PreviewDownloadPanel";
+import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { sanitizeFilenameBase } from "./colorUtils";
 
 type TransitionEasing =
@@ -235,12 +235,12 @@ export function buildExportPayload(params: ExportPayloadInput) {
     downloadFormat === "react"
       ? "jsx"
       : downloadFormat === "css-vars"
-      ? "css"
-      : downloadFormat === "tailwind-config"
-      ? "js"
-      : downloadFormat === "figma-tokens"
-      ? "json"
-      : downloadFormat;
+        ? "css"
+        : downloadFormat === "tailwind-config"
+          ? "js"
+          : downloadFormat === "figma-tokens"
+            ? "json"
+            : downloadFormat;
   const rawBase = sanitizeFilenameBase(downloadName);
   const base =
     rawBase.replace(/\.(html|jsx|tailwind|css|scss|js|json)$/i, "") || "button";
@@ -260,8 +260,8 @@ export function buildExportPayload(params: ExportPayloadInput) {
         ? ` aria-busy="true"`
         : ""
       : ariaBusyMode !== "off"
-      ? ` aria-busy="${ariaBusyMode}"`
-      : "";
+        ? ` aria-busy="${ariaBusyMode}"`
+        : "";
   const ariaAttr = `${ariaLabelAttr}${ariaPressedAttr}${ariaBusyAttr}`;
   const tsX = Number(tsXText) || 0;
   const tsY = Number(tsYText) || 0;
@@ -298,8 +298,8 @@ export function buildExportPayload(params: ExportPayloadInput) {
     loadingSpinnerMode === "custom" && loadingSpinnerSvg
       ? loadingSpinnerSvg
       : loadingSpinnerMode === "none"
-      ? ""
-      : defaultSpinnerSvg;
+        ? ""
+        : defaultSpinnerSvg;
   const spinnerWrap = exportSpinnerSvg
     ? `<span class="uf-spinner-wrap" style="width:${spinnerSize}px;height:${spinnerSize}px;${
         loadingSpinnerPosition === "left"
@@ -320,17 +320,17 @@ export function buildExportPayload(params: ExportPayloadInput) {
       : iconName !== "none";
   const hasHoverIcon = Boolean(exportHoverIconSvg && exportHoverIconSvg.trim());
   const hasActiveIcon = Boolean(
-    exportActiveIconSvg && exportActiveIconSvg.trim()
+    exportActiveIconSvg && exportActiveIconSvg.trim(),
   );
   const hasLoadingIcon = Boolean(
-    exportLoadingIconSvg && exportLoadingIconSvg.trim()
+    exportLoadingIconSvg && exportLoadingIconSvg.trim(),
   );
   const iconColor =
     iconColorMode === "custom" ? iconColorInput : "currentColor";
   const renderIconSpan = (
     state: string,
     svg: string,
-    position: "left" | "right"
+    position: "left" | "right",
   ) =>
     svg
       ? `<span class="uf-icon-wrap uf-icon-${state} ${position}" style="width:${spinnerSize}px;height:${spinnerSize}px;${
@@ -344,7 +344,7 @@ export function buildExportPayload(params: ExportPayloadInput) {
       ? `${renderIconSpan("base", exportBaseIconSvg, "left")}${renderIconSpan(
           "hover",
           exportHoverIconSvg,
-          "left"
+          "left",
         )}${renderIconSpan("active", exportActiveIconSvg, "left")}`
       : "";
   const iconWrapRight =
@@ -352,14 +352,14 @@ export function buildExportPayload(params: ExportPayloadInput) {
       ? `${renderIconSpan("base", exportBaseIconSvg, "right")}${renderIconSpan(
           "hover",
           exportHoverIconSvg,
-          "right"
+          "right",
         )}${renderIconSpan("active", exportActiveIconSvg, "right")}`
       : "";
   const loadingIconWrap = hasLoadingIcon
     ? renderIconSpan(
         "loading",
         exportLoadingIconSvg,
-        iconPosition === "right" ? "right" : "left"
+        iconPosition === "right" ? "right" : "left",
       )
     : "";
   const useLoadingIcon = loading && hasLoadingIcon;
@@ -369,8 +369,8 @@ export function buildExportPayload(params: ExportPayloadInput) {
         ? `${labelHtml}${loadingIconWrap}`
         : `${loadingIconWrap}${labelHtml}`
       : loadingSpinnerPosition === "right"
-      ? `${labelHtml}${spinnerWrap}`
-      : `${spinnerWrap}${labelHtml}`
+        ? `${labelHtml}${spinnerWrap}`
+        : `${spinnerWrap}${labelHtml}`
     : `${iconWrapLeft}${labelHtml}${iconWrapRight}`;
   const exportDisabled = disabled || loading;
   const exportSpinnerSvgLiteral = JSON.stringify(exportSpinnerSvg);
@@ -409,10 +409,10 @@ export function buildExportPayload(params: ExportPayloadInput) {
     animation === "pulse"
       ? "pulse 2s infinite"
       : animation === "float"
-      ? "float 3s ease-in-out infinite"
-      : animation === "subtle-pop"
-      ? "subtle-pop 0.3s ease-out backwards"
-      : "";
+        ? "float 3s ease-in-out infinite"
+        : animation === "subtle-pop"
+          ? "subtle-pop 0.3s ease-out backwards"
+          : "";
   const animationCss = animationValue
     ? `
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; transform: scale(0.98); } }
@@ -796,8 +796,8 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
              <ambientLight intensity={0.5} />
              <pointLight position={[10, 10, 10]} />
              <IconMesh type="${use3DIcon}" animate={${
-                icon3DAnimation === "spin" || icon3DAnimation === "float"
-              }} color="${iconColorInput}" />
+               icon3DAnimation === "spin" || icon3DAnimation === "float"
+             }} color="${iconColorInput}" />
            </Canvas>
         </div>
         `
@@ -824,12 +824,12 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       borderStyle === "dashed"
         ? "border-dashed"
         : borderStyle === "dotted"
-        ? "border-dotted"
-        : borderStyle === "double"
-        ? "border-double"
-        : borderStyle === "none"
-        ? "border-none"
-        : "border-solid";
+          ? "border-dotted"
+          : borderStyle === "double"
+            ? "border-double"
+            : borderStyle === "none"
+              ? "border-none"
+              : "border-solid";
     const transformClasses = activeEnabled
       ? [
           `enabled:active:translate-y-[${activeTranslateYText}px]`,
@@ -894,10 +894,10 @@ export const CustomButton = ({ onClick, disabled = false, loading = false }) => 
       textTransform === "uppercase"
         ? "uppercase"
         : textTransform === "lowercase"
-        ? "lowercase"
-        : textTransform === "capitalize"
-        ? "capitalize"
-        : "normal-case",
+          ? "lowercase"
+          : textTransform === "capitalize"
+            ? "capitalize"
+            : "normal-case",
       exportShadow !== "none" ? `shadow-[${exportShadow}]` : "shadow-none",
       `disabled:opacity-[${disabledOpacity}]`,
       `disabled:cursor-${disabledCursor}`,
@@ -1282,7 +1282,7 @@ module.exports = {
         },
       },
       null,
-      2
+      2,
     );
   } else {
     content = "// Tailwind export coming next iteration!";

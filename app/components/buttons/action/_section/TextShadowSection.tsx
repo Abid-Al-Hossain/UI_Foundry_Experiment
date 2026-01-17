@@ -2,8 +2,8 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export default function TextShadowSection(props: {
   PALETTE: readonly string[];
@@ -34,8 +34,14 @@ export default function TextShadowSection(props: {
   tsColorRgb: string;
 }) {
   return (
-    <SectionCard title="Text shadow" subtitle="Add a shadow to the label for depth/contrast.">
-      <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
+    <SectionCard
+      title="Text shadow"
+      subtitle="Add a shadow to the label for depth/contrast."
+    >
+      <label
+        className="flex items-center gap-2 text-sm uf-clickable"
+        style={{ color: "var(--text)" }}
+      >
         <input
           type="checkbox"
           checked={props.textShadowEnabled}
@@ -46,10 +52,38 @@ export default function TextShadowSection(props: {
       </label>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <SizeControl label="X offset (px)" valueText={props.tsXText} setValueText={props.setTsXText} min={-20} max={20} step={1} />
-        <SizeControl label="Y offset (px)" valueText={props.tsYText} setValueText={props.setTsYText} min={-20} max={20} step={1} />
-        <SizeControl label="Blur (px)" valueText={props.tsBlurText} setValueText={props.setTsBlurText} min={0} max={60} step={1} />
-        <SizeControl label="Opacity (0–1)" valueText={props.tsOpacityText} setValueText={props.setTsOpacityText} min={0} max={1} step={0.01} />
+        <SizeControl
+          label="X offset (px)"
+          value={Number(props.tsXText) || 0}
+          onChange={(v) => props.setTsXText(String(v))}
+          min={-20}
+          max={20}
+          step={1}
+        />
+        <SizeControl
+          label="Y offset (px)"
+          value={Number(props.tsYText) || 0}
+          onChange={(v) => props.setTsYText(String(v))}
+          min={-20}
+          max={20}
+          step={1}
+        />
+        <SizeControl
+          label="Blur (px)"
+          value={Number(props.tsBlurText) || 0}
+          onChange={(v) => props.setTsBlurText(String(v))}
+          min={0}
+          max={60}
+          step={1}
+        />
+        <SizeControl
+          label="Opacity (0–1)"
+          value={Number(props.tsOpacityText) || 0}
+          onChange={(v) => props.setTsOpacityText(String(v))}
+          min={0}
+          max={1}
+          step={0.01}
+        />
       </div>
 
       <div className="mt-4 space-y-3">
@@ -65,7 +99,8 @@ export default function TextShadowSection(props: {
               className="rounded-xl border px-3 py-2 text-sm font-semibold uf-clickable"
               style={{
                 borderColor: "var(--border)",
-                background: props.tsColorMode === mode ? "var(--primary)" : "transparent",
+                background:
+                  props.tsColorMode === mode ? "var(--primary)" : "transparent",
                 color: props.tsColorMode === mode ? "white" : "var(--text)",
               }}
             >
@@ -76,13 +111,10 @@ export default function TextShadowSection(props: {
 
         {props.tsColorMode === "custom" ? (
           <ColorControl
-            title="Shadow color"
+            label="Shadow color"
             palette={props.PALETTE}
-            valueText={props.tsColorInput}
-            setValueText={props.setTsColorInput}
-            normalizedHex={props.tsColorHex}
-            normalizedRgb={props.tsColorRgb}
-            ok={props.tsColorOk}
+            value={props.tsColorInput}
+            onChange={props.setTsColorInput}
           />
         ) : (
           <div className="text-xs" style={{ color: "var(--muted)" }}>

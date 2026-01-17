@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import ReactDOMServer from "react-dom/server";
+import dynamic from "next/dynamic";
+import * as LucideIcons from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 
@@ -39,7 +42,7 @@ import PreviewBackgroundSection, {
 } from "./_section/PreviewBackgroundSection";
 import PreviewDownloadPanel, {
   type DownloadFormat,
-} from "./_section/PreviewDownloadPanel";
+} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import LoadingSection, {
   type LoadingSpinnerMode,
   type LoadingSpinnerPosition,
@@ -49,7 +52,14 @@ import AccessibilitySection, {
   type MinTouchMode,
 } from "./_section/AccessibilitySection";
 import StatePreviewSection from "./_section/StatePreviewSection";
-import ThreeJSSection, {
+const ThreeJSSection = dynamic(() => import("./_section/ThreeJSSection"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-96 w-full animate-pulse rounded-xl bg-slate-900/50" />
+  ),
+});
+
+import {
   type ThreeDIconMode,
   type ThreeDAnimation,
   type ClickEffect,
@@ -2923,24 +2933,50 @@ export default function ActionButtonPage() {
     }
   };
 
-  const baseIconSvg =
-    iconSource === "custom"
-      ? iconCustomSvg
-      : ICONS_SVG[iconName as IconName] || "";
+  // --- Dynamic Icon Generation ---
+  const getDynamicIconSvg = (
+    source: IconSource,
+    name: string,
+    custom: string,
+  ) => {
+    if (source === "custom") return custom;
+    if (!name || name === "none") return "";
+
+    // Check legacy map first (optional, but good for stability)
+    if (ICONS_SVG[name]) return ICONS_SVG[name];
+
+    // Dynamic Lookup
+    // @ts-ignore - Dynamic access to Lucide icons
+    const IconComp = (LucideIcons as any)[name];
+    if (IconComp) {
+      try {
+        // Render simple version without extra classes, size handled by CSS/Container
+        return ReactDOMServer.renderToStaticMarkup(
+          <IconComp strokeWidth={2} />,
+        );
+      } catch (e) {
+        console.warn("Failed to render icon:", name, e);
+      }
+    }
+    return "";
+  };
+
+  const baseIconSvg = getDynamicIconSvg(iconSource, iconName, iconCustomSvg);
+
   const hoverIconSvg = hoverIconEnabled
-    ? hoverIconSource === "custom"
-      ? hoverIconCustomSvg
-      : ICONS_SVG[hoverIconName as IconName] || ""
+    ? getDynamicIconSvg(hoverIconSource, hoverIconName, hoverIconCustomSvg)
     : "";
+
   const activeIconSvg = activeIconEnabled
-    ? activeIconSource === "custom"
-      ? activeIconCustomSvg
-      : ICONS_SVG[activeIconName as IconName] || ""
+    ? getDynamicIconSvg(activeIconSource, activeIconName, activeIconCustomSvg)
     : "";
+
   const loadingIconSvg = loadingIconEnabled
-    ? loadingIconSource === "custom"
-      ? loadingIconCustomSvg
-      : ICONS_SVG[loadingIconName as IconName] || ""
+    ? getDynamicIconSvg(
+        loadingIconSource,
+        loadingIconName,
+        loadingIconCustomSvg,
+      )
     : "";
 
   const topGradStartNorm = norm(topGradStartInput);

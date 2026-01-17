@@ -1,9 +1,9 @@
 "use client";
+
 import React from "react";
-import { SectionCard, LabeledField } from "../../buttons/action/_section/ui";
-import ColorControl from "../../buttons/action/_section/ColorControl";
-import SizeControl from "../../buttons/action/_section/SizeControl";
-import { norm } from "../../buttons/action/_utils/colorUtils";
+import { SectionCard } from "../../buttons/action/_section/ui";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 const PRESET_COLORS = [
   "#3b82f6",
@@ -17,20 +17,28 @@ const PRESET_COLORS = [
   "#ffffff",
 ];
 
-export default function EffectsSection({ state, setKey, setFloat }: any) {
-  const {
-    gradientEnabled,
-    gradientStart,
-    gradientEnd,
-    gradientAngle,
-    dropShadow,
-    shadowColor,
-    shadowBlur,
-    interactive,
-    hoverScale,
-    clickRipple,
-  } = state;
-
+export default function EffectsSection(props: {
+  gradientEnabled: boolean;
+  setGradientEnabled: (v: boolean) => void;
+  gradientStart: string;
+  setGradientStart: (v: string) => void;
+  gradientEnd: string;
+  setGradientEnd: (v: string) => void;
+  gradientAngle: number;
+  setGradientAngle: (v: number) => void;
+  dropShadow: boolean;
+  setDropShadow: (v: boolean) => void;
+  shadowColor: string;
+  setShadowColor: (v: string) => void;
+  shadowBlur: number;
+  setShadowBlur: (v: number) => void;
+  interactive: boolean;
+  setInteractive: (v: boolean) => void;
+  hoverScale: number;
+  setHoverScale: (v: number) => void;
+  clickRipple: boolean;
+  setClickRipple: (v: boolean) => void;
+}) {
   return (
     <SectionCard
       title="Visual Effects"
@@ -45,35 +53,29 @@ export default function EffectsSection({ state, setKey, setFloat }: any) {
             </label>
             <input
               type="checkbox"
-              checked={gradientEnabled}
-              onChange={(e) => setKey("gradientEnabled")(e.target.checked)}
+              checked={props.gradientEnabled}
+              onChange={(e) => props.setGradientEnabled(e.target.checked)}
               className="accent-blue-500"
             />
           </div>
-          {gradientEnabled && (
+          {props.gradientEnabled && (
             <div className="pl-4 border-l-2 border-slate-700/50 space-y-4 mt-4">
               <ColorControl
-                title="Start Color"
+                label="Start Color"
                 palette={PRESET_COLORS}
-                valueText={gradientStart}
-                setValueText={setKey("gradientStart")}
-                normalizedHex={norm(gradientStart).hex}
-                normalizedRgb={norm(gradientStart).rgb}
-                ok={norm(gradientStart).ok}
+                value={props.gradientStart}
+                onChange={props.setGradientStart}
               />
               <ColorControl
-                title="End Color"
+                label="End Color"
                 palette={PRESET_COLORS}
-                valueText={gradientEnd}
-                setValueText={setKey("gradientEnd")}
-                normalizedHex={norm(gradientEnd).hex}
-                normalizedRgb={norm(gradientEnd).rgb}
-                ok={norm(gradientEnd).ok}
+                value={props.gradientEnd}
+                onChange={props.setGradientEnd}
               />
               <SizeControl
                 label="Angle (deg)"
-                valueText={String(gradientAngle)}
-                setValueText={setFloat("gradientAngle")}
+                value={props.gradientAngle}
+                onChange={props.setGradientAngle}
                 min={0}
                 max={360}
                 step={15}
@@ -90,30 +92,27 @@ export default function EffectsSection({ state, setKey, setFloat }: any) {
             </label>
             <input
               type="checkbox"
-              checked={dropShadow}
-              onChange={(e) => setKey("dropShadow")(e.target.checked)}
+              checked={props.dropShadow}
+              onChange={(e) => props.setDropShadow(e.target.checked)}
               className="accent-blue-500"
             />
           </div>
-          {dropShadow && (
+          {props.dropShadow && (
             <div className="pl-4 border-l-2 border-slate-700/50 space-y-4 mt-4">
               <ColorControl
-                title="Shadow Color"
+                label="Shadow Color"
                 palette={[
                   ...PRESET_COLORS,
                   "rgba(0,0,0,0.5)",
                   "rgba(0,0,0,0.2)",
                 ]}
-                valueText={shadowColor}
-                setValueText={setKey("shadowColor")}
-                normalizedHex={norm(shadowColor).hex}
-                normalizedRgb={norm(shadowColor).rgb}
-                ok={norm(shadowColor).ok}
+                value={props.shadowColor}
+                onChange={props.setShadowColor}
               />
               <SizeControl
                 label="Blur Radius (px)"
-                valueText={String(shadowBlur)}
-                setValueText={setFloat("shadowBlur")}
+                value={props.shadowBlur}
+                onChange={props.setShadowBlur}
                 min={0}
                 max={50}
                 step={1}
@@ -132,17 +131,17 @@ export default function EffectsSection({ state, setKey, setFloat }: any) {
             <label className="text-sm text-slate-300">Hover Scale</label>
             <input
               type="checkbox"
-              checked={interactive}
-              onChange={(e) => setKey("interactive")(e.target.checked)}
+              checked={props.interactive}
+              onChange={(e) => props.setInteractive(e.target.checked)}
               className="accent-blue-500"
             />
           </div>
-          {interactive && (
+          {props.interactive && (
             <div className="pl-4">
               <SizeControl
                 label="Scale Factor"
-                valueText={String(hoverScale)}
-                setValueText={setFloat("hoverScale")}
+                value={props.hoverScale}
+                onChange={props.setHoverScale}
                 min={0.8}
                 max={1.5}
                 step={0.05}
@@ -154,8 +153,8 @@ export default function EffectsSection({ state, setKey, setFloat }: any) {
             <label className="text-sm text-slate-300">Click Ripple</label>
             <input
               type="checkbox"
-              checked={clickRipple}
-              onChange={(e) => setKey("clickRipple")(e.target.checked)}
+              checked={props.clickRipple}
+              onChange={(e) => props.setClickRipple(e.target.checked)}
               className="accent-blue-500"
             />
           </div>

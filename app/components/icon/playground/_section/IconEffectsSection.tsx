@@ -5,7 +5,7 @@ import { type IconState } from "../types";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
-import { Switch } from "@/app/components/controls/input/Switch";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function IconEffectsSection({
   state,

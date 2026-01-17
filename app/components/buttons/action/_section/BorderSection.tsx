@@ -2,8 +2,7 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import BorderControl from "@/app/components/controls/layout/BorderControl";
 
 type BorderStyle = "none" | "solid" | "dashed" | "dotted" | "double";
 type ButtonVariant = "solid" | "outline" | "ghost";
@@ -37,62 +36,19 @@ export default function BorderSection(props: {
 
   return (
     <SectionCard title="Border" subtitle="Stroke width, style, and color.">
-      <div className="space-y-4">
-        <SizeControl
-          label="Border width"
-          valueText={props.borderWidthText}
-          setValueText={props.setBorderWidthText}
-          min={0}
-          max={12}
-          computedValue={props.computedBorderWidth}
-        />
-
-        <div className="grid grid-cols-2 gap-3">
-          <SizeControl
-            label="Hover width"
-            valueText={props.borderHoverWidthText}
-            setValueText={props.setBorderHoverWidthText}
-            min={0}
-            max={12}
-          />
-          <SizeControl
-            label="Active width"
-            valueText={props.borderActiveWidthText}
-            setValueText={props.setBorderActiveWidthText}
-            min={0}
-            max={12}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {(["solid", "dashed", "dotted", "double", "none"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              disabled={ghost}
-              onClick={() => props.setBorderStyle(s)}
-              className="rounded-xl border px-3 py-2 text-sm font-semibold uf-clickable disabled:opacity-50"
-              style={{
-                borderColor: "var(--border)",
-                background: props.borderStyle === s ? "var(--primary)" : "transparent",
-                color: props.borderStyle === s ? "white" : "var(--text)",
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        <ColorControl
-          title="Border color"
-          palette={props.PALETTE}
-          valueText={props.borderInput}
-          setValueText={props.setBorderInput}
-          normalizedHex={props.borderNorm.hex}
-          normalizedRgb={props.borderNorm.rgb}
-          ok={props.borderNorm.ok}
-        />
-      </div>
+      <BorderControl
+        width={Number(props.borderWidthText) || 0}
+        setWidth={(v) => props.setBorderWidthText(String(v))}
+        style={props.borderStyle}
+        setStyle={props.setBorderStyle}
+        hoverWidth={Number(props.borderHoverWidthText) || 0}
+        setHoverWidth={(v) => props.setBorderHoverWidthText(String(v))}
+        activeWidth={Number(props.borderActiveWidthText) || 0}
+        setActiveWidth={(v) => props.setBorderActiveWidthText(String(v))}
+        palette={props.PALETTE}
+        color={props.borderInput}
+        setColor={props.setBorderInput}
+      />
     </SectionCard>
   );
 }

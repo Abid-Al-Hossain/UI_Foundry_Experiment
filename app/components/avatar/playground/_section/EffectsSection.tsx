@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SectionCard, Segmented, LabeledField } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 export default function EffectsSection(props: {
   opacity: number;
@@ -31,15 +31,17 @@ export default function EffectsSection(props: {
         <div className="space-y-6">
           <SizeControl
             label="Rotation (deg)"
-            valueText={String(props.imageRotation)}
-            setValueText={(v) => props.setImageRotation(Number(v))}
+            value={props.imageRotation}
+            onChange={(v) => props.setImageRotation(v)}
             min={0}
             max={360}
+            step={1}
+            unit="deg"
           />
           <SizeControl
             label="Scale (Zoom)"
-            valueText={String(props.imageScale)}
-            setValueText={(v) => props.setImageScale(Number(v))}
+            value={props.imageScale}
+            onChange={(v) => props.setImageScale(v)}
             min={0.5}
             max={2}
             step={0.1}
@@ -65,10 +67,11 @@ export default function EffectsSection(props: {
       <SectionCard title="Opacity" subtitle="Transparency level (0-100%).">
         <SizeControl
           label="Opacity"
-          valueText={String(props.opacity)}
-          setValueText={(v) => props.setOpacity(Number(v))}
+          value={props.opacity}
+          onChange={(v) => props.setOpacity(v)}
           min={0}
           max={100}
+          step={1}
         />
       </SectionCard>
 
@@ -76,38 +79,43 @@ export default function EffectsSection(props: {
         <div className="space-y-6">
           <SizeControl
             label="Grayscale (%)"
-            valueText={String(props.filterGrayscale)}
-            setValueText={(v) => props.setFilterGrayscale(Number(v))}
+            value={props.filterGrayscale}
+            onChange={(v) => props.setFilterGrayscale(v)}
             min={0}
             max={100}
+            step={1}
           />
           <SizeControl
             label="Blur (px)"
-            valueText={String(props.filterBlur)}
-            setValueText={(v) => props.setFilterBlur(Number(v))}
+            value={props.filterBlur}
+            onChange={(v) => props.setFilterBlur(v)}
             min={0}
             max={20}
+            step={1}
           />
           <SizeControl
             label="Sepia (%)"
-            valueText={String(props.filterSepia)}
-            setValueText={(v) => props.setFilterSepia(Number(v))}
+            value={props.filterSepia}
+            onChange={(v) => props.setFilterSepia(v)}
             min={0}
             max={100}
+            step={1}
           />
           <SizeControl
             label="Brightness (%)"
-            valueText={String(props.filterBrightness)}
-            setValueText={(v) => props.setFilterBrightness(Number(v))}
+            value={props.filterBrightness}
+            onChange={(v) => props.setFilterBrightness(v)}
             min={0}
             max={200}
+            step={5}
           />
           <SizeControl
             label="Contrast (%)"
-            valueText={String(props.filterContrast)}
-            setValueText={(v) => props.setFilterContrast(Number(v))}
+            value={props.filterContrast}
+            onChange={(v) => props.setFilterContrast(v)}
             min={0}
             max={200}
+            step={5}
           />
         </div>
       </SectionCard>

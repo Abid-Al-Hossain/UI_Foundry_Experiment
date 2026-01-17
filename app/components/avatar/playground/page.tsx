@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
 import PreviewDownloadPanel, {
   DownloadFormat,
-} from "./_section/PreviewDownloadPanel";
+} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { buildAvatarExport } from "./_utils/exportUtils";
 import { PREVIEW_SRC_DOC } from "./_utils/avatarPreviewDoc";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -14,13 +15,30 @@ import {
 } from "@heroicons/react/24/outline";
 
 // New Sections
-import ThreeAvatarSection, {
-  ThreeDBadgeMode,
-  ThreeDStatusMode,
+const ThreeAvatarSection = dynamic(
+  () => import("./_section/ThreeAvatarSection"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 w-full animate-pulse rounded-xl bg-slate-900/50" />
+    ),
+  },
+);
+const MotionSection = dynamic(() => import("./_section/MotionSection"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse rounded-xl bg-slate-900/50" />
+  ),
+});
+
+import {
+  type ThreeDBadgeMode,
+  type ThreeDStatusMode,
 } from "./_section/ThreeAvatarSection";
-import MotionSection, {
-  MotionEntrance,
-  MotionHover,
+
+import {
+  type MotionEntrance,
+  type MotionHover,
 } from "./_section/MotionSection";
 import AvatarLivePreview from "./_section/AvatarLivePreview";
 
@@ -89,7 +107,7 @@ type AvatarState = {
 };
 
 const INITIAL_STATE: AvatarState = {
-  src: "https://i.pravatar.cc/300",
+  src: "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
   srcSet: "",
   alt: "User Avatar",
   initials: "JD",
@@ -103,7 +121,7 @@ const INITIAL_STATE: AvatarState = {
   borderColor: "#e2e8f0",
   borderStyle: "solid",
   borderOffset: 0,
-  initialsBg: "#f1f5f9",
+  initialsBg: "#e2e8f0",
   initialsColor: "#64748b",
   fontFamily: "sans-serif",
   opacity: 100,
@@ -145,7 +163,10 @@ import StatusSection from "./_section/StatusSection";
 import EffectsSection from "./_section/EffectsSection";
 import GroupPreviewSection from "./_section/GroupPreviewSection";
 
+import useHydrated from "@/components/hooks/useHydrated";
+
 export default function AvatarPage() {
+  const mounted = useHydrated();
   // --- Unified State Management ---
   const {
     state,
@@ -915,6 +936,7 @@ export default function AvatarPage() {
         >
           <div className="sticky top-20">
             <PreviewDownloadPanel
+              mounted={mounted}
               iframeSrcDoc={initialSrcDoc}
               iframeRef={iframeRef}
               handleIframeLoad={() => {
@@ -922,7 +944,7 @@ export default function AvatarPage() {
                 if (iframeRef.current?.contentWindow) {
                   iframeRef.current.contentWindow.postMessage(
                     previewPayload,
-                    "*"
+                    "*",
                   );
                 }
               }}

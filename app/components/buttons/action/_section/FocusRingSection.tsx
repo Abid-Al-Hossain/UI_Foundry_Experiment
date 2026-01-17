@@ -2,8 +2,8 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export default function FocusRingSection(props: {
   PALETTE: readonly string[];
@@ -52,7 +52,11 @@ export default function FocusRingSection(props: {
             checked={focusRingEnabled}
             onChange={(e) => setFocusRingEnabled(e.target.checked)}
           />
-          <label htmlFor={idRing} className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <label
+            htmlFor={idRing}
+            className="text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             Enable focus ring
           </label>
         </div>
@@ -60,28 +64,25 @@ export default function FocusRingSection(props: {
         <div className="grid grid-cols-2 gap-3">
           <SizeControl
             label={`Ring width (${ringWidth}px)`}
-            valueText={focusRingWidthText}
-            setValueText={setFocusRingWidthText}
+            value={Number(focusRingWidthText) || 0}
+            onChange={(v) => setFocusRingWidthText(String(v))}
             min={0}
             max={20}
           />
           <SizeControl
             label={`Ring offset (${ringOffset}px)`}
-            valueText={focusRingOffsetText}
-            setValueText={setFocusRingOffsetText}
+            value={Number(focusRingOffsetText) || 0}
+            onChange={(v) => setFocusRingOffsetText(String(v))}
             min={0}
             max={16}
           />
         </div>
 
         <ColorControl
-          title="Ring Color"
+          label="Ring Color"
           palette={PALETTE}
-          valueText={focusRingInput}
-          setValueText={setFocusRingInput}
-          normalizedHex={focusRingNorm.ok ? focusRingNorm.hex : "#60a5fa"}
-          normalizedRgb={focusRingNorm.rgb}
-          ok={focusRingNorm.ok}
+          value={focusRingInput}
+          onChange={setFocusRingInput}
         />
       </div>
     </SectionCard>

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { LabeledField } from "../layout/LabeledField";
 
+import Slider from "./Slider";
+
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
@@ -56,14 +58,15 @@ export default function SizeControl(props: {
 
   return (
     <LabeledField label={props.label} hint={props.hintRight}>
-      <input
-        type="range"
+      <Slider
         min={min}
         max={max}
         step={step}
         value={clamped}
-        onChange={handleSliderChange}
-        className="w-full uf-clickable"
+        onChange={(val) => {
+          setText(val);
+          onChange(parseFloat(val));
+        }}
       />
       <input
         value={text}

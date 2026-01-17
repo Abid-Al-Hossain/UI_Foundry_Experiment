@@ -11,14 +11,12 @@ const IconRenderer = ({
   ...props
 }: {
   name: string;
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-  absoluteStrokeWidth?: boolean;
+  [key: string]: any;
 }) => {
   // @ts-ignore - Dynamic access to Lucide icons
-  const LucideIcon = LucideIcons[name] as React.ElementType;
+  const LucideIcon = LucideIcons[name];
   if (!LucideIcon) return <LucideIcons.HelpCircle {...props} />;
+  // @ts-ignore
   return <LucideIcon {...props} />;
 };
 

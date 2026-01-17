@@ -2,8 +2,9 @@
 
 import React from "react";
 import { SectionCard, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
-import ColorControl from "./ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import GradientControl from "@/app/components/controls/effects/GradientControl";
 
 export default function ActiveStateSection(props: {
   idActive: string;
@@ -52,8 +53,15 @@ export default function ActiveStateSection(props: {
   transitionTransformDurationText: string;
   setTransitionTransformDurationText: (v: string) => void;
   transitionTransformMs: number;
-  transitionTransformEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
-  setTransitionTransformEasing: (v: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear") => void;
+  transitionTransformEasing:
+    | "ease"
+    | "ease-in"
+    | "ease-out"
+    | "ease-in-out"
+    | "linear";
+  setTransitionTransformEasing: (
+    v: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear",
+  ) => void;
 }) {
   const {
     idActive,
@@ -102,10 +110,14 @@ export default function ActiveStateSection(props: {
   } = props;
 
   return (
-    <SectionCard title="Active State" subtitle="Press feedback, colors, and gradients.">
+    <SectionCard
+      title="Active State"
+      subtitle="Press feedback, colors, and gradients."
+    >
       <div className="space-y-4">
         <div className="text-xs" style={{ color: "var(--muted)" }}>
-          Tip: Use State Preview to force active, and tune the transform timing here.
+          Tip: Use State Preview to force active, and tune the transform timing
+          here.
         </div>
         <div className="inline-flex items-center gap-2">
           <input
@@ -114,23 +126,28 @@ export default function ActiveStateSection(props: {
             checked={activeEnabled}
             onChange={(e) => setActiveEnabled(e.target.checked)}
           />
-          <label htmlFor={idActive} className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
+          <label
+            htmlFor={idActive}
+            className="text-sm uf-clickable"
+            style={{ color: "var(--text)" }}
+          >
             Enable active press effect
           </label>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <SizeControl
-            label={`Active translateY (${activeTranslateY}px)`}
-            valueText={activeTranslateYText}
-            setValueText={setActiveTranslateYText}
+            label={`Active translateY (${props.activeTranslateY}px)`}
+            value={Number(props.activeTranslateYText) || 0}
+            onChange={(v) => props.setActiveTranslateYText(String(v))}
             min={-8}
             max={8}
+            step={1}
           />
           <SizeControl
-            label={`Active scale (${activeScale})`}
-            valueText={activeScaleText}
-            setValueText={setActiveScaleText}
+            label={`Active scale (${props.activeScale})`}
+            value={Number(props.activeScaleText) || 1}
+            onChange={(v) => props.setActiveScaleText(String(v))}
             min={0.8}
             max={1.2}
             step={0.01}
@@ -138,20 +155,29 @@ export default function ActiveStateSection(props: {
         </div>
 
         <div className="space-y-3">
-          <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             Transform transitions
           </div>
           <SizeControl
-            label={`Transform duration (${transitionTransformMs}ms)`}
-            valueText={transitionTransformDurationText}
-            setValueText={setTransitionTransformDurationText}
+            label={`Transform duration (${props.transitionTransformMs}ms)`}
+            value={Number(props.transitionTransformDurationText) || 0}
+            onChange={(v) =>
+              props.setTransitionTransformDurationText(String(v))
+            }
             min={0}
             max={2000}
             step={10}
           />
           <Segmented
-            value={transitionTransformEasing}
-            onChange={(v) => setTransitionTransformEasing(v as "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear")}
+            value={props.transitionTransformEasing}
+            onChange={(v) =>
+              props.setTransitionTransformEasing(
+                v as "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear",
+              )
+            }
             items={[
               { value: "ease", label: "Ease" },
               { value: "ease-in", label: "Ease in" },
@@ -163,18 +189,26 @@ export default function ActiveStateSection(props: {
         </div>
 
         <div className="space-y-4">
-          <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             Active colors
           </div>
 
           <div>
-            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+            <div
+              className="text-sm font-medium"
+              style={{ color: "var(--text)" }}
+            >
               Active background
             </div>
             <div className="mt-2">
               <Segmented
                 value={activeBgMode}
-                onChange={(v) => setActiveBgMode(v as "same" | "custom" | "gradient")}
+                onChange={(v) =>
+                  setActiveBgMode(v as "same" | "custom" | "gradient")
+                }
                 items={[
                   { value: "same", label: "Same" },
                   { value: "custom", label: "Custom" },
@@ -186,77 +220,39 @@ export default function ActiveStateSection(props: {
             {activeBgMode === "custom" ? (
               <div className="mt-3">
                 <ColorControl
-                  title="Active background"
+                  label="Active background"
                   palette={PALETTE}
-                  valueText={activeBgInput}
-                  setValueText={setActiveBgInput}
-                  normalizedHex={activeBgNorm.hex}
-                  normalizedRgb={activeBgNorm.rgb}
-                  ok={activeBgNorm.ok}
+                  value={activeBgInput}
+                  onChange={setActiveBgInput}
                 />
               </div>
             ) : null}
 
             {activeBgMode === "gradient" ? (
-              <div className="mt-3 space-y-4">
-                <SizeControl
-                  label="Active gradient angle (deg)"
-                  valueText={activeGradAngleText}
-                  setValueText={setActiveGradAngleText}
-                  min={0}
-                  max={360}
-                />
-
-                <ColorControl
-                  title="Active gradient start"
+              <div className="mt-3">
+                <GradientControl
+                  label="Active Gradient"
+                  angle={Number(activeGradAngleText) || 0}
+                  setAngle={(v) => setActiveGradAngleText(String(v))}
+                  startColor={activeGradStartInput}
+                  setStartColor={setActiveGradStartInput}
+                  endColor={activeGradEndInput}
+                  setEndColor={setActiveGradEndInput}
+                  midEnabled={activeGradMidEnabled}
+                  setMidEnabled={setActiveGradMidEnabled}
+                  midColor={activeGradMidInput}
+                  setMidColor={setActiveGradMidInput}
                   palette={PALETTE}
-                  valueText={activeGradStartInput}
-                  setValueText={setActiveGradStartInput}
-                  normalizedHex={activeGradStartNorm.hex}
-                  normalizedRgb={activeGradStartNorm.rgb}
-                  ok={activeGradStartNorm.ok}
-                />
-
-                <div className="flex items-center gap-2">
-                  <input
-                    id="active-grad-mid-toggle"
-                    type="checkbox"
-                    checked={activeGradMidEnabled}
-                    onChange={(e) => setActiveGradMidEnabled(e.target.checked)}
-                    className="uf-clickable"
-                  />
-                  <label htmlFor="active-grad-mid-toggle" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
-                    Use middle stop
-                  </label>
-                </div>
-
-                {activeGradMidEnabled ? (
-                  <ColorControl
-                    title="Active gradient middle"
-                    palette={PALETTE}
-                    valueText={activeGradMidInput}
-                    setValueText={setActiveGradMidInput}
-                    normalizedHex={activeGradMidNorm.hex}
-                    normalizedRgb={activeGradMidNorm.rgb}
-                    ok={activeGradMidNorm.ok}
-                  />
-                ) : null}
-
-                <ColorControl
-                  title="Active gradient end"
-                  palette={PALETTE}
-                  valueText={activeGradEndInput}
-                  setValueText={setActiveGradEndInput}
-                  normalizedHex={activeGradEndNorm.hex}
-                  normalizedRgb={activeGradEndNorm.rgb}
-                  ok={activeGradEndNorm.ok}
                 />
               </div>
             ) : null}
           </div>
 
           <div>
-            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+            <div
+              className="text-sm font-medium"
+              style={{ color: "var(--text)" }}
+            >
               Active text
             </div>
             <div className="mt-2">
@@ -272,20 +268,20 @@ export default function ActiveStateSection(props: {
             {activeTextMode === "custom" ? (
               <div className="mt-3">
                 <ColorControl
-                  title="Active text"
+                  label="Active text"
                   palette={PALETTE}
-                  valueText={activeTextInput}
-                  setValueText={setActiveTextInput}
-                  normalizedHex={activeTextNorm.hex}
-                  normalizedRgb={activeTextNorm.rgb}
-                  ok={activeTextNorm.ok}
+                  value={activeTextInput}
+                  onChange={setActiveTextInput}
                 />
               </div>
             ) : null}
           </div>
 
           <div>
-            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+            <div
+              className="text-sm font-medium"
+              style={{ color: "var(--text)" }}
+            >
               Active border
             </div>
             <div className="mt-2">
@@ -301,13 +297,10 @@ export default function ActiveStateSection(props: {
             {activeBorderMode === "custom" ? (
               <div className="mt-3">
                 <ColorControl
-                  title="Active border"
+                  label="Active border"
                   palette={PALETTE}
-                  valueText={activeBorderInput}
-                  setValueText={setActiveBorderInput}
-                  normalizedHex={activeBorderNorm.hex}
-                  normalizedRgb={activeBorderNorm.rgb}
-                  ok={activeBorderNorm.ok}
+                  value={activeBorderInput}
+                  onChange={setActiveBorderInput}
                 />
               </div>
             ) : null}

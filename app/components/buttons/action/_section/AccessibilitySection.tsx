@@ -2,7 +2,7 @@
 
 import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 export type MinTouchMode = "off" | "warn" | "enforce";
 
@@ -27,10 +27,14 @@ export default function AccessibilitySection(props: {
   contrastNote: string;
 }) {
   return (
-    <SectionCard title="Accessibility" subtitle="Touch size, contrast hints, and aria label.">
+    <SectionCard
+      title="Accessibility"
+      subtitle="Touch size, contrast hints, and aria label."
+    >
       <div className="space-y-4">
         <div className="text-xs" style={{ color: "var(--muted)" }}>
-          Tip: Aria labels are best for icon-only buttons. Aria-busy auto follows Loading.
+          Tip: Aria labels are best for icon-only buttons. Aria-busy auto
+          follows Loading.
         </div>
         <LabeledField label="Aria label">
           <input
@@ -40,7 +44,8 @@ export default function AccessibilitySection(props: {
             className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
             style={{
               borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+              background:
+                "color-mix(in oklab, var(--surface) 70%, transparent)",
               color: "var(--text)",
             }}
           />
@@ -49,7 +54,9 @@ export default function AccessibilitySection(props: {
         <LabeledField label="Aria pressed">
           <Segmented
             value={props.ariaPressedMode}
-            onChange={(v) => props.setAriaPressedMode(v as "off" | "true" | "false")}
+            onChange={(v) =>
+              props.setAriaPressedMode(v as "off" | "true" | "false")
+            }
             items={[
               { value: "off", label: "Off" },
               { value: "true", label: "True" },
@@ -61,7 +68,9 @@ export default function AccessibilitySection(props: {
         <LabeledField label="Aria busy">
           <Segmented
             value={props.ariaBusyMode}
-            onChange={(v) => props.setAriaBusyMode(v as "off" | "auto" | "true" | "false")}
+            onChange={(v) =>
+              props.setAriaBusyMode(v as "off" | "auto" | "true" | "false")
+            }
             items={[
               { value: "off", label: "Off" },
               { value: "auto", label: "Auto" },
@@ -86,14 +95,19 @@ export default function AccessibilitySection(props: {
           />
           <SizeControl
             label={`Minimum size (${props.minTouchSizePx}px)`}
-            valueText={props.minTouchSizeText}
-            setValueText={props.setMinTouchSizeText}
+            value={Number(props.minTouchSizeText) || 24}
+            onChange={(v) => props.setMinTouchSizeText(String(v))}
             min={24}
             max={80}
             step={1}
           />
           {props.minTouchMode !== "off" ? (
-            <div className="text-xs" style={{ color: props.minTouchWarning ? "#ef4444" : "var(--muted)" }}>
+            <div
+              className="text-xs"
+              style={{
+                color: props.minTouchWarning ? "#ef4444" : "var(--muted)",
+              }}
+            >
               {props.minTouchWarning
                 ? "Warning: button is below the minimum touch size."
                 : "Touch size meets the minimum."}
@@ -101,7 +115,10 @@ export default function AccessibilitySection(props: {
           ) : null}
         </div>
 
-        <div className="space-y-1 text-xs" style={{ color: props.contrastOk ? "var(--muted)" : "#ef4444" }}>
+        <div
+          className="space-y-1 text-xs"
+          style={{ color: props.contrastOk ? "var(--muted)" : "#ef4444" }}
+        >
           <div>Contrast: {props.contrastRatioText}</div>
           <div>{props.contrastNote}</div>
         </div>

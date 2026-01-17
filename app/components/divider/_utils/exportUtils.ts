@@ -1,6 +1,6 @@
 "use client";
 
-import type { DownloadFormat } from "../../buttons/action/_section/PreviewDownloadPanel";
+import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import {
   type DividerOrientation,
   type DividerVariant,

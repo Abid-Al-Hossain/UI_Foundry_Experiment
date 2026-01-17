@@ -109,22 +109,4 @@ export function ExportWarningBadge({
   );
 }
 
-export function Slider(props: {
-  value: string | number;
-  onChange: (v: string) => void;
-  min: number;
-  max: number;
-  step: number;
-}) {
-  return (
-    <input
-      type="range"
-      min={props.min}
-      max={props.max}
-      step={props.step}
-      value={props.value}
-      onChange={(e) => props.onChange(e.target.value)}
-      className="w-full accent-blue-500"
-    />
-  );
-}
+export { default as Slider } from "@/app/components/controls/input/Slider";

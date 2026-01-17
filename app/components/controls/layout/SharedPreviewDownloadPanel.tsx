@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PreviewPanel } from "@/app/components/controls/layout/PreviewPanel";
+import ExportOptionsControl from "@/app/components/controls/export/ExportOptionsControl";
 
 export type DownloadFormat =
   | "html"
@@ -59,51 +60,13 @@ export default function PreviewDownloadPanel(props: {
             Preview
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="text"
-              value={downloadName}
-              onChange={(e) => setDownloadName(e.target.value)}
-              placeholder="File name"
-              className="min-w-[160px] flex-1 rounded-xl border px-3 py-2 text-sm font-semibold outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--card) 70%, transparent)",
-                color: "var(--text)",
-              }}
-              aria-label="Download file name"
-            />
-
-            <select
-              value={downloadFormat}
-              onChange={(e) =>
-                setDownloadFormat(e.target.value as DownloadFormat)
-              }
-              className="rounded-xl border px-3 py-2 text-sm font-semibold outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--card) 70%, transparent)",
-                color: "var(--text)",
-              }}
-              aria-label="Select download format"
-            >
-              <option value="html">HTML</option>
-              <option value="react">React</option>
-              <option value="tailwind">Tailwind</option>
-              <option value="css-vars">CSS Variables</option>
-              <option value="scss">SCSS</option>
-              <option value="tailwind-config">Tailwind Config</option>
-              <option value="figma-tokens">Figma Tokens</option>
-            </select>
-
-            <button
-              onClick={handleDownload}
-              className="rounded-xl px-4 py-2 text-sm font-semibold transition uf-clickable"
-              style={{ background: "var(--primary)", color: "white" }}
-            >
-              Download
-            </button>
-          </div>
+          <ExportOptionsControl
+            format={downloadFormat}
+            setFormat={setDownloadFormat}
+            fileName={downloadName}
+            setFileName={setDownloadName}
+            onDownload={handleDownload}
+          />
         </div>
 
         <div className="mt-4">

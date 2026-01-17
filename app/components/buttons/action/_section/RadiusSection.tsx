@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
+import { SectionCard, Segmented } from "./ui";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 export default function RadiusSection(props: {
   linkRadius: boolean;
@@ -27,7 +27,10 @@ export default function RadiusSection(props: {
   radiusBL: number;
 }) {
   return (
-    <SectionCard title="Radius" subtitle="Corner rounding.">
+    <SectionCard
+      title="Corner Radius"
+      subtitle="Rounding of the button corners."
+    >
       <div className="space-y-4">
         <button
           type="button"
@@ -43,20 +46,77 @@ export default function RadiusSection(props: {
         </button>
 
         {props.linkRadius ? (
-          <SizeControl
-            label="Radius"
-            valueText={props.radiusText}
-            setValueText={props.setRadiusText}
-            min={0}
-            max={60}
-            computedValue={props.radiusUnified}
-          />
+          <>
+            <SizeControl
+              label="Radius (px)"
+              value={Number(props.radiusText) || 0}
+              onChange={(v) => props.setRadiusText(String(v))}
+              min={0}
+              max={60}
+              step={1}
+            />
+            <div className="space-y-2">
+              <div
+                className="text-sm font-medium"
+                style={{ color: "var(--text)" }}
+              >
+                Presets
+              </div>
+              <Segmented
+                value={
+                  props.radiusText === "0"
+                    ? "Square"
+                    : props.radiusText === "9999"
+                      ? "Pill"
+                      : "Custom"
+                }
+                onChange={(v) => {
+                  if (v === "Square") props.setRadiusText("0");
+                  if (v === "Pill") props.setRadiusText("9999");
+                  if (v === "Custom") props.setRadiusText("8");
+                }}
+                items={[
+                  { value: "Square", label: "Square" },
+                  { value: "Pill", label: "Pill" },
+                  { value: "Custom", label: "Custom" },
+                ]}
+              />
+            </div>
+          </>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            <SizeControl label="Top-left" valueText={props.radiusTLText} setValueText={props.setRadiusTLText} min={0} max={60} computedValue={props.radiusTL} />
-            <SizeControl label="Top-right" valueText={props.radiusTRText} setValueText={props.setRadiusTRText} min={0} max={60} computedValue={props.radiusTR} />
-            <SizeControl label="Bottom-right" valueText={props.radiusBRText} setValueText={props.setRadiusBRText} min={0} max={60} computedValue={props.radiusBR} />
-            <SizeControl label="Bottom-left" valueText={props.radiusBLText} setValueText={props.setRadiusBLText} min={0} max={60} computedValue={props.radiusBL} />
+            <SizeControl
+              label="Top-left"
+              value={Number(props.radiusTLText) || 0}
+              onChange={(v) => props.setRadiusTLText(String(v))}
+              min={0}
+              max={60}
+              step={1}
+            />
+            <SizeControl
+              label="Top-right"
+              value={Number(props.radiusTRText) || 0}
+              onChange={(v) => props.setRadiusTRText(String(v))}
+              min={0}
+              max={60}
+              step={1}
+            />
+            <SizeControl
+              label="Bottom-right"
+              value={Number(props.radiusBRText) || 0}
+              onChange={(v) => props.setRadiusBRText(String(v))}
+              min={0}
+              max={60}
+              step={1}
+            />
+            <SizeControl
+              label="Bottom-left"
+              value={Number(props.radiusBLText) || 0}
+              onChange={(v) => props.setRadiusBLText(String(v))}
+              min={0}
+              max={60}
+              step={1}
+            />
           </div>
         )}
       </div>

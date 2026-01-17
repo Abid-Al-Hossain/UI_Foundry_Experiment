@@ -84,7 +84,7 @@ export default function Header() {
       return `#${m[0]}${m[0]}${m[1]}${m[1]}${m[2]}${m[2]}`;
     }
     const rgbMatch = raw.match(
-      /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/
+      /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/,
     );
     if (rgbMatch) {
       const r = Math.max(0, Math.min(255, Number(rgbMatch[1])));
@@ -108,11 +108,20 @@ export default function Header() {
     { key: "ring", label: "Ring" },
   ];
 
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      headerRef.current.style.background =
+        "color-mix(in oklab, var(--surface) 88%, transparent)";
+    }
+  }, []);
+
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-50 border-b"
       style={{
-        background: "color-mix(in oklab, var(--surface) 88%, transparent)",
         borderColor: "var(--border)",
       }}
       suppressHydrationWarning

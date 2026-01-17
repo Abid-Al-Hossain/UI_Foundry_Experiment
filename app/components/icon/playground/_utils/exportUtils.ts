@@ -72,11 +72,13 @@ const generateCssVars = (state: IconState) => {
   };
 };
 
+import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+
 export const buildIconExportPayload = ({
   downloadFormat,
   downloadName,
   ...state
-}: IconState & { downloadFormat: string; downloadName: string }) => {
+}: IconState & { downloadFormat: DownloadFormat; downloadName: string }) => {
   const { iconName, animationType, hoverEffect } = state;
 
   let content = "";

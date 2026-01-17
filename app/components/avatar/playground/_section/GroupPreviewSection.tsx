@@ -1,6 +1,6 @@
 import React from "react";
 import { SectionCard } from "./ui";
-import SizeControl from "./SizeControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 type GroupPreviewSectionProps = {
   showGroup: boolean;
@@ -42,8 +42,8 @@ export default function GroupPreviewSection({
         <div className="space-y-4">
           <SizeControl
             label="Spacing (px)"
-            valueText={String(groupSpacing)}
-            setValueText={(v) => setGroupSpacing(Number(v))}
+            value={groupSpacing}
+            onChange={(v) => setGroupSpacing(v)}
             min={-50}
             max={50}
             step={1}
@@ -58,8 +58,8 @@ export default function GroupPreviewSection({
         <div className="space-y-4">
           <SizeControl
             label="Max Items"
-            valueText={String(groupLimit)}
-            setValueText={(v) => setGroupLimit(Number(v))}
+            value={groupLimit}
+            onChange={(v) => setGroupLimit(v)}
             min={1}
             max={10}
             step={1}

@@ -7,7 +7,7 @@ import { useHistoryState } from "../../../hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel, {
   DownloadFormat,
-} from "../../buttons/action/_section/PreviewDownloadPanel";
+} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 
 // Sections
 import DividerBasicsSection from "../_section/DividerBasicsSection";
@@ -249,15 +249,7 @@ export default function DividerPage() {
           <ActiveComponent
             state={state}
             setKey={setKey}
-            setFloat={setFloat} // Pass helper which they use
-            // Or if specific props are needed:
-            // But checking previous code, it rendered <activeComp.component ... />
-            // We just need to ensure props match.
-            // Previous: <ActiveComponent state={state} updateState={updateState} ... />
-            // Wait, previous code (lines 104-118) defined setKey/setFloat but didn't actually pass them to a dynamic component in the snippets I saw?
-            // Ah, line 117 defined ActiveComponent.
-            // I need to assume they take { state, setKey, setFloat, updateState } or similar.
-            // Let's pass common props.
+            setFloat={setFloat}
             updateState={updateState}
           />
         </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
-import ColorControl from "./ColorControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
 
 export type PreviewBgMode = "white" | "black" | "custom";
 
@@ -17,10 +17,20 @@ export default function PreviewBackgroundSection(props: {
 
   previewBgNorm: { ok: boolean; hex: string; rgb: string };
 }) {
-  const { PALETTE, bgMode, setBgMode, previewBgInput, setPreviewBgInput, previewBgNorm } = props;
+  const {
+    PALETTE,
+    bgMode,
+    setBgMode,
+    previewBgInput,
+    setPreviewBgInput,
+    previewBgNorm,
+  } = props;
 
   return (
-    <SectionCard title="Preview Background" subtitle="Only affects the preview canvas (not export).">
+    <SectionCard
+      title="Preview Background"
+      subtitle="Only affects the preview canvas (not export)."
+    >
       <div className="space-y-3">
         <div className="grid grid-cols-3 gap-2">
           {(["white", "black", "custom"] as const).map((m) => (
@@ -31,7 +41,10 @@ export default function PreviewBackgroundSection(props: {
               className="rounded-xl border px-3 py-2 text-sm font-semibold transition uf-clickable"
               style={{
                 borderColor: "var(--border)",
-                background: bgMode === m ? "var(--primary)" : "color-mix(in oklab, var(--surface) 65%, transparent)",
+                background:
+                  bgMode === m
+                    ? "var(--primary)"
+                    : "color-mix(in oklab, var(--surface) 65%, transparent)",
                 color: bgMode === m ? "white" : "var(--text)",
               }}
             >
@@ -42,13 +55,10 @@ export default function PreviewBackgroundSection(props: {
 
         {bgMode === "custom" && (
           <ColorControl
-            title="Preview Background"
+            label="Preview Background"
             palette={PALETTE}
-            valueText={previewBgInput}
-            setValueText={setPreviewBgInput}
-            normalizedHex={previewBgNorm.ok ? previewBgNorm.hex : "#0b1220"}
-            normalizedRgb={previewBgNorm.rgb}
-            ok={previewBgNorm.ok}
+            value={previewBgInput}
+            onChange={setPreviewBgInput}
           />
         )}
       </div>

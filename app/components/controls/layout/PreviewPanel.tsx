@@ -7,8 +7,8 @@ import ColorControl from "../color/ColorControl";
 type BgMode = "light" | "dark" | "custom";
 
 export function PreviewPanel({ children }: { children: React.ReactNode }) {
-  const [bgMode, setBgMode] = useState<BgMode>("custom");
-  const [customColor, setCustomColor] = useState("#0f172a"); // Default dark slate
+  const [bgMode, setBgMode] = useState<BgMode>("light");
+  const [customColor, setCustomColor] = useState("#ffffff"); // Default white
   const [isOpen, setIsOpen] = useState(false);
 
   // Determine actual background style

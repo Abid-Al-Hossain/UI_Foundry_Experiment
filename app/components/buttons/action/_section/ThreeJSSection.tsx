@@ -8,6 +8,9 @@ import {
   ExportWarningBadge,
   Slider,
 } from "./ui";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import Select from "@/app/components/controls/input/Select";
+
 export type ThreeDIconMode = "none" | "on";
 export type ThreeDAnimation = "spin" | "float" | "wobble" | "pulse";
 export type ClickEffect = "none" | "confetti" | "explosion" | "ripple";
@@ -83,35 +86,34 @@ export default function ThreeJSSection(props: {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <LabeledField label="Geometry">
-                  <select
-                    className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                  <Select
                     value={props.icon3DGeometry}
-                    onChange={(e) => props.setIcon3DGeometry(e.target.value)}
-                  >
-                    <option value="cube">Cube</option>
-                    <option value="sphere">Sphere</option>
-                    <option value="tetra">Tetrahedron</option>
-                    <option value="icosa">Icosahedron</option>
-                    <option value="torus">Torus</option>
-                  </select>
+                    onChange={props.setIcon3DGeometry}
+                    options={[
+                      { value: "cube", label: "Cube" },
+                      { value: "sphere", label: "Sphere" },
+                      { value: "tetra", label: "Tetrahedron" },
+                      { value: "icosa", label: "Icosahedron" },
+                      { value: "torus", label: "Torus" },
+                    ]}
+                  />
                 </LabeledField>
                 <LabeledField label="Material">
-                  <select
-                    className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                  <Select
                     value={props.icon3DMaterial}
-                    onChange={(e) => props.setIcon3DMaterial(e.target.value)}
-                  >
-                    <option value="glass">Frost Glass</option>
-                    <option value="glass-crystal">Glass - Crystal</option>
-                    <option value="liquid">Liquid Metal</option>
-                    <option value="metal">Polished Metal</option>
-                    <option value="plastic">Glossy Plastic</option>
-                    <option value="holographic">Holographic</option>
-                    <option value="neon">Neon Emissive</option>
-                  </select>
+                    onChange={props.setIcon3DMaterial}
+                    options={[
+                      { value: "glass", label: "Frost Glass" },
+                      { value: "glass-crystal", label: "Glass - Crystal" },
+                      { value: "liquid", label: "Liquid Metal" },
+                      { value: "metal", label: "Polished Metal" },
+                      { value: "plastic", label: "Glossy Plastic" },
+                      { value: "holographic", label: "Holographic" },
+                      { value: "neon", label: "Neon Emissive" },
+                    ]}
+                  />
                 </LabeledField>
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <LabeledField label="Color Mode">
                   <Segmented
@@ -123,30 +125,17 @@ export default function ThreeJSSection(props: {
                     ]}
                   />
                 </LabeledField>
+                import ColorControl from
+                "@/app/components/controls/color/ColorControl"; // ... existing
+                imports
                 {props.icon3DColorMode === "custom" && (
-                  <LabeledField label="Custom HEX">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={props.icon3DColorInput}
-                        onChange={(e) =>
-                          props.setIcon3DColorInput(e.target.value)
-                        }
-                        className="h-8 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
-                      />
-                      <input
-                        type="text"
-                        value={props.icon3DColorInput}
-                        onChange={(e) =>
-                          props.setIcon3DColorInput(e.target.value)
-                        }
-                        className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 font-mono"
-                      />
-                    </div>
-                  </LabeledField>
+                  <ColorControl
+                    label="Custom HEX"
+                    value={props.icon3DColorInput}
+                    onChange={props.setIcon3DColorInput}
+                  />
                 )}
               </div>
-
               <LabeledField label="Motion">
                 <Segmented
                   value={props.icon3DAnimation}
@@ -159,7 +148,6 @@ export default function ThreeJSSection(props: {
                   ]}
                 />
               </LabeledField>
-
               {/* Material Fine Tuning */}
               <div className="pt-2 border-t border-slate-800 space-y-3">
                 <p className="text-[10px] uppercase font-bold text-slate-500">
@@ -259,18 +247,18 @@ export default function ThreeJSSection(props: {
               </div>
             }
           >
-            <select
-              className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            <Select
               value={props.hoverEffect}
-              onChange={(e) => props.setHoverEffect(e.target.value)}
-            >
-              <option value="none">None</option>
-              <option value="magnetic">Magnetic Pull</option>
-              <option value="spotlight">Glow Spotlight</option>
-              <option value="tilt">3D Glare Tilt</option>
-              <option value="morph">Shape Morph</option>
-              <option value="sparkles">Floating Sparkles</option>
-            </select>
+              onChange={props.setHoverEffect}
+              options={[
+                { value: "none", label: "None" },
+                { value: "magnetic", label: "Magnetic Pull" },
+                { value: "spotlight", label: "Glow Spotlight" },
+                { value: "tilt", label: "3D Glare Tilt" },
+                { value: "morph", label: "Shape Morph" },
+                { value: "sparkles", label: "Floating Sparkles" },
+              ]}
+            />
           </LabeledField>
           {props.hoverEffect !== "none" && (
             <div className="pt-2 border-t border-slate-800 space-y-3">

@@ -1,8 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { LabeledField } from "../layout/LabeledField";
+import { LabeledField } from "../../buttons/action/_section/ui";
+import Select from "@/app/components/controls/input/Select";
 import { SegmentedControl } from "../input/SegmentedControl";
+import {
+  SYSTEM_FONTS,
+  GOOGLE_FONTS,
+} from "../../buttons/action/_data/buttonConstants";
 
 // Types extracted from Typography section
 export type SystemFontItem = { label: string; css: string };
@@ -35,7 +40,7 @@ export default function FontFamilySelect(props: {
 
       <SegmentedControl
         value={props.fontBucket}
-        onChange={(v) => props.setFontBucket(v as "system" | "google")}
+        onChange={(v: string) => props.setFontBucket(v as "system" | "google")}
         items={[
           { value: "system", label: "System" },
           { value: "google", label: "Google" },
@@ -58,7 +63,7 @@ export default function FontFamilySelect(props: {
             }}
           />
         </LabeledField>
-
+        {/* Font List */}
         {/* Font List */}
         <LabeledField
           label="Font family (A–Z)"
@@ -69,16 +74,10 @@ export default function FontFamilySelect(props: {
           }
         >
           {props.fontBucket === "system" ? (
-            <select
+            <Select
               value={String(props.systemFontIdx)}
-              onChange={(e) => props.setSystemFontIdx(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
+              onChange={(v) => props.setSystemFontIdx(Number(v))}
+              options={[]} // We use children for custom mapping
             >
               {props.filteredSystemFonts.map((f) => {
                 const idx = props.systemFonts.findIndex(
@@ -90,25 +89,16 @@ export default function FontFamilySelect(props: {
                   </option>
                 );
               })}
-            </select>
+            </Select>
           ) : (
-            <select
+            <Select
               value={props.googleFontFamily}
-              onChange={(e) => props.setGoogleFontFamily(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            >
-              {props.filteredGoogleFonts.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
+              onChange={props.setGoogleFontFamily}
+              options={props.filteredGoogleFonts.map((f) => ({
+                value: f,
+                label: f,
+              }))}
+            />
           )}
 
           {props.fontBucket === "google" ? (

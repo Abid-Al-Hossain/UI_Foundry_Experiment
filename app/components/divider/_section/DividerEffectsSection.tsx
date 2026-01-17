@@ -1,9 +1,8 @@
 "use client";
 import React from "react";
 import { SectionCard } from "../../buttons/action/_section/ui";
-import ColorControl from "../../buttons/action/_section/ColorControl";
-import SizeControl from "../../buttons/action/_section/SizeControl";
-import { norm } from "../../buttons/action/_utils/colorUtils";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
 const PRESET_GRADIENTS = [
   "#3b82f6",
@@ -11,13 +10,10 @@ const PRESET_GRADIENTS = [
   "#ec4899",
   "#f59e0b",
   "#10b981",
+  "#ffffff",
 ];
 
-export default function DividerEffectsSection({
-  state,
-  setKey,
-  setFloat,
-}: any) {
+export default function DividerEffectsSection({ state, setKey }: any) {
   const { gradientEnabled, gradientStart, gradientEnd, opacity } = state;
 
   return (
@@ -38,22 +34,16 @@ export default function DividerEffectsSection({
         {gradientEnabled && (
           <div className="pl-4 border-l-2 border-slate-700/50 space-y-4">
             <ColorControl
-              title="Start Color"
+              label="Start Color"
               palette={PRESET_GRADIENTS}
-              valueText={gradientStart}
-              setValueText={setKey("gradientStart")}
-              normalizedHex={norm(gradientStart).hex}
-              normalizedRgb={norm(gradientStart).rgb}
-              ok={norm(gradientStart).ok}
+              value={gradientStart}
+              onChange={setKey("gradientStart")}
             />
             <ColorControl
-              title="End Color"
+              label="End Color"
               palette={PRESET_GRADIENTS}
-              valueText={gradientEnd}
-              setValueText={setKey("gradientEnd")}
-              normalizedHex={norm(gradientEnd).hex}
-              normalizedRgb={norm(gradientEnd).rgb}
-              ok={norm(gradientEnd).ok}
+              value={gradientEnd}
+              onChange={setKey("gradientEnd")}
             />
           </div>
         )}
@@ -61,8 +51,8 @@ export default function DividerEffectsSection({
         <div className="pt-4 border-t border-slate-700/50">
           <SizeControl
             label="Opacity"
-            valueText={String(opacity)}
-            setValueText={setFloat("opacity")}
+            value={opacity}
+            onChange={(v) => setKey("opacity")(v)}
             min={0}
             max={1}
             step={0.05}

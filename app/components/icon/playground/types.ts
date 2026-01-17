@@ -52,6 +52,7 @@ export interface IconState {
   // --- Global ---
   iconName: string; // Lucide icon name
   library: IconLibrary;
+  customSvg: string; // New field for custom SVG content
 
   // --- Basics ---
   size: number;
@@ -78,7 +79,7 @@ export interface IconState {
   // Border
   borderWidth: number;
   borderColor: string;
-  borderStyle: "solid" | "dashed" | "dotted";
+  borderStyle: "solid" | "dashed" | "dotted" | "double" | "none";
   borderRadius: number; // For "rounded" shape
 
   // Glass/Neumorphism
@@ -126,6 +127,7 @@ export interface IconState {
 export const INITIAL_ICON_STATE: IconState = {
   iconName: "Activity",
   library: "lucide",
+  customSvg: "",
 
   size: 48,
   strokeWidth: 2,

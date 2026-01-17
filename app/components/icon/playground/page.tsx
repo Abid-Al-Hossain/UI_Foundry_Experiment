@@ -7,7 +7,7 @@ import { useHistoryState } from "../../../hooks/useHistoryState";
 import LivePreview from "./_section/LivePreview";
 import PreviewDownloadPanel, {
   DownloadFormat,
-} from "../../buttons/action/_section/PreviewDownloadPanel";
+} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 
 // TODO: Create these sections next
 import IconSelectionSection from "./_section/IconSelectionSection";
@@ -245,12 +245,7 @@ export default function IconPlaygroundPage() {
             </div>
           </div>
 
-          <ActiveComponent
-            state={state}
-            setKey={setKey}
-            setFloat={setFloat}
-            updateState={updateState}
-          />
+          <ActiveComponent state={state} setKey={setKey} setFloat={setFloat} />
         </div>
 
         {/* Resizer */}

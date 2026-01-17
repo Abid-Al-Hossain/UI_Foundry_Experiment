@@ -7,6 +7,7 @@ import SizeControl from "@/app/components/controls/input/SizeControl";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
+import BorderControl from "@/app/components/controls/layout/BorderControl";
 
 export default function IconContainerSection({
   state,
@@ -70,34 +71,21 @@ export default function IconContainerSection({
         <>
           <SectionCard title="Border" subtitle="Outline styling.">
             <div className="space-y-4">
-              <LabeledField label="Style">
-                <select
-                  value={state.borderStyle}
-                  onChange={(e) => setKey("borderStyle")(e.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      "color-mix(in oklab, var(--surface) 70%, transparent)",
-                    color: "var(--text)",
-                  }}
-                >
-                  <option value="solid">Solid</option>
-                  <option value="dashed">Dashed</option>
-                  <option value="dotted">Dotted</option>
-                </select>
-              </LabeledField>
+              <BorderControl
+                width={state.borderWidth}
+                setWidth={setFloat("borderWidth")}
+                style={state.borderStyle}
+                // @ts-ignore - Style mismatch (double/none) is fine, or cast it
+                setStyle={setKey("borderStyle")}
+                color={state.borderColor}
+                setColor={setKey("borderColor")}
+              />
 
-              <div className="grid grid-cols-2 gap-4">
-                <SizeControl
-                  label="Width"
-                  value={state.borderWidth}
-                  onChange={setFloat("borderWidth")}
-                  min={0}
-                  max={10}
-                  unit="px"
-                />
-                {state.shape === "rounded" && (
+              {state.shape === "rounded" && (
+                <div
+                  className="pt-2 border-t"
+                  style={{ borderColor: "var(--border)" }}
+                >
                   <SizeControl
                     label="Radius"
                     value={state.borderRadius}
@@ -106,13 +94,8 @@ export default function IconContainerSection({
                     max={100}
                     unit="px"
                   />
-                )}
-              </div>
-              <ColorControl
-                label="Border Color"
-                value={state.borderColor}
-                onChange={setKey("borderColor")}
-              />
+                </div>
+              )}
             </div>
           </SectionCard>
 
