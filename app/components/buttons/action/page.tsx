@@ -2224,15 +2224,9 @@ export default function ActionButtonPage() {
 
   useEffect(() => {
     if (!isDesktop || !splitRef.current) return;
-    const rect = splitRef.current.getBoundingClientRect();
-    if (!rect.width) return;
-    const minLeft = 320;
-    const minRight = 360;
-    const maxLeft = Math.max(minLeft, rect.width - minRight);
-    const initial = clamp(Math.round(rect.width * 0.52), minLeft, maxLeft);
-    setLeftPanelWidth((prev) =>
-      prev ? clamp(prev, minLeft, maxLeft) : initial,
-    );
+    // On desktop, ensure the panel width is at least 520px initially
+    // and doesn't get recalculated to a smaller value during transitions
+    setLeftPanelWidth((prev) => (prev >= 320 ? prev : 520));
   }, [isDesktop]);
 
   useEffect(() => {
@@ -4209,14 +4203,22 @@ export default function ActionButtonPage() {
       <div
         ref={splitRef}
         className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={{ userSelect: isResizing ? "none" : "auto" }}
+        style={
+          {
+            userSelect: isResizing ? "none" : "auto",
+            "--left-panel-width": `${leftPanelWidth}px`,
+          } as React.CSSProperties
+        }
       >
         {/* Left Column: Controls */}
         <div
           className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
           style={{
             scrollbarGutter: "stable",
-            ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
+            width: leftPanelWidth,
+            minWidth: 320,
+            maxWidth: 900,
+            flex: "0 0 auto",
           }}
         >
           <div className="flex items-center justify-between">

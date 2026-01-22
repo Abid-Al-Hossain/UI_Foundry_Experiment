@@ -43,7 +43,7 @@ export default function PageTransition({
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden"
+      className="grid h-full w-full overflow-hidden"
       style={{ perspective: "1200px" }}
     >
       <AnimatePresence mode="popLayout" initial={false} custom={direction}>

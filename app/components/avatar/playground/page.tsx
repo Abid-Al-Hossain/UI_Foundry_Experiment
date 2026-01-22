@@ -848,13 +848,20 @@ export default function AvatarPage() {
       <div
         ref={splitRef}
         className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={{ userSelect: isResizing ? "none" : "auto" }}
+        style={
+          {
+            userSelect: isResizing ? "none" : "auto",
+            "--left-panel-width": `${leftPanelWidth}px`,
+          } as React.CSSProperties
+        }
       >
         <div
           className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
           style={{
             scrollbarGutter: "stable",
-            ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
+            width: "var(--left-panel-width, 520px)",
+            minWidth: "var(--left-panel-width, 520px)",
+            flex: "0 0 auto",
           }}
         >
           <div className="flex items-center justify-between">
@@ -862,26 +869,64 @@ export default function AvatarPage() {
               className="text-2xl font-bold tracking-tight"
               style={{ color: "var(--text)" }}
             >
-              Avatar
+              Avatar Playground
             </h1>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={undo}
                 disabled={!canUndo}
+                className="flex items-center justify-center p-2 rounded-lg border transition-all"
+                style={{
+                  borderColor: "var(--border)",
+                  color: canUndo ? "var(--text)" : "var(--muted)",
+                  opacity: canUndo ? 1 : 0.5,
+                  cursor: canUndo ? "pointer" : "not-allowed",
+                  background: canUndo ? "var(--card)" : "transparent",
+                }}
                 title="Undo (Ctrl+Z)"
-                className="rounded-full p-2 transition hover:opacity-80 disabled:opacity-30"
-                style={{ color: "var(--text)" }}
               >
-                <ArrowUturnLeftIcon className="h-5 w-5" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 7v6h6" />
+                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                </svg>
               </button>
               <button
+                type="button"
                 onClick={redo}
                 disabled={!canRedo}
-                title="Redo (Ctrl+Shift+Z)"
-                className="rounded-full p-2 transition hover:opacity-80 disabled:opacity-30"
-                style={{ color: "var(--text)" }}
+                className="flex items-center justify-center p-2 rounded-lg border transition-all"
+                style={{
+                  borderColor: "var(--border)",
+                  color: canRedo ? "var(--text)" : "var(--muted)",
+                  opacity: canRedo ? 1 : 0.5,
+                  cursor: canRedo ? "pointer" : "not-allowed",
+                  background: canRedo ? "var(--card)" : "transparent",
+                }}
+                title="Redo (Ctrl+Y)"
               >
-                <ArrowUturnRightIcon className="h-5 w-5" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 7v6h-6" />
+                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+                </svg>
               </button>
             </div>
           </div>
@@ -923,10 +968,11 @@ export default function AvatarPage() {
         <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
           <div
             onMouseDown={() => setIsResizing(true)}
-            className="h-full w-2 cursor-col-resize rounded-full transition hover:bg-[var(--primary)]"
+            className="h-full w-2 cursor-col-resize rounded-full"
             style={{
               background: "color-mix(in oklab, var(--border) 80%, transparent)",
             }}
+            title="Drag to resize panels"
           />
         </div>
 

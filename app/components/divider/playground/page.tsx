@@ -129,14 +129,21 @@ export default function DividerPage() {
       <div
         ref={splitRef}
         className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={{ userSelect: isResizing ? "none" : "auto" }}
+        style={
+          {
+            userSelect: isResizing ? "none" : "auto",
+            "--left-panel-width": `${leftPanelWidth}px`,
+          } as React.CSSProperties
+        }
       >
         {/* Left Column: Controls */}
         <div
           className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
           style={{
             scrollbarGutter: "stable",
-            ...(isDesktop ? { width: leftPanelWidth, flex: "0 0 auto" } : null),
+            width: "var(--left-panel-width, 520px)",
+            minWidth: "var(--left-panel-width, 520px)",
+            flex: "0 0 auto",
           }}
         >
           <div className="flex items-center justify-between">
