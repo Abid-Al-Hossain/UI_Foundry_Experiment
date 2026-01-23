@@ -5,7 +5,7 @@ import React from "react";
 export function LabeledField(props: {
   label: React.ReactNode;
   children: React.ReactNode;
-  hint?: string;
+  hint?: React.ReactNode;
 }) {
   return (
     <div>
@@ -13,11 +13,11 @@ export function LabeledField(props: {
         <label className="text-sm font-medium" style={{ color: "var(--text)" }}>
           {props.label}
         </label>
-        {props.hint ? (
-          <span className="text-xs" style={{ color: "var(--muted)" }}>
+        {props.hint && (
+          <div className="text-xs" style={{ color: "var(--muted)" }}>
             {props.hint}
-          </span>
-        ) : null}
+          </div>
+        )}
       </div>
       <div className="mt-2">{props.children}</div>
     </div>

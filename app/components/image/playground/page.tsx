@@ -4,51 +4,47 @@ import React, { useState, useRef, useEffect } from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
-import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel, {
-  DownloadFormat,
+  type DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 
 // Sections
-import DividerBasicsSection from "../_section/DividerBasicsSection";
-import DividerContentSection from "../_section/DividerContentSection";
-import DividerEffectsSection from "../_section/DividerEffectsSection";
-import DividerHyperSection from "../_section/DividerHyperSection";
-import { buildDividerExportPayload } from "../_utils/exportUtils";
+import LivePreview from "../_section/LivePreview";
+import ImageBasicsSection from "../_section/ImageBasicsSection";
+import ImageFiltersSection from "../_section/ImageFiltersSection";
+import ImageTransformSection from "../_section/ImageTransformSection";
+import ImageShapeSection from "../_section/ImageShapeSection";
+import ImageEffectsSection from "../_section/ImageEffectsSection";
 
-import {
-  type DividerOrientation,
-  type DividerVariant,
-  type DividerContentPosition,
-  type DividerState,
-  INITIAL_DIVIDER_STATE,
-} from "../types";
+// Types & Utils
+import { type ImageState, INITIAL_IMAGE_STATE } from "../types";
+import { buildImageExportPayload } from "../_utils/exportUtils";
 
-export default function DividerPage() {
+export default function ImagePlaygroundPage() {
   const mounted = useHydrated();
-  // Layout & Resize State
+
+  // Layout & Resize State (Unified)
   const [activeSection, setActiveSection] = useState("basics");
 
   // History State
   const {
     state,
-    set: updateState,
+    set: setState,
     undo,
     redo,
     canUndo,
     canRedo,
-  } = useHistoryState<DividerState>(INITIAL_DIVIDER_STATE);
+  } = useHistoryState<ImageState>(INITIAL_IMAGE_STATE);
 
-  // Resize Logic
-
-  // Download Props
+  // Download/Export
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
-  const [downloadName, setDownloadName] = useState("divider-component");
+  const [downloadName, setDownloadName] = useState("styled-image");
 
   const handleDownload = () => {
-    const { content, filename } = buildDividerExportPayload({
+    const { content, filename } = buildImageExportPayload({
       downloadFormat,
       downloadName,
       ...state,
@@ -65,28 +61,17 @@ export default function DividerPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Section Mapping
+  // Section Configuration
   const sections = [
-    { id: "basics", label: "Basics", component: DividerBasicsSection },
-    { id: "content", label: "Label", component: DividerContentSection },
-    { id: "effects", label: "Effects", component: DividerEffectsSection },
-    { id: "hyper", label: "Hyper FX", component: DividerHyperSection },
+    { id: "basics", label: "Basics", component: ImageBasicsSection },
+    { id: "filters", label: "Filters", component: ImageFiltersSection },
+    { id: "transform", label: "Transform", component: ImageTransformSection },
+    { id: "shape", label: "Shape", component: ImageShapeSection },
+    { id: "effects", label: "Effects", component: ImageEffectsSection },
   ];
 
-  // Generic Setter Helper
-  const setKey = (key: keyof DividerState) => (val: any) => {
-    updateState((prev) => ({
-      ...prev,
-      [key]: typeof val === "function" ? val(prev[key]) : val,
-    }));
-  };
-  const setFloat = (key: keyof DividerState) => (val: any) => {
-    const num = parseFloat(val);
-    updateState((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
-  };
-
   const activeComp = sections.find((s) => s.id === activeSection);
-  const ActiveComponent = activeComp?.component || DividerBasicsSection;
+  const ActiveComponent = activeComp?.component || ImageBasicsSection;
 
   const headerActions = (
     <>
@@ -187,37 +172,29 @@ export default function DividerPage() {
           ))}
         </div>
       </div>
-
-      <ActiveComponent
-        state={state}
-        setKey={setKey}
-        setFloat={setFloat}
-        updateState={updateState}
-      />
+      <ActiveComponent state={state} setState={setState} />
     </>
   );
 
   const preview = (
-    <div className="sticky top-20 px-6">
-      <PreviewDownloadPanel
-        mounted={mounted}
-        iframeSrcDoc=""
-        iframeRef={iframeRef}
-        handleIframeLoad={() => {}}
-        downloadFormat={downloadFormat}
-        setDownloadFormat={setDownloadFormat}
-        downloadName={downloadName}
-        setDownloadName={setDownloadName}
-        handleDownload={handleDownload}
-        previewNode={<LivePreview state={state} />}
-      />
-    </div>
+    <PreviewDownloadPanel
+      mounted={mounted}
+      iframeSrcDoc=""
+      iframeRef={iframeRef}
+      handleIframeLoad={() => {}}
+      downloadFormat={downloadFormat}
+      setDownloadFormat={setDownloadFormat}
+      downloadName={downloadName}
+      setDownloadName={setDownloadName}
+      handleDownload={handleDownload}
+      previewNode={<LivePreview state={state} />}
+    />
   );
 
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
-        title="Divider Studio"
+        title="Image Studio"
         headerActions={headerActions}
         controls={controls}
         preview={preview}

@@ -8,6 +8,7 @@ import LivePreview from "./_section/LivePreview";
 import PreviewDownloadPanel, {
   DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
 
 // TODO: Create these sections next
 import IconSelectionSection from "./_section/IconSelectionSection";
@@ -126,7 +127,7 @@ export default function IconPlaygroundPage() {
     <AppShell contentOverflow="hidden">
       <div
         ref={splitRef}
-        className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
+        className="flex flex-col gap-6 h-full overflow-y-auto lg:min-h-0 lg:flex-row lg:overflow-hidden"
         style={
           {
             userSelect: isResizing ? "none" : "auto",
@@ -135,8 +136,8 @@ export default function IconPlaygroundPage() {
         }
       >
         {/* Left Column: Controls */}
-        <div
-          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
+        <ScrollArea
+          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
           style={{
             scrollbarGutter: "stable",
             width: "var(--left-panel-width, 520px)",
@@ -253,7 +254,7 @@ export default function IconPlaygroundPage() {
           </div>
 
           <ActiveComponent state={state} setKey={setKey} setFloat={setFloat} />
-        </div>
+        </ScrollArea>
 
         {/* Resizer */}
         <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
@@ -269,10 +270,10 @@ export default function IconPlaygroundPage() {
 
         {/* Right Column: Preview */}
         <div
-          className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:pb-10 lg:h-full"
+          className="flex-1 lg:min-h-0 lg:pb-0 lg:h-full"
           style={{ minWidth: 360 }}
         >
-          <div className="sticky top-20 px-6">
+          <div className="h-full w-full">
             <PreviewDownloadPanel
               mounted={mounted}
               iframeSrcDoc=""

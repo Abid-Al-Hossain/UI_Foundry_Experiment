@@ -13,7 +13,7 @@ export default function AppShell({
           : "h-full w-full overflow-y-auto scrollbar-thin p-5"
       }
     >
-      <div className="fade-in">{children}</div>
+      <div className="fade-in h-full w-full">{children}</div>
     </div>
   );
 }

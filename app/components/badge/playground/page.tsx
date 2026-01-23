@@ -9,6 +9,8 @@ import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel, {
   DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
+import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 
 // --- Sections (we will create these next) ---
 import ContentSection from "../_section/ContentSection";
@@ -31,12 +33,7 @@ import {
 
 export default function BadgePage() {
   const mounted = useHydrated();
-  // Layout & Resize State
   const [activeSection, setActiveSection] = useState("basics");
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(520);
-  const splitRef = useRef<HTMLDivElement>(null);
 
   // Unified History State
   const {
@@ -285,37 +282,6 @@ export default function BadgePage() {
       clickRipple: typeof v === "function" ? v(s.clickRipple) : v,
     }));
 
-  // --- Resize Handler ---
-  useEffect(() => {
-    setIsDesktop(window.innerWidth >= 1024);
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !splitRef.current) return;
-      const newWidth =
-        e.clientX - splitRef.current.getBoundingClientRect().left;
-      // Clamping
-      if (newWidth > 320 && newWidth < 900) {
-        setLeftPanelWidth(newWidth);
-      }
-    };
-    const handleMouseUp = () => setIsResizing(false);
-    if (isResizing) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-      document.body.style.userSelect = "none";
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.userSelect = "";
-    };
-  }, [isResizing]);
-
   // --- Export Logic ---
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
@@ -470,173 +436,135 @@ export default function BadgePage() {
     sectionItems.find((item) => item.id === activeSection) ?? sectionItems[0];
 
   // --- Render ---
-  return (
-    <AppShell contentOverflow="hidden">
-      {/* Layout: Fixed height container with independent scrolling columns */}
-      <div
-        ref={splitRef}
-        className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={
-          {
-            userSelect: isResizing ? "none" : "auto",
-            "--left-panel-width": `${leftPanelWidth}px`,
-          } as React.CSSProperties
-        }
+  const headerActions = (
+    <>
+      <button
+        type="button"
+        onClick={undo}
+        disabled={!canUndo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canUndo ? "var(--text)" : "var(--muted)",
+          opacity: canUndo ? 1 : 0.5,
+          cursor: canUndo ? "pointer" : "not-allowed",
+          background: canUndo ? "var(--card)" : "transparent",
+        }}
+        title="Undo (Ctrl+Z)"
       >
-        {/* Left Column: Controls */}
-        <div
-          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
-          style={{
-            scrollbarGutter: "stable",
-            width: "var(--left-panel-width, 520px)",
-            minWidth: "var(--left-panel-width, 520px)",
-            flex: "0 0 auto",
-          }}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <div className="flex items-center justify-between">
-            <h1
-              className="text-2xl font-bold tracking-tight"
-              style={{ color: "var(--text)" }}
-            >
-              Badge Studio
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={undo}
-                disabled={!canUndo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canUndo ? "var(--text)" : "var(--muted)",
-                  opacity: canUndo ? 1 : 0.5,
-                  cursor: canUndo ? "pointer" : "not-allowed",
-                  background: canUndo ? "var(--card)" : "transparent",
-                }}
-                title="Undo (Ctrl+Z)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={redo}
-                disabled={!canRedo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canRedo ? "var(--text)" : "var(--muted)",
-                  opacity: canRedo ? 1 : 0.5,
-                  cursor: canRedo ? "pointer" : "not-allowed",
-                  background: canRedo ? "var(--card)" : "transparent",
-                }}
-                title="Redo (Ctrl+Y)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 7v6h-6" />
-                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Section Tabs */}
-          <div
-            className="rounded-2xl border p-3"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
-            }}
-          >
-            <div
-              className="text-xs font-semibold mb-3"
-              style={{ color: "var(--muted)" }}
-            >
-              Sections
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-              {sectionItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveSection(item.id)}
-                  className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable transition-all"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      activePanel?.id === item.id
-                        ? "var(--primary)"
-                        : "transparent",
-                    color:
-                      activePanel?.id === item.id ? "white" : "var(--text)",
-                    boxShadow:
-                      activePanel?.id === item.id
-                        ? "0 4px 12px var(--primary-shadow)"
-                        : "none",
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {activePanel?.content}
-        </div>
-
-        {/* Resizer */}
-        <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
-          <div
-            onMouseDown={() => setIsResizing(true)}
-            className="h-full w-2 cursor-col-resize rounded-full transition-colors hover:bg-slate-300 dark:hover:bg-slate-700"
-            style={{
-              background: "color-mix(in oklab, var(--border) 80%, transparent)",
-            }}
-            title="Drag to resize panels"
-          />
-        </div>
-
-        {/* Right Column: Preview */}
-        <div
-          className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:pb-10 lg:h-full"
-          style={{ minWidth: 360 }}
+          <path d="M3 7v6h6" />
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={redo}
+        disabled={!canRedo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canRedo ? "var(--text)" : "var(--muted)",
+          opacity: canRedo ? 1 : 0.5,
+          cursor: canRedo ? "pointer" : "not-allowed",
+          background: canRedo ? "var(--card)" : "transparent",
+        }}
+        title="Redo (Ctrl+Y)"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <div className="sticky top-20 px-6">
-            <PreviewDownloadPanel
-              mounted={mounted}
-              iframeSrcDoc=""
-              iframeRef={iframeRef}
-              handleIframeLoad={() => {}}
-              downloadFormat={downloadFormat}
-              setDownloadFormat={setDownloadFormat}
-              downloadName={downloadName}
-              setDownloadName={setDownloadName}
-              handleDownload={handleDownload}
-              previewNode={<LivePreview state={state} />}
-            />
-          </div>
+          <path d="M21 7v6h-6" />
+          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+        </svg>
+      </button>
+    </>
+  );
+
+  const controls = (
+    <>
+      <div
+        className="rounded-2xl border p-3"
+        style={{
+          borderColor: "var(--border)",
+          background: "color-mix(in oklab, var(--card) 70%, transparent)",
+        }}
+      >
+        <div
+          className="text-xs font-semibold mb-3"
+          style={{ color: "var(--muted)" }}
+        >
+          Sections
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          {sectionItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveSection(item.id)}
+              className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable transition-all"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  activePanel?.id === item.id
+                    ? "var(--primary)"
+                    : "transparent",
+                color: activePanel?.id === item.id ? "white" : "var(--text)",
+                boxShadow:
+                  activePanel?.id === item.id
+                    ? "0 4px 12px var(--primary-shadow)"
+                    : "none",
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {activePanel?.content}
+    </>
+  );
+
+  const preview = (
+    <PreviewDownloadPanel
+      mounted={mounted}
+      iframeSrcDoc=""
+      iframeRef={iframeRef}
+      handleIframeLoad={() => {}}
+      downloadFormat={downloadFormat}
+      setDownloadFormat={setDownloadFormat}
+      downloadName={downloadName}
+      setDownloadName={setDownloadName}
+      handleDownload={handleDownload}
+      previewNode={<LivePreview state={state} />}
+    />
+  );
+
+  return (
+    <AppShell contentOverflow="hidden">
+      <PlaygroundLayout
+        title="Badge Studio"
+        headerActions={headerActions}
+        controls={controls}
+        preview={preview}
+      />
     </AppShell>
   );
 }

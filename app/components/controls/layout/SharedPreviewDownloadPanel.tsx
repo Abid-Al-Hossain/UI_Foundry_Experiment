@@ -3,6 +3,7 @@
 import React from "react";
 import { PreviewPanel } from "@/app/components/controls/layout/PreviewPanel";
 import ExportOptionsControl from "@/app/components/controls/export/ExportOptionsControl";
+import { ScrollArea } from "./ScrollArea";
 
 export type DownloadFormat =
   | "html"
@@ -44,7 +45,7 @@ export default function PreviewDownloadPanel(props: {
   } = props;
 
   return (
-    <div className="lg:overflow-auto lg:pl-2">
+    <ScrollArea className="lg:pl-2 h-full">
       <div
         className="rounded-2xl border p-5"
         style={{
@@ -104,6 +105,6 @@ export default function PreviewDownloadPanel(props: {
           a “Preview alignment” control.
         </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

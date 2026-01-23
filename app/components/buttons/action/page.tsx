@@ -43,6 +43,8 @@ import PreviewBackgroundSection, {
 import PreviewDownloadPanel, {
   type DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
+import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
 import LoadingSection, {
   type LoadingSpinnerMode,
   type LoadingSpinnerPosition,
@@ -640,11 +642,6 @@ const INITIAL_STATE: ActionButtonState = {
 export default function ActionButtonPage() {
   const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("basics");
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(520);
-  const splitRef = useRef<HTMLDivElement>(null);
-
   // Initialize unified history state
   const {
     state,
@@ -2209,45 +2206,6 @@ export default function ActionButtonPage() {
   // --- Preview & Export ---
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(mq.matches);
-    update();
-    if (mq.addEventListener) {
-      mq.addEventListener("change", update);
-      return () => mq.removeEventListener("change", update);
-    }
-    mq.addListener(update);
-    return () => mq.removeListener(update);
-  }, []);
-
-  useEffect(() => {
-    if (!isDesktop || !splitRef.current) return;
-    // On desktop, ensure the panel width is at least 520px initially
-    // and doesn't get recalculated to a smaller value during transitions
-    setLeftPanelWidth((prev) => (prev >= 320 ? prev : 520));
-  }, [isDesktop]);
-
-  useEffect(() => {
-    if (!isResizing) return;
-    const onMove = (e: MouseEvent) => {
-      if (!splitRef.current) return;
-      const rect = splitRef.current.getBoundingClientRect();
-      const minLeft = 320;
-      const minRight = 360;
-      const maxLeft = Math.max(minLeft, rect.width - minRight);
-      const next = clamp(Math.round(e.clientX - rect.left), minLeft, maxLeft);
-      setLeftPanelWidth(next);
-    };
-    const onUp = () => setIsResizing(false);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, [isResizing]);
 
   // --- Computed Values ---
   const wPx = clamp(Number(widthText) || 220, 40, 720);
@@ -4197,174 +4155,138 @@ export default function ActionButtonPage() {
   }
 
   // --- Render ---
-  return (
-    <AppShell contentOverflow="hidden">
-      {/* Layout: Fixed height container with independent scrolling columns */}
-      <div
-        ref={splitRef}
-        className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={
-          {
-            userSelect: isResizing ? "none" : "auto",
-            "--left-panel-width": `${leftPanelWidth}px`,
-          } as React.CSSProperties
-        }
+  const headerActions = (
+    <>
+      <button
+        type="button"
+        onClick={undo}
+        disabled={!canUndo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canUndo ? "var(--text)" : "var(--muted)",
+          opacity: canUndo ? 1 : 0.5,
+          cursor: canUndo ? "pointer" : "not-allowed",
+          background: canUndo ? "var(--card)" : "transparent",
+        }}
+        title="Undo (Ctrl+Z)"
       >
-        {/* Left Column: Controls */}
-        <div
-          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
-          style={{
-            scrollbarGutter: "stable",
-            width: leftPanelWidth,
-            minWidth: 320,
-            maxWidth: 900,
-            flex: "0 0 auto",
-          }}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <div className="flex items-center justify-between">
-            <h1
-              className="text-2xl font-bold tracking-tight"
-              style={{ color: "var(--text)" }}
-            >
-              Action Button
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={undo}
-                disabled={!canUndo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canUndo ? "var(--text)" : "var(--muted)",
-                  opacity: canUndo ? 1 : 0.5,
-                  cursor: canUndo ? "pointer" : "not-allowed",
-                  background: canUndo ? "var(--card)" : "transparent",
-                }}
-                title="Undo (Ctrl+Z)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={redo}
-                disabled={!canRedo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canRedo ? "var(--text)" : "var(--muted)",
-                  opacity: canRedo ? 1 : 0.5,
-                  cursor: canRedo ? "pointer" : "not-allowed",
-                  background: canRedo ? "var(--card)" : "transparent",
-                }}
-                title="Redo (Ctrl+Y)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 7v6h-6" />
-                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div
-            className="rounded-2xl border p-3"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
-            }}
-          >
-            <div
-              className="text-xs font-semibold"
-              style={{ color: "var(--muted)" }}
-            >
-              Sections
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-              {sectionItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveSection(item.id)}
-                  className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      activePanel?.id === item.id
-                        ? "var(--primary)"
-                        : "transparent",
-                    color:
-                      activePanel?.id === item.id ? "white" : "var(--text)",
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {activePanel?.content}
-        </div>
-
-        <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
-          <div
-            onMouseDown={() => setIsResizing(true)}
-            className="h-full w-2 cursor-col-resize rounded-full"
-            style={{
-              background: "color-mix(in oklab, var(--border) 80%, transparent)",
-            }}
-            title="Drag to resize panels"
-          />
-        </div>
-
-        {/* Right Column: Preview */}
-        <div
-          className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:pb-10 lg:h-full"
-          style={{ minWidth: 360 }}
+          <path d="M3 7v6h6" />
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={redo}
+        disabled={!canRedo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canRedo ? "var(--text)" : "var(--muted)",
+          opacity: canRedo ? 1 : 0.5,
+          cursor: canRedo ? "pointer" : "not-allowed",
+          background: canRedo ? "var(--card)" : "transparent",
+        }}
+        title="Redo (Ctrl+Y)"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <div className="sticky top-20">
-            <PreviewDownloadPanel
-              mounted={mounted}
-              iframeSrcDoc={initialSrcDoc}
-              iframeRef={iframeRef}
-              handleIframeLoad={() => {
-                if (iframeRef.current?.contentWindow) {
-                  iframeRef.current.contentWindow.postMessage(
-                    previewPayload,
-                    "*",
-                  );
-                }
+          <path d="M21 7v6h-6" />
+          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+        </svg>
+      </button>
+    </>
+  );
+
+  // --- Controls ---
+  const controls = (
+    <>
+      <div
+        className="rounded-2xl border p-3"
+        style={{
+          borderColor: "var(--border)",
+          background: "color-mix(in oklab, var(--card) 70%, transparent)",
+        }}
+      >
+        <div
+          className="text-xs font-semibold"
+          style={{ color: "var(--muted)" }}
+        >
+          Sections
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          {sectionItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveSection(item.id)}
+              className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  activePanel?.id === item.id
+                    ? "var(--primary)"
+                    : "transparent",
+                color: activePanel?.id === item.id ? "white" : "var(--text)",
               }}
-              downloadFormat={downloadFormat}
-              setDownloadFormat={setDownloadFormat}
-              downloadName={downloadName}
-              setDownloadName={setDownloadName}
-              handleDownload={handleDownload}
-              previewNode={livePreviewNode}
-            />
-          </div>
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {activePanel?.content}
+    </>
+  );
+
+  // --- Preview ---
+  const preview = (
+    <PreviewDownloadPanel
+      mounted={mounted}
+      iframeSrcDoc={initialSrcDoc}
+      iframeRef={iframeRef}
+      handleIframeLoad={() => {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage(previewPayload, "*");
+        }
+      }}
+      downloadFormat={downloadFormat}
+      setDownloadFormat={setDownloadFormat}
+      downloadName={downloadName}
+      setDownloadName={setDownloadName}
+      handleDownload={handleDownload}
+      previewNode={livePreviewNode}
+    />
+  );
+
+  // --- Render ---
+  return (
+    <AppShell contentOverflow="hidden">
+      <PlaygroundLayout
+        title="Action Button"
+        headerActions={headerActions}
+        controls={controls}
+        preview={preview}
+      />
     </AppShell>
   );
 }

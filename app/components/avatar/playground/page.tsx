@@ -6,6 +6,9 @@ import AppShell from "@/components/layout/AppShell";
 import PreviewDownloadPanel, {
   DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
+import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
+
 import { buildAvatarExport } from "./_utils/exportUtils";
 import { PREVIEW_SRC_DOC } from "./_utils/avatarPreviewDoc";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -167,6 +170,8 @@ import useHydrated from "@/components/hooks/useHydrated";
 
 export default function AvatarPage() {
   const mounted = useHydrated();
+  const [activeSection, setActiveSection] = useState("basics");
+
   // --- Unified State Management ---
   const {
     state,
@@ -453,45 +458,10 @@ export default function AvatarPage() {
       borderEffect: typeof v === "function" ? v(s.borderEffect) : v,
     }));
 
-  // --- Layout & Meta State ---
-  const [activeSection, setActiveSection] = useState("basics");
-  const [isResizing, setIsResizing] = useState(false);
-  const splitRef = useRef<HTMLDivElement>(null);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(520);
-  const [isDesktop, setIsDesktop] = useState(false);
-
   // Export
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("my-avatar");
-
-  // --- Responsive & Resize Logic ---
-  useEffect(() => {
-    setIsDesktop(window.innerWidth >= 1024);
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !splitRef.current) return;
-      const splitRect = splitRef.current.getBoundingClientRect();
-      const newWidth = e.clientX - splitRect.left;
-      if (newWidth > 320 && newWidth < splitRect.width - 360) {
-        setLeftPanelWidth(newWidth);
-      }
-    };
-    const handleMouseUp = () => setIsResizing(false);
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isResizing]);
 
   // --- Tabs ---
   const sections = [
@@ -843,167 +813,133 @@ export default function AvatarPage() {
     );
   }
 
-  return (
-    <AppShell contentOverflow="hidden">
+  const headerActions = (
+    <>
+      <button
+        type="button"
+        onClick={undo}
+        disabled={!canUndo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canUndo ? "var(--text)" : "var(--muted)",
+          opacity: canUndo ? 1 : 0.5,
+          cursor: canUndo ? "pointer" : "not-allowed",
+          background: canUndo ? "var(--card)" : "transparent",
+        }}
+        title="Undo (Ctrl+Z)"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 7v6h6" />
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={redo}
+        disabled={!canRedo}
+        className="flex items-center justify-center p-2 rounded-lg border transition-all"
+        style={{
+          borderColor: "var(--border)",
+          color: canRedo ? "var(--text)" : "var(--muted)",
+          opacity: canRedo ? 1 : 0.5,
+          cursor: canRedo ? "pointer" : "not-allowed",
+          background: canRedo ? "var(--card)" : "transparent",
+        }}
+        title="Redo (Ctrl+Y)"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 7v6h-6" />
+          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+        </svg>
+      </button>
+    </>
+  );
+
+  const controls = (
+    <>
       <div
-        ref={splitRef}
-        className="flex flex-col gap-6 h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
-        style={
-          {
-            userSelect: isResizing ? "none" : "auto",
-            "--left-panel-width": `${leftPanelWidth}px`,
-          } as React.CSSProperties
-        }
+        className="rounded-2xl border p-3"
+        style={{
+          borderColor: "var(--border)",
+          background: "color-mix(in oklab, var(--card) 70%, transparent)",
+        }}
       >
         <div
-          className="flex-1 space-y-6 px-4 lg:min-h-0 lg:overflow-y-auto lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
-          style={{
-            scrollbarGutter: "stable",
-            width: "var(--left-panel-width, 520px)",
-            minWidth: "var(--left-panel-width, 520px)",
-            flex: "0 0 auto",
-          }}
+          className="text-xs font-semibold"
+          style={{ color: "var(--muted)" }}
         >
-          <div className="flex items-center justify-between">
-            <h1
-              className="text-2xl font-bold tracking-tight"
-              style={{ color: "var(--text)" }}
-            >
-              Avatar Playground
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={undo}
-                disabled={!canUndo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canUndo ? "var(--text)" : "var(--muted)",
-                  opacity: canUndo ? 1 : 0.5,
-                  cursor: canUndo ? "pointer" : "not-allowed",
-                  background: canUndo ? "var(--card)" : "transparent",
-                }}
-                title="Undo (Ctrl+Z)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={redo}
-                disabled={!canRedo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canRedo ? "var(--text)" : "var(--muted)",
-                  opacity: canRedo ? 1 : 0.5,
-                  cursor: canRedo ? "pointer" : "not-allowed",
-                  background: canRedo ? "var(--card)" : "transparent",
-                }}
-                title="Redo (Ctrl+Y)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 7v6h-6" />
-                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div
-            className="rounded-2xl border p-3"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
-            }}
-          >
-            <div
-              className="text-xs font-semibold"
-              style={{ color: "var(--muted)" }}
-            >
-              Sections
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-              {sections.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setActiveSection(s.id)}
-                  className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      activeSection === s.id ? "var(--primary)" : "transparent",
-                    color: activeSection === s.id ? "white" : "var(--text)",
-                  }}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {renderActiveSection()}
+          Sections
         </div>
-
-        <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
-          <div
-            onMouseDown={() => setIsResizing(true)}
-            className="h-full w-2 cursor-col-resize rounded-full"
-            style={{
-              background: "color-mix(in oklab, var(--border) 80%, transparent)",
-            }}
-            title="Drag to resize panels"
-          />
-        </div>
-
-        <div
-          className="flex-1 lg:min-h-0 lg:overflow-y-auto lg:pb-10 lg:h-full"
-          style={{ minWidth: 360 }}
-        >
-          <div className="sticky top-20">
-            <PreviewDownloadPanel
-              mounted={mounted}
-              iframeSrcDoc={initialSrcDoc}
-              iframeRef={iframeRef}
-              handleIframeLoad={() => {
-                // Send initial sync when iframe loads
-                if (iframeRef.current?.contentWindow) {
-                  iframeRef.current.contentWindow.postMessage(
-                    previewPayload,
-                    "*",
-                  );
-                }
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          {sections.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setActiveSection(s.id)}
+              className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  activeSection === s.id ? "var(--primary)" : "transparent",
+                color: activeSection === s.id ? "white" : "var(--text)",
               }}
-              downloadFormat={downloadFormat}
-              setDownloadFormat={setDownloadFormat}
-              downloadName={downloadName}
-              setDownloadName={setDownloadName}
-              handleDownload={handleDownload}
-              previewNode={livePreviewNode}
-            />
-          </div>
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
+      {renderActiveSection()}
+    </>
+  );
+
+  const preview = (
+    <PreviewDownloadPanel
+      mounted={mounted}
+      iframeSrcDoc={initialSrcDoc}
+      iframeRef={iframeRef}
+      handleIframeLoad={() => {
+        // Send initial sync when iframe loads
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage(previewPayload, "*");
+        }
+      }}
+      downloadFormat={downloadFormat}
+      setDownloadFormat={setDownloadFormat}
+      downloadName={downloadName}
+      setDownloadName={setDownloadName}
+      handleDownload={handleDownload}
+      previewNode={livePreviewNode}
+    />
+  );
+
+  return (
+    <AppShell contentOverflow="hidden">
+      <PlaygroundLayout
+        title="Avatar Playground"
+        headerActions={headerActions}
+        controls={controls}
+        preview={preview}
+      />
     </AppShell>
   );
 }
