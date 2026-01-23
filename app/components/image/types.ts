@@ -152,10 +152,26 @@ export interface ImageState {
   vignetteSoftness: string;
   vignetteColor: string;
 
+  // Caption
+  captionEnabled: boolean;
+  captionText: string;
+  captionPosition: "top" | "center" | "bottom";
+  captionBgStyle: "solid" | "gradient" | "glass";
+  captionBgColor: string;
+  captionTextColor: string;
+  captionFontSize: string;
+
   // Animation
   hoverEffect: HoverEffect;
   hoverIntensity: string;
   hoverDuration: string;
+
+  // Hover Customization
+  hoverZoomScale: string;
+  hoverRotateAngle: string;
+  hoverLiftAmount: string;
+  hoverTiltAmount: string;
+
   entranceAnimation: EntranceAnimation;
   entranceDuration: string;
   entranceDelay: string;
@@ -259,10 +275,25 @@ export const INITIAL_IMAGE_STATE: ImageState = {
   vignetteSoftness: "60",
   vignetteColor: "#000000",
 
+  // Caption
+  captionEnabled: false,
+  captionText: "Capture the moment",
+  captionPosition: "bottom",
+  captionBgStyle: "glass",
+  captionBgColor: "#000000",
+  captionTextColor: "#ffffff",
+  captionFontSize: "16",
+
   // Animation
   hoverEffect: "none",
   hoverIntensity: "110",
   hoverDuration: "300",
+
+  hoverZoomScale: "1.1",
+  hoverRotateAngle: "5",
+  hoverLiftAmount: "10",
+  hoverTiltAmount: "10",
+
   entranceAnimation: "none",
   entranceDuration: "600",
   entranceDelay: "0",

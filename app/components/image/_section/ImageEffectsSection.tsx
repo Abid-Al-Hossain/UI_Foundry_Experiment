@@ -152,42 +152,121 @@ export default function ImageEffectsSection({
         )}
       </div>
 
-      {/* Hover Effects */}
+      {/* Duotone Effect */}
       <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
+        <div
+          className="flex items-center justify-between pb-2 border-b"
+          style={{ borderColor: "var(--border)" }}
         >
-          Animations
-        </h3>
-
-        <LabeledField label="Hover Effect">
-          <Select
-            value={state.hoverEffect}
-            onChange={(v) => setKey("hoverEffect")(v as any)}
-            options={[
-              { value: "none", label: "None" },
-              { value: "zoom-in", label: "Zoom In" },
-              { value: "zoom-out", label: "Zoom Out" },
-              { value: "rotate", label: "Rotate" },
-              { value: "lift", label: "Lift" },
-              { value: "tilt", label: "Tilt" },
-              { value: "brightness", label: "Brightness" },
-              { value: "grayscale", label: "Grayscale" },
-            ]}
+          <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
+            Duotone
+          </h3>
+          <Switch
+            checked={state.duotoneEnabled}
+            onChange={setKey("duotoneEnabled")}
           />
-        </LabeledField>
+        </div>
 
-        {state.hoverEffect !== "none" && (
-          <LabeledField label="Duration" hint={`${state.hoverDuration}ms`}>
-            <Slider
-              min={100}
-              max={1000}
-              step={50}
-              value={state.hoverDuration}
-              onChange={setKey("hoverDuration")}
+        {state.duotoneEnabled && (
+          <div
+            className="space-y-4 pl-2 border-l-2"
+            style={{ borderColor: "var(--primary)" }}
+          >
+            <ColorControl
+              label="Shadows (Dark)"
+              value={state.duotoneColor1}
+              onChange={setKey("duotoneColor1")}
             />
-          </LabeledField>
+            <ColorControl
+              label="Highlights (Light)"
+              value={state.duotoneColor2}
+              onChange={setKey("duotoneColor2")}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Caption Overlay */}
+      <div className="space-y-4">
+        <div
+          className="flex items-center justify-between pb-2 border-b"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
+            Caption
+          </h3>
+          <Switch
+            checked={state.captionEnabled}
+            onChange={setKey("captionEnabled")}
+          />
+        </div>
+
+        {state.captionEnabled && (
+          <div
+            className="space-y-4 pl-2 border-l-2"
+            style={{ borderColor: "var(--primary)" }}
+          >
+            <LabeledField label="Text">
+              <input
+                type="text"
+                value={state.captionText}
+                onChange={(e) => setKey("captionText")(e.target.value)}
+                className="w-full bg-transparent border rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--text)",
+                }}
+              />
+            </LabeledField>
+
+            <LabeledField label="Position">
+              <Select
+                value={state.captionPosition}
+                onChange={(v) => setKey("captionPosition")(v as any)}
+                options={[
+                  { value: "top", label: "Top" },
+                  { value: "center", label: "Center" },
+                  { value: "bottom", label: "Bottom" },
+                ]}
+              />
+            </LabeledField>
+
+            <LabeledField label="Background Style">
+              <Select
+                value={state.captionBgStyle}
+                onChange={(v) => setKey("captionBgStyle")(v as any)}
+                options={[
+                  { value: "solid", label: "Solid Color" },
+                  { value: "gradient", label: "Gradient Fade" },
+                  { value: "glass", label: "Glassmorphism" },
+                ]}
+              />
+            </LabeledField>
+
+            <ColorControl
+              label="Text Color"
+              value={state.captionTextColor}
+              onChange={setKey("captionTextColor")}
+            />
+
+            {state.captionBgStyle === "solid" && (
+              <ColorControl
+                label="Background Color"
+                value={state.captionBgColor}
+                onChange={setKey("captionBgColor")}
+              />
+            )}
+
+            <LabeledField label="Font Size" hint={`${state.captionFontSize}px`}>
+              <Slider
+                min={12}
+                max={48}
+                step={1}
+                value={state.captionFontSize}
+                onChange={setKey("captionFontSize")}
+              />
+            </LabeledField>
+          </div>
         )}
       </div>
     </div>

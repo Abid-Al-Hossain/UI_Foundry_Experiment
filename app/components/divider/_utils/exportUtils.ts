@@ -10,8 +10,6 @@ import {
 export type DividerExportInput = {
   downloadFormat: DownloadFormat;
   downloadName: string;
-
-  // Basics
   orientation: DividerOrientation;
   width: string;
   thickness: number;
@@ -19,16 +17,12 @@ export type DividerExportInput = {
   color: string;
   variant: DividerVariant;
   borderRadius: number;
-
-  // Content
   showLabel: boolean;
   labelText: string;
   labelPosition: DividerContentPosition;
   labelBackground: string;
   labelColor: string;
   labelPadding: number;
-
-  // FX
   gradientEnabled: boolean;
   gradientStart: string;
   gradientEnd: string;
@@ -67,184 +61,205 @@ export function buildDividerExportPayload(params: DividerExportInput) {
     animateBeam,
     beamColor,
     beamSpeed,
-    shimmerEnabled,
-    shimmerSpeed,
     neonGlow,
     glowColor,
     glowBlur,
   } = params;
 
-  let content = "";
-  const ext = downloadFormat === "react" ? "jsx" : "html";
-  const filename = `${downloadName}.${ext}`;
   const isHorizontal = orientation === "horizontal";
+  const ext =
+    downloadFormat === "react"
+      ? "jsx"
+      : downloadFormat === "tailwind-config"
+        ? "js"
+        : downloadFormat === "figma-tokens"
+          ? "json"
+          : downloadFormat === "css-vars"
+            ? "css"
+            : downloadFormat === "scss"
+              ? "scss"
+              : "html";
+  const filename = `${downloadName}.${ext}`;
 
-  // Shared CSS
-  const containerCss = `
-    display: flex;
-    flex-direction: ${isHorizontal ? "row" : "column"};
-    align-items: center;
-    justify-content: center;
-    width: ${isHorizontal ? width : `${thickness}px`};
-    height: ${isHorizontal ? `${thickness}px` : width};
-    margin: ${gap}px;
-    opacity: ${opacity};
-    position: relative;
-    ${
-      neonGlow
-        ? `box-shadow: 0 0 ${glowBlur}px ${glowColor}, 0 0 ${
-            glowBlur * 2
-          }px ${glowColor};`
-        : ""
-    }
-  `;
+  // 1. Logic Helpers
+  const getSizeStyle = () =>
+    isHorizontal
+      ? { width: width, height: `${thickness}px` }
+      : { width: `${thickness}px`, height: width };
 
-  const lineBaseCss = `
-    flex: 1;
-    ${
-      isHorizontal ? "height: 100%; width: 100%;" : "width: 100%; height: 100%;"
-    }
-    border-radius: ${borderRadius}px;
-    position: relative;
-    overflow: hidden;
-  `;
-
-  // Variant Logic
-  let lineBackground = color;
-  let lineBorder = "none";
+  let bg = color;
+  let border = "none";
   if (gradientEnabled) {
-    lineBackground = `linear-gradient(to right, ${gradientStart}, ${gradientEnd})`;
+    bg = `linear-gradient(${isHorizontal ? "to right" : "to bottom"}, ${gradientStart}, ${gradientEnd})`;
   } else if (variant !== "solid") {
-    lineBackground = "transparent";
-    lineBorder = `${thickness}px ${variant} ${color}`;
+    if (isHorizontal) {
+      border =
+        "none"; /* Special handling below for dashed/dotted lines via border-top */
+    } else {
+      border = "none";
+    }
+    bg = "transparent";
   }
 
-  // NOTE: For dashed/dotted borders, we typically apply border-top (horizontal) or border-left (vertical)
-  // But to support "flex: 1" with label in middle, we might need real elements.
-  // Simplifying for export: Use pseudo-elements or divs.
+  const getBorderInfo = () => {
+    if (variant === "solid" || gradientEnabled) return "";
+    // For dashed/dotted, we usually use a border on one side
+    if (isHorizontal)
+      return `border-top: ${thickness}px ${variant} ${color}; height: 0;`;
+    return `border-left: ${thickness}px ${variant} ${color}; width: 0;`;
+  };
 
-  const lineStyle = `
-    ${lineBaseCss}
-    background: ${lineBackground};
-    ${
-      variant !== "solid" && !gradientEnabled
-        ? isHorizontal
-          ? `border-top: ${lineBorder}; height: 0;`
-          : `border-left: ${lineBorder}; width: 0;`
-        : ""
-    }
-  `;
+  const shadow = neonGlow
+    ? `0 0 ${glowBlur}px ${glowColor}, 0 0 ${glowBlur * 2}px ${glowColor}`
+    : "none";
 
-  const labelStyle = `
-    padding: ${isHorizontal ? `0 ${labelPadding}px` : `${labelPadding}px 0`};
-    color: ${labelColor};
-    background: ${labelBackground};
-    font-size: 0.85em; font-weight: 500; font-family: sans-serif;
-    white-space: nowrap; z-index: 1;
-  `;
+  // 2. Formats
+  let content = "";
 
-  // Beam Animation CSS
-  const beamKeyframes = `
-    @keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-    @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-  `;
+  if (downloadFormat === "react") {
+    content = `import React from 'react';
 
-  const beamEl = animateBeam
-    ? `
-    <div class="uf-beam"></div>
-    <style>
-    .uf-beam {
-        position: absolute; inset: 0; 
-        background: linear-gradient(90deg, transparent, ${beamColor}, transparent);
-        opacity: 0.6;
-        animation: beam ${beamSpeed}s linear infinite;
-    }
-    </style>
-  `
-    : "";
+export default function Divider() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: '${isHorizontal ? "row" : "column"}', alignItems: 'center', justifyContent: 'center',
+      width: '${getSizeStyle().width}', height: '${getSizeStyle().height}', margin: '${gap}px', opacity: ${opacity},
+      boxShadow: '${shadow}', position: 'relative'
+    }}>
+      ${showLabel && labelPosition === "left" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
+      
+      <div style={{
+         flex: 1, position: 'relative', borderRadius: ${borderRadius}, overflow: 'hidden',
+         ${
+           variant === "solid" || gradientEnabled
+             ? `background: '${bg}', width: '100%', height: '100%'`
+             : getBorderInfo()
+                 .replace(/;/g, ",")
+                 .replace(/:/g, ": ")
+                 .replace(/-([a-z])/g, (m) => m[1].toUpperCase())
+         }
+      }}>
+         ${
+           animateBeam
+             ? `<div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(90deg, transparent, ${beamColor}, transparent)',
+            animation: 'beam ${beamSpeed}s linear infinite'
+         }} />`
+             : ""
+         }
+      </div>
 
-  // HTML Export
-  if (downloadFormat === "html") {
+      ${showLabel && labelPosition === "center" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
+      ${
+        showLabel && labelPosition === "center"
+          ? `<div style={{flex: 1, position: 'relative', borderRadius: ${borderRadius}, overflow: 'hidden', ${
+              variant === "solid" || gradientEnabled
+                ? `background: '${bg}', width: '100%', height: '100%'`
+                : getBorderInfo()
+                    .replace(/;/g, ",")
+                    .replace(/:/g, ": ")
+                    .replace(/-([a-z])/g, (m) => m[1].toUpperCase())
+            }}>${animateBeam ? `<div style={{position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, ${beamColor}, transparent)', animation: 'beam ${beamSpeed}s linear infinite'}} />` : ""}</div>`
+          : ""
+      }
+
+      ${showLabel && labelPosition === "right" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
+      
+      <style>{\`@keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }\`}</style>
+    </div>
+  );
+}`;
+  } else if (downloadFormat === "html") {
     content = `
-<div class="uf-divider">
-    ${
-      showLabel && labelPosition === "left"
-        ? `<span class="uf-label">${labelText}</span>`
-        : ""
-    }
-    <div class="uf-line">${beamEl}</div>
-    ${
-      showLabel && labelPosition === "center"
-        ? `<span class="uf-label">${labelText}</span><div class="uf-line">${beamEl}</div>`
-        : ""
-    }
-    ${
-      showLabel && labelPosition === "right"
-        ? `<span class="uf-label">${labelText}</span>`
-        : ""
-    }
+<div class="divider">
+   ${showLabel && labelPosition === "left" ? `<span class="label">${labelText}</span>` : ""}
+   <div class="line">
+      ${animateBeam ? `<div class="beam"></div>` : ""}
+   </div>
+   ${showLabel && labelPosition === "center" ? `<span class="label">${labelText}</span><div class="line">${animateBeam ? `<div class="beam"></div>` : ""}</div>` : ""}
+   ${showLabel && labelPosition === "right" ? `<span class="label">${labelText}</span>` : ""}
 </div>
 
 <style>
-.uf-divider { ${containerCss.replace(/\n/g, "").trim()} }
-.uf-line { ${lineStyle.replace(/\n/g, "").trim()} }
-.uf-label { ${labelStyle.replace(/\n/g, "").trim()} }
-${beamKeyframes}
-</style>
-      `;
-  }
-
-  // React Export
-  if (downloadFormat === "react") {
-    content = `
-import React from 'react';
-/* 
-  Make sure to add these keyframes to your global CSS:
-  ${beamKeyframes.replace(/\n/g, "")}
-*/
-
-export default function Divider() {
-    const containerStyle = {${containerCss
-      .replace(/;/g, ",")
-      .replace(/-([a-z])/g, (g) => g[1].toUpperCase())}};
-    const lineStyle = {${lineStyle
-      .replace(/;/g, ",")
-      .replace(/-([a-z])/g, (g) => g[1].toUpperCase())}};
-    const labelStyle = {${labelStyle
-      .replace(/;/g, ",")
-      .replace(/-([a-z])/g, (g) => g[1].toUpperCase())}};
-
-    return (
-        <div style={containerStyle}>
-             {/* Left/Start Line */}
-             <div style={lineStyle}>
-                ${
-                  animateBeam
-                    ? `<div style={{position:'absolute', inset:0, background:'linear-gradient(90deg, transparent, ${beamColor}, transparent)', animation: 'beam ${beamSpeed}s linear infinite'}} />`
-                    : ""
-                }
-             </div>
-             
-             {/* Label */}
-             ${showLabel ? `<span style={labelStyle}>${labelText}</span>` : ""}
-
-             {/* Right/End Line (if centered) */}
-             ${
-               showLabel && labelPosition === "center"
-                 ? `
-             <div style={lineStyle}>
-                 ${
-                   animateBeam
-                     ? `<div style={{position:'absolute', inset:0, background:'linear-gradient(90deg, transparent, ${beamColor}, transparent)', animation: 'beam ${beamSpeed}s linear infinite'}} />`
-                     : ""
-                 }
-             </div>`
-                 : ""
-             }
-        </div>
-    );
+.divider {
+  display: flex; flex-direction: ${isHorizontal ? "row" : "column"}; align-items: center; justify-content: center;
+  width: ${getSizeStyle().width}; height: ${getSizeStyle().height}; margin: ${gap}px; opacity: ${opacity};
+  box-shadow: ${shadow};
 }
-      `;
+.line {
+  flex: 1; position: relative; border-radius: ${borderRadius}px; overflow: hidden;
+  ${variant === "solid" || gradientEnabled ? `background: ${bg}; width: 100%; height: 100%;` : getBorderInfo()}
+}
+.label { padding: ${labelPadding}px; color: ${labelColor}; background: ${labelBackground}; font-size: 0.85em; white-space: nowrap; }
+${
+  animateBeam
+    ? `
+.beam {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, ${beamColor}, transparent);
+  animation: beam ${beamSpeed}s linear infinite;
+}
+@keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+`
+    : ""
+}
+</style>
+`;
+  } else if (downloadFormat === "tailwind") {
+    const dim = isHorizontal
+      ? `w-[${width}] h-[${thickness}px]`
+      : `w-[${thickness}px] h-[${width}]`;
+    const flexDir = isHorizontal ? "flex-row" : "flex-col";
+    const bgClass = gradientEnabled
+      ? `bg-gradient-to-${isHorizontal ? "r" : "b"} from-[${gradientStart}] to-[${gradientEnd}]`
+      : variant === "solid"
+        ? `bg-[${color}]`
+        : "";
+    const borderClass =
+      variant !== "solid" && !gradientEnabled
+        ? isHorizontal
+          ? `border-t-[${thickness}px] border-${variant} border-[${color}]`
+          : `border-l-[${thickness}px] border-${variant} border-[${color}]`
+        : "";
+    const shadowClass = neonGlow
+      ? `shadow-[0_0_${glowBlur}px_${glowColor},0_0_${glowBlur * 2}px_${glowColor}]`
+      : "";
+
+    const lineEl = `
+      <div class="flex-1 relative rounded-[${borderRadius}px] overflow-hidden ${bgClass} ${borderClass}">
+        ${animateBeam ? `<div class="absolute inset-0 bg-gradient-to-r from-transparent via-[${beamColor}] to-transparent animate-[beam_${beamSpeed}s_linear_infinite]"></div>` : ""}
+      </div>`;
+
+    content = `
+<div class="flex ${flexDir} items-center justify-center ${dim} opacity-[${opacity}] m-[${gap}px] ${shadowClass}">
+  ${showLabel && labelPosition === "left" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>` : ""}
+  ${lineEl}
+  ${showLabel && labelPosition === "center" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>${lineEl}` : ""}
+  ${showLabel && labelPosition === "right" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>` : ""}
+</div>`;
+  } else if (downloadFormat === "scss") {
+    content = `.divider {
+  display: flex; flex-direction: ${isHorizontal ? "row" : "column"}; align-items: center;
+  width: ${getSizeStyle().width}; height: ${getSizeStyle().height}; margin: ${gap}px; opacity: ${opacity};
+  box-shadow: ${shadow};
+  .line { flex: 1; border-radius: ${borderRadius}px; overflow: hidden; background: ${bg}; ${getBorderInfo()} }
+  .label { padding: ${labelPadding}px; color: ${labelColor}; background: ${labelBackground}; }
+}`;
+  } else if (downloadFormat === "figma-tokens") {
+    content = JSON.stringify(
+      { divider: { thickness: { value: thickness }, color: { value: color } } },
+      null,
+      2,
+    );
+  } else if (downloadFormat === "tailwind-config") {
+    content = JSON.stringify(
+      { theme: { extend: { colors: { divider: color } } } },
+      null,
+      2,
+    );
+  } else if (downloadFormat === "css-vars") {
+    content = `:root { --div-thick: ${thickness}px; --div-col: ${color}; } .divider { width: ${width}; height: var(--div-thick); background: var(--div-col); }`;
   }
 
   return { content, filename };

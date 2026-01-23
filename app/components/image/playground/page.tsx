@@ -16,7 +16,9 @@ import ImageBasicsSection from "../_section/ImageBasicsSection";
 import ImageFiltersSection from "../_section/ImageFiltersSection";
 import ImageTransformSection from "../_section/ImageTransformSection";
 import ImageShapeSection from "../_section/ImageShapeSection";
+import ImageMaskingSection from "../_section/ImageMaskingSection";
 import ImageEffectsSection from "../_section/ImageEffectsSection";
+import ImageAnimationSection from "../_section/ImageAnimationSection";
 
 // Types & Utils
 import { type ImageState, INITIAL_IMAGE_STATE } from "../types";
@@ -67,7 +69,9 @@ export default function ImagePlaygroundPage() {
     { id: "filters", label: "Filters", component: ImageFiltersSection },
     { id: "transform", label: "Transform", component: ImageTransformSection },
     { id: "shape", label: "Shape", component: ImageShapeSection },
+    { id: "masking", label: "Masking", component: ImageMaskingSection },
     { id: "effects", label: "Effects", component: ImageEffectsSection },
+    { id: "animation", label: "Animation", component: ImageAnimationSection },
   ];
 
   const activeComp = sections.find((s) => s.id === activeSection);

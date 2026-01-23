@@ -2967,6 +2967,8 @@ export default function ActionButtonPage() {
     const { filename, content } = buildExportPayload({
       downloadFormat,
       downloadName,
+      confetti: clickEffect === "confetti",
+      ripple: clickEffect === "ripple" || clickEffect === "shockwave",
       touchWidth,
       touchHeight,
       fontSizeValue,
