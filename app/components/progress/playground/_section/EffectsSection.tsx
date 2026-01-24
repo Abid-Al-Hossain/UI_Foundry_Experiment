@@ -22,12 +22,13 @@ export default function EffectsSection({ state, update }: Props) {
             options={[
               { label: "None", value: "none" },
               { label: "Stripes (Animated)", value: "stripes" },
-              { label: "Neon Glow", value: "glow" },
+              { label: "Soft Glow", value: "glow" },
               { label: "Liquid (Gooey)", value: "liquid" },
               { label: "Glitch (Cyber)", value: "glitch" },
               { label: "Retro (Pixel)", value: "retro" },
               { label: "Pulse", value: "pulse" },
-              { label: "Magnetic (Scrub)", value: "magnetic" },
+              { label: "Neon Glow", value: "neon" },
+              { label: "Frosted Glass", value: "glass" },
             ]}
             onChange={(v) => update("effect", v)}
           />
@@ -48,20 +49,26 @@ export default function EffectsSection({ state, update }: Props) {
                 min={0}
                 max={10}
                 step={0.1}
-                onChange={(v) => update("stripeSpeed", v)}
+                onChange={(v) => update("stripeSpeed", Number(v))}
+              />
+            </ControlGroup>
+            <ControlGroup label="Animate Stripes">
+              <SwitchControl
+                checked={state.stripesAnimated}
+                onChange={(v) => update("stripesAnimated", v)}
               />
             </ControlGroup>
           </>
         )}
 
-        {state.effect === "glow" && (
+        {(state.effect === "glow" || state.effect === "neon") && (
           <ControlGroup label="Blur Radius">
             <SliderControl
               value={state.glowBlur}
               min={0}
               max={50}
               step={1}
-              onChange={(v) => update("glowBlur", v)}
+              onChange={(v) => update("glowBlur", Number(v))}
             />
           </ControlGroup>
         )}
@@ -73,7 +80,7 @@ export default function EffectsSection({ state, update }: Props) {
               min={0}
               max={100}
               step={1}
-              onChange={(v) => update("glitchIntensity", v)}
+              onChange={(v) => update("glitchIntensity", Number(v))}
             />
           </ControlGroup>
         )}
@@ -85,7 +92,7 @@ export default function EffectsSection({ state, update }: Props) {
               min={1}
               max={20}
               step={1}
-              onChange={(v) => update("liquidViscosity", v)}
+              onChange={(v) => update("liquidViscosity", Number(v))}
             />
           </ControlGroup>
         )}
@@ -109,6 +116,27 @@ export default function EffectsSection({ state, update }: Props) {
                 { label: "Fire", value: "fire" },
               ]}
               onChange={(v) => update("particleType", v)}
+            />
+          </ControlGroup>
+        )}
+      </Section>
+
+      <Section title="Animation" subtitle="Motion and timing">
+        <ControlGroup label="Disable All Animation">
+          <SwitchControl
+            checked={state.disableAnimation}
+            onChange={(v) => update("disableAnimation", v)}
+          />
+        </ControlGroup>
+
+        {!state.disableAnimation && (
+          <ControlGroup label="Animation Duration (sec)">
+            <SliderControl
+              value={state.animationDuration}
+              min={0.1}
+              max={2}
+              step={0.1}
+              onChange={(v) => update("animationDuration", Number(v))}
             />
           </ControlGroup>
         )}

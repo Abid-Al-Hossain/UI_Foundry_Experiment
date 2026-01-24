@@ -15,7 +15,7 @@ type HistoryState<T> = {
 };
 
 type HistoryAction<T> =
-  | { type: "SET"; payload: T }
+  | { type: "SET"; payload: T | ((prev: T) => T); isFunction: boolean }
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "COMMIT" }; // Commit current present to history
@@ -23,17 +23,23 @@ type HistoryAction<T> =
 function createReducer<T>() {
   return function reducer(
     state: HistoryState<T>,
-    action: HistoryAction<T>
+    action: HistoryAction<T>,
   ): HistoryState<T> {
     switch (action.type) {
       case "SET":
+        // Resolve payload if it's a function
+        const nextPresent = action.isFunction
+          ? (action.payload as (prev: T) => T)(state.present)
+          : (action.payload as T);
+
         // Update present without affecting history yet
         return {
           ...state,
-          present: action.payload,
+          present: nextPresent,
         };
 
       case "COMMIT":
+        // ... (rest same)
         // Save lastSaved to past, update lastSaved to current present
         const presentJson = JSON.stringify(state.present);
         const lastSavedJson = JSON.stringify(state.lastSaved);
@@ -107,19 +113,12 @@ export function useHistoryState<T>(initialState: T, delayMs = 500) {
 
   const set = useCallback(
     (value: T | ((prev: T) => T)) => {
-      // We need to compute the new state value
-      // The problem is we need access to current present, which we get via functional dispatch
-      // But dispatch doesn't support functional updates for custom reducers
+      const isFunc = value instanceof Function;
 
-      // Instead, we pass the raw value/function and let the component re-render handle it
-      // This works because the component calling set() has access to current state via destructuring
-
-      // For functional updates, we need the current state
-      // We'll use a ref to track what we dispatch
       dispatch({
         type: "SET",
-        payload:
-          value instanceof Function ? value(historyState.present) : value,
+        payload: value,
+        isFunction: isFunc,
       });
 
       // Schedule commit after debounce
@@ -132,7 +131,7 @@ export function useHistoryState<T>(initialState: T, delayMs = 500) {
         timeoutRef.current = null;
       }, delayMs);
     },
-    [historyState.present, delayMs]
+    [delayMs],
   );
 
   const pushSnapshot = useCallback(() => {
