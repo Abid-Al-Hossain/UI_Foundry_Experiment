@@ -32,10 +32,7 @@ export function buildProgressExport(params: ProgressExportParams) {
     glowBlur,
     glitchIntensity,
     liquidViscosity,
-    showLabel,
-    labelPosition,
-    labelFormat,
-    customLabel,
+    // showLabel, labelPosition, labelFormat, customLabel, hasParticles, particleType - Update legacy usage if needed
     hasParticles,
     particleType,
     downloadFormat,
@@ -124,10 +121,7 @@ function generateReactCode(
     successPercent,
     showStatusIcon,
     status,
-    showLabel,
-    labelFormat,
-    labelPosition,
-    customLabel,
+    labels,
     // New Props
     enable3D,
     rotateX,
@@ -324,19 +318,57 @@ export default function ProgressBar({ value = ${params.value}, max = ${params.ma
       \`}</style>
 
        ${
-         showLabel
-           ? `{/* Label */}
-      <div style={{
+         params.labels && params.labels.length > 0
+           ? `{/* Labels */}
+       ${params.labels
+         .map((label: any) => {
+           // Helper to get text content based on label format
+           let textContent = "";
+           if (label.type === "text") {
+             if (label.format === "percent")
+               textContent = `\`\${Math.round(percent)}%\``;
+             else if (label.format === "fraction")
+               textContent = `\`\${Math.round(value)}/\${max}\``;
+             else if (label.format === "value") textContent = "value";
+             else textContent = `"${label.customText}"`;
+           }
+
+           const isCenter =
+             label.position === "center" || label.position === "inside";
+           const posStyles = [];
+           if (isCenter)
+             posStyles.push(
+               "inset: 0",
+               "display: 'flex', alignItems: 'center', justifyContent: 'center'",
+             );
+           if (label.position === "top-center")
+             posStyles.push(
+               "top: '-24px', left: 0, right: 0, margin: 'auto', textAlign: 'center'",
+             );
+           if (label.position.includes("top")) posStyles.push("top: '-24px'");
+           if (label.position.includes("bottom"))
+             posStyles.push("bottom: '-24px'");
+           if (label.position.includes("left")) posStyles.push("left: 0");
+           if (label.position.includes("right")) posStyles.push("right: 0");
+
+           return `<div style={{
         position: 'absolute',
-        ${params.labelPosition === "center" || params.labelPosition === "inside" ? "inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'," : ""}
-        ${params.labelPosition.includes("top") ? "top: '-24px', left: '0'," : ""}
-        ${params.labelPosition.includes("bottom") ? "bottom: '-24px', left: '0'," : ""}
-        fontSize: '0.875rem',
+        ${posStyles.join(",\n        ")},
+        fontSize: '${label.size || 14}px',
         fontWeight: 500,
         zIndex: 20,
+        color: ${isCenter ? "color1 === '#fff' ? '#000' : '#fff'" : "'var(--text)'"} 
       }}>
-        {${labelFormat === "percent" ? `\`\${Math.round(percent)}%\`` : labelFormat === "fraction" ? `\`\${value}/\${max}\`` : labelFormat === "value" ? "value" : `"${customLabel}"`}}
-      </div>`
+        ${
+          label.type === "icon"
+            ? `{/* Icon: ${label.iconName} */}`
+            : label.type === "animated"
+              ? `{/* Animated: ${label.animatedIndicator} */}`
+              : `{${textContent}}`
+        }
+      </div>`;
+         })
+         .join("\n      ")}`
            : ""
        }
     </div>
@@ -485,7 +517,34 @@ function generateHtmlCode(
   <div class="progress-container" role="progressbar" aria-valuenow="${params.value}">
     <div class="progress-track"></div>
     <div class="progress-fill"></div>
-     ${params.showLabel ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${Math.round(percent)}%</div>` : ""}
+    ${
+      params.labels &&
+      params.labels
+        .map((label: any) => {
+          let text = "";
+          if (label.type === "text") {
+            if (label.format === "percent") text = "${Math.round(percent)}%";
+            else if (label.format === "fraction")
+              text = "${params.value}/${params.max}";
+            else if (label.format === "value") text = "${params.value}";
+            else text = label.customText;
+          } else {
+            text = "(Icon/Anim)";
+          }
+
+          let styles = "position:absolute; font-size:12px; font-weight:bold;";
+          if (label.position === "center" || label.position === "inside")
+            styles +=
+              " inset:0; display:flex; align-items:center; justify-content:center;";
+          if (label.position.includes("top")) styles += " top:-24px;";
+          if (label.position.includes("bottom")) styles += " bottom:-24px;";
+          if (label.position.includes("left")) styles += " left:0;";
+          if (label.position.includes("right")) styles += " right:0;";
+
+          return `<div style="${styles}">${text}</div>`;
+        })
+        .join("\n    ")
+    }
   </div>
 </body>
 </html>`;
@@ -538,11 +597,36 @@ function generateTailwindCode(
     style="${isVertical ? "height" : "width"}: ${percent}%"
   ></div>
   ${
-    params.showLabel
-      ? `<span class="absolute ${params.labelPosition === "center" || params.labelPosition === "inside" ? "inset-0 flex items-center justify-center" : params.labelPosition.includes("top") ? "-top-6 left-0" : "-bottom-6 left-0"} text-sm font-medium">
-    ${params.labelFormat === "percent" ? `${Math.round(percent)}%` : params.labelFormat === "fraction" ? `${params.value}/${params.max}` : params.labelFormat === "value" ? params.value : params.customLabel}
-  </span>`
-      : ""
+    params.labels &&
+    params.labels
+      .map((label: any) => {
+        let text = "";
+        if (label.type === "text") {
+          if (label.format === "percent") text = "${Math.round(percent)}%";
+          else if (label.format === "fraction")
+            text = "${params.value}/${params.max}";
+          else if (label.format === "value") text = "${params.value}";
+          else text = label.customText;
+        } else {
+          text = "(Icon/Anim)";
+        }
+
+        let posClass = "";
+        if (label.position === "center" || label.position === "inside")
+          posClass = "inset-0 flex items-center justify-center";
+        else {
+          if (label.position.includes("top")) posClass += "-top-6 ";
+          else if (label.position.includes("bottom")) posClass += "-bottom-6 ";
+          else posClass += "top-1/2 -translate-y-1/2 "; // Default vertical center for side labels
+
+          if (label.position.includes("left")) posClass += "left-0 ";
+          else if (label.position.includes("right")) posClass += "right-0 ";
+          else posClass += "left-1/2 -translate-x-1/2 "; // Center align
+        }
+
+        return `<span class="absolute ${posClass} text-xs font-bold">${text}</span>`;
+      })
+      .join("\n  ")
   }
 </div>`;
 

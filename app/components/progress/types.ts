@@ -41,6 +41,37 @@ export type ProgressAnimatedIndicator =
   | "car"
   | "bicycle";
 
+// Label position options (9-point grid + inside)
+export type ProgressLabelPosition =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "center-left"
+  | "center"
+  | "center-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "inside";
+
+// Multi-label configuration
+export type ProgressLabelConfig = {
+  id: string;
+  position: ProgressLabelPosition;
+  type: ProgressLabelType;
+  // Text options
+  format?: "percent" | "fraction" | "value" | "custom";
+  customText?: string;
+  // Icon options
+  iconSource?: "library" | "custom";
+  iconName?: string;
+  customSvg?: string;
+  // Animated options
+  animatedIndicator?: ProgressAnimatedIndicator;
+  // Common
+  size?: number;
+};
+
 export type ProgressState = {
   // Basics
   value: number;
@@ -94,29 +125,8 @@ export type ProgressState = {
   // Animation
   animationDuration: number; // Speed of animations in seconds
   disableAnimation: boolean; // Accessibility - disable all motion
-
-  // Content
-  showLabel: boolean;
-  labelPosition:
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "center-left"
-    | "center"
-    | "center-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right"
-    | "inside"; // follows progress
-  labelFormat: "percent" | "fraction" | "value" | "custom";
-  customLabel: string;
-  labelType: ProgressLabelType; // text, icon, or animated
-  animatedIndicator: ProgressAnimatedIndicator; // For animated labels
-  indicatorSize: number; // Size of animated indicator in px
-  // Icon support (for labelType === "icon")
-  iconSource: "library" | "custom";
-  iconName: string; // Lucide icon name
-  customSvg: string; // Custom SVG code
+  // Content (Multi-Label Support)
+  labels: ProgressLabelConfig[];
 
   // Success Marker
   successPercent: number; // Secondary success fill (0 = disabled)
@@ -196,16 +206,15 @@ export const INITIAL_PROGRESS_STATE: ProgressState = {
   animationDuration: 0.3,
   disableAnimation: false,
 
-  showLabel: true,
-  labelPosition: "top-center",
-  labelFormat: "percent",
-  customLabel: "",
-  labelType: "text",
-  animatedIndicator: "none",
-  indicatorSize: 24,
-  iconSource: "library",
-  iconName: "none",
-  customSvg: "",
+  labels: [
+    {
+      id: "label-1",
+      position: "top-center",
+      type: "text",
+      format: "percent",
+      size: 14,
+    },
+  ],
 
   successPercent: 0,
 

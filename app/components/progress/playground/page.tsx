@@ -15,8 +15,10 @@ import BasicsSection from "./_section/BasicsSection";
 import StylingSection from "./_section/StylingSection";
 import EffectsSection from "./_section/EffectsSection";
 import ContentSection from "./_section/ContentSection";
+import LabelsSection from "./_section/LabelsSection";
 import ThreeDSection from "./_section/ThreeDSection";
 import AccessibilitySection from "./_section/AccessibilitySection";
+import { type ProgressLabelConfig } from "../types";
 
 export default function ProgressBarPlayground() {
   const mounted = useHydrated();
@@ -32,6 +34,10 @@ export default function ProgressBarPlayground() {
 
   const handleUpdate = (key: keyof ProgressState, value: any) => {
     updateState((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleUpdateLabels = (labels: ProgressLabelConfig[]) => {
+    updateState((prev) => ({ ...prev, labels }));
   };
 
   // --- Header Actions (Matching Avatar Template) ---
@@ -107,6 +113,10 @@ export default function ProgressBarPlayground() {
         return <EffectsSection state={state} update={handleUpdate} />;
       case "content":
         return <ContentSection state={state} update={handleUpdate} />;
+      case "labels":
+        return (
+          <LabelsSection state={state} updateLabels={handleUpdateLabels} />
+        );
       case "3d":
         return <ThreeDSection state={state} update={handleUpdate} />;
       case "a11y":
@@ -120,6 +130,7 @@ export default function ProgressBarPlayground() {
     { id: "basics", label: "Basics" },
     { id: "styling", label: "Styling" },
     { id: "effects", label: "Effects" },
+    { id: "labels", label: "Labels" },
     { id: "content", label: "Content" },
     { id: "3d", label: "3D" },
     { id: "a11y", label: "A11y" },

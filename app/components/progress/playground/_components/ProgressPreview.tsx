@@ -28,10 +28,6 @@ export function ProgressPreview({ state }: { state: ProgressState }) {
     orientation,
     hasParticles,
     particleType,
-    showLabel,
-    labelPosition,
-    labelFormat,
-    customLabel,
     mode,
     stepCount,
     timerDuration,
@@ -45,12 +41,6 @@ export function ProgressPreview({ state }: { state: ProgressState }) {
     successPercent,
     ariaLabel,
     ariaDescribedBy,
-    labelType,
-    animatedIndicator,
-    indicatorSize,
-    iconSource,
-    iconName,
-    customSvg,
 
     // 3D & New Effects
     enable3D,
@@ -529,33 +519,77 @@ export function ProgressPreview({ state }: { state: ProgressState }) {
         }
       `}</style>
 
-      {/* Label Rendering (Reused from logic) */}
-      {state.showLabel && labelType === "text" && (
-        <div
-          style={{
-            position: "absolute",
-            zIndex: 20,
-            whiteSpace: "nowrap",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            color:
-              labelPosition === "center" || labelPosition === "inside"
-                ? lightTextCheck(color1)
-                  ? "#000"
-                  : "#fff"
-                : "var(--text)",
-            pointerEvents: "none",
-            ...getLabelPositionStyles(
-              labelPosition,
-              isVertical,
-              isRtl,
-              percent,
-            ),
-          }}
-        >
-          {getLabelText(state, percent)}
-        </div>
-      )}
+      {/* Multi-Label Rendering */}
+      {state.labels &&
+        state.labels.map((label, index) => (
+          <div
+            key={label.id || index}
+            style={{
+              position: "absolute",
+              zIndex: 20,
+              whiteSpace: "nowrap",
+              fontSize: `${label.size || 14}px`,
+              fontWeight: 500,
+              color:
+                label.position === "center" || label.position === "inside"
+                  ? lightTextCheck(color1)
+                    ? "#000"
+                    : "#fff"
+                  : "var(--text)",
+              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              ...getLabelPositionStyles(
+                label.position,
+                isVertical,
+                isRtl,
+                percent,
+              ),
+            }}
+          >
+            {label.type === "icon" && (
+              <span style={{ display: "flex", alignItems: "center" }}>
+                {label.iconSource === "custom" && label.customSvg ? (
+                  <div
+                    dangerouslySetInnerHTML={{ __html: label.customSvg }}
+                    style={{
+                      width: label.size || 24,
+                      height: label.size || 24,
+                      display: "flex",
+                    }}
+                  />
+                ) : (
+                  React.createElement(
+                    // @ts-ignore - Dynamic icon name
+                    LucideIcons[label.iconName || "Activity"] ||
+                      LucideIcons.Activity,
+                    { size: label.size || 24 },
+                  )
+                )}
+              </span>
+            )}
+
+            {label.type === "animated" &&
+              label.animatedIndicator !== "none" && (
+                <AnimatedIndicator
+                  // @ts-ignore - Type compatibility
+                  type={label.animatedIndicator}
+                  size={label.size || 24}
+                  color={
+                    label.position === "center" || label.position === "inside"
+                      ? lightTextCheck(color1)
+                        ? "#000"
+                        : "#fff"
+                      : "var(--text)"
+                  }
+                />
+              )}
+
+            {label.type === "text" && getLabelText(state, percent, label)}
+          </div>
+        ))}
     </div>
   );
 }
@@ -721,14 +755,15 @@ function Cuboid({ width, height, depth, color, opacity, isFill }: any) {
 }
 
 // Helpers
-function getLabelText(state: ProgressState, percent: number) {
-  switch (state.labelFormat) {
+// Helpers
+function getLabelText(state: ProgressState, percent: number, label: any) {
+  switch (label.format) {
     case "fraction":
       return `${Math.round(state.value)}/${state.max}`;
     case "value":
       return `${Math.round(state.value)}`;
     case "custom":
-      return state.customLabel || "";
+      return label.customText || "";
     case "percent":
     default:
       return `${Math.round(percent)}%`;
@@ -744,13 +779,23 @@ function getLabelPositionStyles(
   // 9-point grid + inside
   switch (position) {
     case "top-left":
-      return { top: "-24px", left: "0" };
+      return { bottom: "100%", left: "0", marginBottom: "8px" };
     case "top-center":
-      return { top: "-24px", left: "50%", transform: "translateX(-50%)" };
+      return {
+        bottom: "100%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        marginBottom: "8px",
+      };
     case "top-right":
-      return { top: "-24px", right: "0" };
+      return { bottom: "100%", right: "0", marginBottom: "8px" };
     case "center-left":
-      return { top: "50%", left: "-40px", transform: "translateY(-50%)" };
+      return {
+        right: "100%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        marginRight: "8px",
+      };
     case "center":
       return {
         inset: 0,
@@ -759,13 +804,23 @@ function getLabelPositionStyles(
         justifyContent: "center",
       };
     case "center-right":
-      return { top: "50%", right: "-40px", transform: "translateY(-50%)" };
+      return {
+        left: "100%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        marginLeft: "8px",
+      };
     case "bottom-left":
-      return { bottom: "-24px", left: "0" };
+      return { top: "100%", left: "0", marginTop: "8px" };
     case "bottom-center":
-      return { bottom: "-24px", left: "50%", transform: "translateX(-50%)" };
+      return {
+        top: "100%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        marginTop: "8px",
+      };
     case "bottom-right":
-      return { bottom: "-24px", right: "0" };
+      return { top: "100%", right: "0", marginTop: "8px" };
     case "inside":
       if (isVertical) {
         return {

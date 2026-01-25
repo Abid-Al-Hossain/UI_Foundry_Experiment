@@ -40,6 +40,18 @@ export default function BasicsSection({ state, update }: Props) {
             onChange={handleSizePresetChange}
           />
         </ControlGroup>
+
+        <div className="h-2" />
+
+        <ControlGroup label="Thickness (px)">
+          <SliderControl
+            value={state.thickness}
+            min={4}
+            max={100}
+            step={2}
+            onChange={(v) => update("thickness", Number(v))}
+          />
+        </ControlGroup>
         <ControlGroup label="Width (px)">
           <SliderControl
             value={state.width}
@@ -49,17 +61,6 @@ export default function BasicsSection({ state, update }: Props) {
             onChange={(v) => update("width", Number(v))}
           />
         </ControlGroup>
-        {state.sizePreset === "custom" && (
-          <ControlGroup label="Thickness (px)">
-            <SliderControl
-              value={state.thickness}
-              min={4}
-              max={100}
-              step={2}
-              onChange={(v) => update("thickness", Number(v))}
-            />
-          </ControlGroup>
-        )}
         <ControlGroup label="Corner Radius">
           <SliderControl
             value={state.radius}
