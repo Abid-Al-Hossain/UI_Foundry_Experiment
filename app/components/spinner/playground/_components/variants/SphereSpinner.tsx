@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { type SpinnerState } from "../../types";
+import { type SpinnerState } from "../../../types";
 
 export function SphereSpinner({ state }: { state: SpinnerState }) {
   const { size, color1, speed, perspective } = state;

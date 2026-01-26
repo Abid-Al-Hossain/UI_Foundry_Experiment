@@ -1,5 +1,5 @@
 import React from "react";
-import { type SpinnerState } from "../../types";
+import { type SpinnerState } from "../../../types";
 
 export function CircularSpinner({ state }: { state: SpinnerState }) {
   const {

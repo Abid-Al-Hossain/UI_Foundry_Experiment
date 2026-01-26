@@ -1,5 +1,5 @@
 import React from "react";
-import { type SpinnerState } from "../../types";
+import { type SpinnerState } from "../../../types";
 
 export function LiquidSpinner({ state }: { state: SpinnerState }) {
   const { size, color1, speed, gooeyIntensity } = state;

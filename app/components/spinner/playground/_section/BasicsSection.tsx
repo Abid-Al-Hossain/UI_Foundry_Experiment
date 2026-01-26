@@ -108,6 +108,20 @@ export default function BasicsSection({ state, update }: Props) {
             onChange={(v) => update("speed", Number(v))}
           />
         </ControlGroup>
+
+        <ControlGroup label="Easing">
+          <SelectControl
+            value={state.easing}
+            options={[
+              { label: "Linear", value: "linear" },
+              { label: "Ease", value: "ease" },
+              { label: "Ease In", value: "ease-in" },
+              { label: "Ease Out", value: "ease-out" },
+              { label: "Ease In Out", value: "ease-in-out" },
+            ]}
+            onChange={(v) => update("easing", v)}
+          />
+        </ControlGroup>
       </Section>
     </div>
   );

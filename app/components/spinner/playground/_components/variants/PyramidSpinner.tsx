@@ -1,5 +1,5 @@
 import React from "react";
-import { type SpinnerState } from "../../types";
+import { type SpinnerState } from "../../../types";
 
 export function PyramidSpinner({ state }: { state: SpinnerState }) {
   const { size, color1, speed, perspective } = state;

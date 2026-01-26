@@ -13,7 +13,12 @@ export type SpinnerVariant =
 export type SpinnerSizePreset = "xs" | "sm" | "md" | "lg" | "xl" | "custom";
 export type SpinnerColorMode = "solid" | "gradient" | "rainbow" | "neon";
 export type SpinnerLinecap = "round" | "square" | "butt";
-export type SpinnerEasing = "linear" | "ease-in-out" | "elastic" | "bounce";
+export type SpinnerEasing =
+  | "linear"
+  | "ease"
+  | "ease-in"
+  | "ease-out"
+  | "ease-in-out";
 
 export interface SpinnerState {
   // Basics
@@ -31,6 +36,7 @@ export interface SpinnerState {
   trackColor: string;
   trackOpacity: number;
   linecap: SpinnerLinecap;
+  easing: SpinnerEasing;
 
   // Effects
   glowIntensity: number; // 0-100 (blur px)
@@ -100,6 +106,8 @@ export const DEFAULT_SPINNER_STATE: SpinnerState = {
   depth: 60,
   perspective: 800,
   particleCount: 3,
+
+  easing: "linear",
 
   label: "Loading...",
   downloadFormat: "react",
