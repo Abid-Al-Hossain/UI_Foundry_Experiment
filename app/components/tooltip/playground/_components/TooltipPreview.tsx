@@ -11,6 +11,9 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
   const [isVisible, setIsVisible] = useState(true);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const isOverTrigger = useRef(false);
+  const isOverTooltip = useRef(false);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calculate arrow color
   const arrowColor =
@@ -187,9 +190,33 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
     return base;
   };
 
+  // Clear any pending hide timeout
+  const clearHideTimeout = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
+
+  // Schedule hide with delay, checking if mouse is still outside both elements
+  const scheduleHide = () => {
+    clearHideTimeout();
+    // Use a minimum delay of 100ms for interactive mode to allow mouse to move to tooltip
+    const delay = state.interactive
+      ? Math.max(state.hideDelay, 100)
+      : state.hideDelay;
+    hideTimeoutRef.current = setTimeout(() => {
+      if (!isOverTrigger.current && !isOverTooltip.current) {
+        setIsVisible(false);
+      }
+    }, delay);
+  };
+
   // Handle trigger interactions
   const handleTriggerEnter = () => {
     if (state.disabled) return;
+    isOverTrigger.current = true;
+    clearHideTimeout();
     if (state.triggerEvent.includes("mouseenter")) {
       setTimeout(() => setIsVisible(true), state.showDelay);
     }
@@ -197,8 +224,14 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
 
   const handleTriggerLeave = () => {
     if (state.disabled) return;
-    if (state.triggerEvent.includes("mouseenter") && !state.interactive) {
-      setTimeout(() => setIsVisible(false), state.hideDelay);
+    isOverTrigger.current = false;
+    if (state.triggerEvent.includes("mouseenter")) {
+      if (state.interactive) {
+        // When interactive, wait a bit to see if mouse moves to tooltip
+        scheduleHide();
+      } else {
+        setTimeout(() => setIsVisible(false), state.hideDelay);
+      }
     }
   };
 
@@ -218,15 +251,40 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
 
   const handleTriggerBlur = () => {
     if (state.disabled) return;
-    if (state.triggerEvent.includes("focus") && !state.interactive) {
-      setIsVisible(false);
+    if (state.triggerEvent.includes("focus")) {
+      if (state.interactive) {
+        // When interactive, use scheduleHide to check if mouse is on tooltip
+        scheduleHide();
+      } else {
+        setIsVisible(false);
+      }
     }
   };
 
-  // Always show tooltip in preview for visibility
+  // Handle tooltip hover for interactive mode
+  const handleTooltipEnter = () => {
+    if (!state.interactive) return;
+    isOverTooltip.current = true;
+    clearHideTimeout();
+  };
+
+  const handleTooltipLeave = () => {
+    if (!state.interactive) return;
+    isOverTooltip.current = false;
+    scheduleHide();
+  };
+
+  // Initialize visibility based on trigger type
+  // For hover/focus, start hidden. For click or manual, start visible for preview purposes
   useEffect(() => {
-    setIsVisible(true);
-  }, [state]);
+    if (state.triggerEvent === "click" || state.triggerEvent === "manual") {
+      // For click triggers, start visible so user can see the tooltip
+      setIsVisible(true);
+    } else {
+      // For hover/focus triggers, start hidden and respond to interactions
+      setIsVisible(false);
+    }
+  }, [state.triggerEvent]);
 
   return (
     <div className="flex items-center justify-center w-full h-full min-h-[300px]">
@@ -252,6 +310,8 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
         {/* Tooltip */}
         <div
           ref={tooltipRef}
+          onMouseEnter={handleTooltipEnter}
+          onMouseLeave={handleTooltipLeave}
           role={state.role}
           aria-label={state.ariaLabel || undefined}
           aria-describedby={state.ariaDescribedBy || undefined}
@@ -263,6 +323,7 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
             borderRadius: `${state.borderRadius}px`,
             padding: `${state.paddingY}px ${state.paddingX}px`,
             maxWidth: `${state.maxWidth}px`,
+            width: "fit-content",
             border:
               state.borderWidth > 0
                 ? `${state.borderWidth}px solid ${state.borderColor}`
@@ -276,8 +337,9 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
             fontSize: `${state.fontSize || 14}px`,
             fontWeight: state.fontWeight || 500,
             textAlign: state.textAlign || "center",
-            whiteSpace: "normal",
+            whiteSpace: "pre-wrap",
             wordBreak: "break-word",
+            overflowWrap: "break-word",
             pointerEvents: state.interactive ? "auto" : "none",
           }}
         >
