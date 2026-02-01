@@ -17,7 +17,7 @@ function buildMiniTooltipPreview() {
     display: grid;
     place-items: center;
     font-family: system-ui, -apple-system, sans-serif;
-    background: #0f172a;
+    background: #fff;
   }
   .container {
     display: flex;
@@ -174,11 +174,8 @@ export default function TooltipGalleryPage() {
             </div>
 
             <div
-              className="mt-4 overflow-hidden rounded-2xl border"
-              style={{
-                borderColor: "var(--border)",
-                background: "#0f172a",
-              }}
+              className="mt-4 overflow-hidden rounded-2xl border bg-white"
+              style={{ borderColor: "var(--border)" }}
             >
               {mounted ? (
                 <iframe
