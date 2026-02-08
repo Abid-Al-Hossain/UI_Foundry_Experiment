@@ -91,7 +91,7 @@ export default function ButtonsLandingPage() {
         radius: 14,
         previewBg: "#ffffff",
       }),
-    []
+    [],
   );
 
   const cards: ButtonCard[] = useMemo(
@@ -104,7 +104,7 @@ export default function ButtonsLandingPage() {
         srcDoc: actionPreviewDoc,
       },
     ],
-    [actionPreviewDoc]
+    [actionPreviewDoc],
   );
 
   return (
@@ -118,11 +118,15 @@ export default function ButtonsLandingPage() {
             background: "color-mix(in oklab, var(--card) 70%, transparent)",
           }}
         >
-          <h1 className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
+          <h1
+            className="text-2xl font-semibold"
+            style={{ color: "var(--text)" }}
+          >
             Buttons
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
-            Organized list of button types. Each has its own edit page and export.
+            Organized list of button types. Each has its own edit page and
+            export.
           </p>
         </div>
 
@@ -134,13 +138,17 @@ export default function ButtonsLandingPage() {
               className="rounded-2xl border p-5"
               style={{
                 borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 80%, transparent)",
+                background:
+                  "color-mix(in oklab, var(--surface) 80%, transparent)",
               }}
             >
               {/* Top row */}
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
+                  <h2
+                    className="text-lg font-semibold"
+                    style={{ color: "var(--text)" }}
+                  >
                     {c.name}
                   </h2>
                   <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
@@ -153,7 +161,7 @@ export default function ButtonsLandingPage() {
                   className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition"
                   style={{ background: "var(--primary)", color: "white" }}
                 >
-                  Edit
+                  Open Studio
                 </Link>
               </div>
 
@@ -162,7 +170,8 @@ export default function ButtonsLandingPage() {
                 className="mt-4 overflow-hidden rounded-2xl border"
                 style={{
                   borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                  background:
+                    "color-mix(in oklab, var(--card) 70%, transparent)",
                 }}
               >
                 {mounted ? (
@@ -183,7 +192,8 @@ export default function ButtonsLandingPage() {
                   className="rounded-full border px-3 py-1 text-xs"
                   style={{
                     borderColor: "var(--border)",
-                    background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                    background:
+                      "color-mix(in oklab, var(--card) 70%, transparent)",
                     color: "var(--muted)",
                   }}
                 >
@@ -193,7 +203,8 @@ export default function ButtonsLandingPage() {
                   className="rounded-full border px-3 py-1 text-xs"
                   style={{
                     borderColor: "var(--border)",
-                    background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                    background:
+                      "color-mix(in oklab, var(--card) 70%, transparent)",
                     color: "var(--muted)",
                   }}
                 >
@@ -203,7 +214,8 @@ export default function ButtonsLandingPage() {
                   className="rounded-full border px-3 py-1 text-xs"
                   style={{
                     borderColor: "var(--border)",
-                    background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                    background:
+                      "color-mix(in oklab, var(--card) 70%, transparent)",
                     color: "var(--muted)",
                   }}
                 >

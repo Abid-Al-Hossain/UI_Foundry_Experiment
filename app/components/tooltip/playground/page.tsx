@@ -5,10 +5,8 @@ import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
-import {
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-} from "@heroicons/react/24/outline";
+import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
+import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 import {
   TooltipState,
@@ -35,7 +33,7 @@ import TooltipPreview from "./_components/TooltipPreview";
 import { buildExportPayload } from "./_utils/exportUtils";
 
 export default function TooltipPlayground() {
-  const { state, set, undo, redo, canUndo, canRedo } =
+  const { state, set, undo, redo, reset, canUndo, canRedo } =
     useHistoryState<TooltipState>(DEFAULT_TOOLTIP_STATE);
 
   // Generic updater
@@ -45,9 +43,6 @@ export default function TooltipPlayground() {
   ) => {
     set((s: TooltipState) => ({ ...s, [key]: value }));
   };
-
-  // Reset to default
-  const reset = () => set(DEFAULT_TOOLTIP_STATE);
 
   // Active section for tab navigation
   const [activeSection, setActiveSection] = React.useState<string>("position");
@@ -77,78 +72,25 @@ export default function TooltipPlayground() {
 
   // Header actions (undo/redo/reset buttons)
   const headerActions = (
-    <>
-      <button
-        type="button"
-        onClick={undo}
-        disabled={!canUndo}
-        className="flex items-center justify-center p-2 rounded-lg border transition-all"
-        style={{
-          borderColor: "var(--border)",
-          color: canUndo ? "var(--text)" : "var(--muted)",
-          opacity: canUndo ? 1 : 0.5,
-          cursor: canUndo ? "pointer" : "not-allowed",
-          background: canUndo ? "var(--card)" : "transparent",
-        }}
-        title="Undo (Ctrl+Z)"
-      >
-        <ArrowUturnLeftIcon className="w-5 h-5" />
-      </button>
-      <button
-        type="button"
-        onClick={redo}
-        disabled={!canRedo}
-        className="flex items-center justify-center p-2 rounded-lg border transition-all"
-        style={{
-          borderColor: "var(--border)",
-          color: canRedo ? "var(--text)" : "var(--muted)",
-          opacity: canRedo ? 1 : 0.5,
-          cursor: canRedo ? "pointer" : "not-allowed",
-          background: canRedo ? "var(--card)" : "transparent",
-        }}
-        title="Redo (Ctrl+Y)"
-      >
-        <ArrowUturnRightIcon className="w-5 h-5" />
-      </button>
-    </>
+    <UndoRedoButtons
+      undo={undo}
+      redo={redo}
+      reset={reset}
+      canUndo={canUndo}
+      canRedo={canRedo}
+    />
   );
 
   // Controls content
   const controlsContent = (
     <div className="p-6 space-y-8">
       {/* Section Selector */}
-      <div
-        className="rounded-2xl border p-3"
-        style={{
-          borderColor: "var(--border)",
-          background: "color-mix(in oklab, var(--card) 70%, transparent)",
-        }}
-      >
-        <div
-          className="text-xs font-semibold"
-          style={{ color: "var(--muted)" }}
-        >
-          Sections
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-          {sections.map((sec) => (
-            <button
-              key={sec.id}
-              type="button"
-              onClick={() => setActiveSection(sec.id)}
-              className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  activeSection === sec.id ? "var(--primary)" : "transparent",
-                color: activeSection === sec.id ? "white" : "var(--text)",
-              }}
-            >
-              {sec.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Section Selector */}
+      <SectionSelector
+        sections={sections}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
 
       {/* Active Section Content */}
       {activeSection === "position" && (

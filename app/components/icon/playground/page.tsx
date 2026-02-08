@@ -9,6 +9,8 @@ import PreviewDownloadPanel, {
   DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
+import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
+import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // TODO: Create these sections next
 import IconSelectionSection from "./_section/IconSelectionSection";
@@ -36,6 +38,7 @@ export default function IconPlaygroundPage() {
     set: updateState,
     undo,
     redo,
+    reset,
     canUndo,
     canRedo,
   } = useHistoryState<IconState>(INITIAL_ICON_STATE);
@@ -154,104 +157,22 @@ export default function IconPlaygroundPage() {
               Icon Studio
             </h1>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={undo}
-                disabled={!canUndo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canUndo ? "var(--text)" : "var(--muted)",
-                  opacity: canUndo ? 1 : 0.5,
-                  cursor: canUndo ? "pointer" : "not-allowed",
-                  background: canUndo ? "var(--card)" : "transparent",
-                }}
-                title="Undo (Ctrl+Z)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={redo}
-                disabled={!canRedo}
-                className="flex items-center justify-center p-2 rounded-lg border transition-all"
-                style={{
-                  borderColor: "var(--border)",
-                  color: canRedo ? "var(--text)" : "var(--muted)",
-                  opacity: canRedo ? 1 : 0.5,
-                  cursor: canRedo ? "pointer" : "not-allowed",
-                  background: canRedo ? "var(--card)" : "transparent",
-                }}
-                title="Redo (Ctrl+Y)"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 7v6h-6" />
-                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                </svg>
-              </button>
+              <UndoRedoButtons
+                undo={undo}
+                redo={redo}
+                reset={reset}
+                canUndo={canUndo}
+                canRedo={canRedo}
+              />
             </div>
           </div>
 
           {/* Tabs */}
-          <div
-            className="rounded-2xl border p-3"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--card) 70%, transparent)",
-            }}
-          >
-            <div
-              className="text-xs font-semibold mb-3"
-              style={{ color: "var(--muted)" }}
-            >
-              Sections
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-              {sections.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveSection(item.id)}
-                  className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable transition-all"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      activeSection === item.id
-                        ? "var(--primary)"
-                        : "transparent",
-                    color: activeSection === item.id ? "white" : "var(--text)",
-                    boxShadow:
-                      activeSection === item.id
-                        ? "0 4px 12px var(--primary-shadow)"
-                        : "none",
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SectionSelector
+            sections={sections}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
 
           <ActiveComponent state={state} setKey={setKey} setFloat={setFloat} />
         </ScrollArea>

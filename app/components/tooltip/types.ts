@@ -138,9 +138,19 @@ export interface TooltipState {
   truncationLimit: number;
 
   // === TYPOGRAPHY ===
-  fontFamily: string;
+  fontBucket: "system" | "google";
+  fontSearch: string;
+  systemFontIdx: number;
+  googleFontFamily: string;
   fontSize: number;
+  fontSizeUnit: "px" | "rem";
   fontWeight: number;
+  fontStyle: "normal" | "italic";
+  textDecoration: "none" | "underline";
+  textTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  letterSpacing: number;
+  letterSpacingUnit: "px" | "em";
+  lineHeight: number;
   textAlign: "left" | "center" | "right";
 
   // === ACCESSIBILITY ===
@@ -228,9 +238,19 @@ export const DEFAULT_TOOLTIP_STATE: TooltipState = {
   truncationLimit: 0,
 
   // Typography
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  fontBucket: "system",
+  fontSearch: "",
+  systemFontIdx: 9, // System UI
+  googleFontFamily: "Inter",
   fontSize: 14,
+  fontSizeUnit: "px",
   fontWeight: 500,
+  fontStyle: "normal",
+  textDecoration: "none",
+  textTransform: "none",
+  letterSpacing: 0,
+  letterSpacingUnit: "px",
+  lineHeight: 1.4,
   textAlign: "center",
 
   // Accessibility

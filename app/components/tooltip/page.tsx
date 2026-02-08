@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
+import GalleryPageTemplate from "@/app/components/controls/templates/GalleryPageTemplate";
 import { useMemo } from "react";
 
 function buildMiniTooltipPreview() {
@@ -73,8 +71,6 @@ function buildMiniTooltipPreview() {
   @keyframes fadeIn {
     to { opacity: 1; }
   }
-  
-  /* Second tooltip - light theme */
   .tooltip-demo:nth-child(2) .tooltip {
     background: #ffffff;
     color: #1e293b;
@@ -91,7 +87,6 @@ function buildMiniTooltipPreview() {
   .tooltip-demo:nth-child(2) .trigger:hover {
     box-shadow: 0 8px 30px rgba(6, 182, 212, 0.4);
   }
-  
   .row {
     display: flex;
     gap: 40px;
@@ -116,139 +111,25 @@ function buildMiniTooltipPreview() {
 }
 
 export default function TooltipGalleryPage() {
-  const mounted = useHydrated();
   const srcDoc = useMemo(() => buildMiniTooltipPreview(), []);
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        <div
-          className="rounded-2xl border p-6"
-          style={{
-            borderColor: "var(--border)",
-            background: "color-mix(in oklab, var(--card) 70%, transparent)",
-          }}
-        >
-          <h1
-            className="text-2xl font-semibold"
-            style={{ color: "var(--text)" }}
-          >
-            Tooltip
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
-            Ultimate tooltip builder with 50+ customization options. Supports 12
-            placements, 5 animation types, themes, arrows, and advanced trigger
-            behaviors.
-          </p>
-        </div>
-
-        <div className="space-y-5">
-          <div
-            className="rounded-2xl border p-5"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 80%, transparent)",
-            }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--text)" }}
-                >
-                  Playground
-                </h2>
-                <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                  Full editor with positioning, animation, triggers, and export.
-                </p>
-              </div>
-
-              <Link
-                href="/components/tooltip/playground"
-                className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition hover:opacity-90"
-                style={{ background: "var(--primary)", color: "white" }}
-              >
-                Edit
-              </Link>
-            </div>
-
-            <div
-              className="mt-4 overflow-hidden rounded-2xl border bg-white"
-              style={{ borderColor: "var(--border)" }}
-            >
-              {mounted ? (
-                <iframe
-                  title="Tooltip Preview"
-                  sandbox="allow-scripts"
-                  srcDoc={srcDoc}
-                  className="h-[200px] w-full border-none"
-                />
-              ) : (
-                <div className="h-[200px] w-full" />
-              )}
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--card) 70%, transparent)",
-                  color: "var(--muted)",
-                }}
-              >
-                12 Placements
-              </span>
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--card) 70%, transparent)",
-                  color: "var(--muted)",
-                }}
-              >
-                5 Animations
-              </span>
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--card) 70%, transparent)",
-                  color: "var(--muted)",
-                }}
-              >
-                Themes
-              </span>
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--card) 70%, transparent)",
-                  color: "var(--muted)",
-                }}
-              >
-                Arrows
-              </span>
-              <span
-                className="rounded-full border px-3 py-1 text-xs"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--card) 70%, transparent)",
-                  color: "var(--muted)",
-                }}
-              >
-                Multi-Trigger
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </AppShell>
+    <GalleryPageTemplate
+      title="Tooltip"
+      description="Ultimate tooltip builder with 50+ customization options. Supports 12 placements, 5 animation types, themes, arrows, and advanced trigger behaviors."
+      playgroundLink="/components/tooltip/playground"
+      playgroundTitle="Playground"
+      playgroundDescription="Full editor with positioning, animation, triggers, and export."
+      playgroundButtonLabel="Open Studio"
+      previewSrcDoc={srcDoc}
+      previewHeight={200}
+      featureTags={[
+        "12 Placements",
+        "5 Animations",
+        "Themes",
+        "Arrows",
+        "Multi-Trigger",
+      ]}
+    />
   );
 }

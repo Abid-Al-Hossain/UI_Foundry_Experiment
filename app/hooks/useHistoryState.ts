@@ -18,7 +18,8 @@ type HistoryAction<T> =
   | { type: "SET"; payload: T | ((prev: T) => T); isFunction: boolean }
   | { type: "UNDO" }
   | { type: "REDO" }
-  | { type: "COMMIT" }; // Commit current present to history
+  | { type: "COMMIT" } // Commit current present to history
+  | { type: "RESET"; payload: T }; // Reset to initial state
 
 function createReducer<T>() {
   return function reducer(
@@ -75,6 +76,14 @@ function createReducer<T>() {
           lastSaved: next,
         };
 
+      case "RESET":
+        return {
+          past: [],
+          present: action.payload,
+          future: [],
+          lastSaved: action.payload,
+        };
+
       default:
         return state;
     }
@@ -92,6 +101,7 @@ export function useHistoryState<T>(initialState: T, delayMs = 500) {
   });
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialStateRef = useRef<T>(initialState);
 
   const undo = useCallback(() => {
     // Clear any pending commit
@@ -142,11 +152,20 @@ export function useHistoryState<T>(initialState: T, delayMs = 500) {
     dispatch({ type: "COMMIT" });
   }, []);
 
+  const reset = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    dispatch({ type: "RESET", payload: initialStateRef.current });
+  }, []);
+
   return {
     state: historyState.present,
     set,
     undo,
     redo,
+    reset,
     canUndo: historyState.past.length > 0,
     canRedo: historyState.future.length > 0,
     pushSnapshot,

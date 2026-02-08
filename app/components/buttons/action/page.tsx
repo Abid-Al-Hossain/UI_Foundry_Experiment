@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import * as LucideIcons from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
+import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
+import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // --- Section Imports ---
 import BasicsSection, {
@@ -648,6 +650,7 @@ export default function ActionButtonPage() {
     set: updateState,
     undo,
     redo,
+    reset,
     canUndo,
     canRedo,
   } = useHistoryState<ActionButtonState>(INITIAL_STATE);
@@ -4158,103 +4161,23 @@ export default function ActionButtonPage() {
 
   // --- Render ---
   const headerActions = (
-    <>
-      <button
-        type="button"
-        onClick={undo}
-        disabled={!canUndo}
-        className="flex items-center justify-center p-2 rounded-lg border transition-all"
-        style={{
-          borderColor: "var(--border)",
-          color: canUndo ? "var(--text)" : "var(--muted)",
-          opacity: canUndo ? 1 : 0.5,
-          cursor: canUndo ? "pointer" : "not-allowed",
-          background: canUndo ? "var(--card)" : "transparent",
-        }}
-        title="Undo (Ctrl+Z)"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 7v6h6" />
-          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={redo}
-        disabled={!canRedo}
-        className="flex items-center justify-center p-2 rounded-lg border transition-all"
-        style={{
-          borderColor: "var(--border)",
-          color: canRedo ? "var(--text)" : "var(--muted)",
-          opacity: canRedo ? 1 : 0.5,
-          cursor: canRedo ? "pointer" : "not-allowed",
-          background: canRedo ? "var(--card)" : "transparent",
-        }}
-        title="Redo (Ctrl+Y)"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 7v6h-6" />
-          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-        </svg>
-      </button>
-    </>
+    <UndoRedoButtons
+      undo={undo}
+      redo={redo}
+      reset={reset}
+      canUndo={canUndo}
+      canRedo={canRedo}
+    />
   );
 
   // --- Controls ---
   const controls = (
     <>
-      <div
-        className="rounded-2xl border p-3"
-        style={{
-          borderColor: "var(--border)",
-          background: "color-mix(in oklab, var(--card) 70%, transparent)",
-        }}
-      >
-        <div
-          className="text-xs font-semibold"
-          style={{ color: "var(--muted)" }}
-        >
-          Sections
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-          {sectionItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveSection(item.id)}
-              className="min-h-[52px] w-full rounded-xl border px-4 py-3 text-sm font-semibold leading-snug text-center whitespace-normal break-words uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  activePanel?.id === item.id
-                    ? "var(--primary)"
-                    : "transparent",
-                color: activePanel?.id === item.id ? "white" : "var(--text)",
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SectionSelector
+        sections={sectionItems}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
 
       {activePanel?.content}
     </>

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
+import GalleryPageTemplate from "@/app/components/controls/templates/GalleryPageTemplate";
 import { useMemo } from "react";
 
 function buildMiniProgressPreview() {
@@ -33,92 +31,18 @@ function buildMiniProgressPreview() {
 }
 
 export default function ProgressGalleryPage() {
-  const mounted = useHydrated();
   const srcDoc = useMemo(() => buildMiniProgressPreview(), []);
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        <div
-          className="rounded-2xl border p-6"
-          style={{
-            borderColor: "var(--border)",
-            background: "color-mix(in oklab, var(--card) 70%, transparent)",
-          }}
-        >
-          <h1
-            className="text-2xl font-semibold"
-            style={{ color: "var(--text)" }}
-          >
-            Progress Bar
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>
-            Ultimate progress indicator with liquid, glitch, and stripe effects.
-            Supports buffers, steps, and timer modes.
-          </p>
-        </div>
-
-        <div className="space-y-5">
-          <div
-            className="rounded-2xl border p-5"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 80%, transparent)",
-            }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--text)" }}
-                >
-                  Playground
-                </h2>
-                <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                  Full editor with all premium features.
-                </p>
-              </div>
-
-              <Link
-                href="/components/progress/playground"
-                className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition hover:opacity-90"
-                style={{ background: "var(--primary)", color: "white" }}
-              >
-                Edit
-              </Link>
-            </div>
-
-            <div
-              className="mt-4 overflow-hidden rounded-2xl border bg-white"
-              style={{ borderColor: "var(--border)" }}
-            >
-              {mounted ? (
-                <iframe
-                  title="Progress Preview"
-                  sandbox="allow-scripts"
-                  srcDoc={srcDoc}
-                  className="h-[180px] w-full border-none"
-                />
-              ) : (
-                <div className="h-[180px] w-full" />
-              )}
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
-                Liquid Effect
-              </span>
-              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
-                Glitch Mode
-              </span>
-              <span className="rounded-full border px-3 py-1 text-xs opacity-60">
-                Animated Stripes
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </AppShell>
+    <GalleryPageTemplate
+      title="Progress Bar"
+      description="Ultimate progress indicator with liquid, glitch, and stripe effects. Supports buffers, steps, and timer modes."
+      playgroundLink="/components/progress/playground"
+      playgroundTitle="Playground"
+      playgroundDescription="Full editor with all premium features."
+      playgroundButtonLabel="Open Studio"
+      previewSrcDoc={srcDoc}
+      featureTags={["Liquid Effect", "Glitch Mode", "Animated Stripes"]}
+    />
   );
 }

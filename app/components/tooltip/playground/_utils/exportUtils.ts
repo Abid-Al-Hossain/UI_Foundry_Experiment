@@ -1,4 +1,9 @@
 import { TooltipState, DownloadFormat } from "../../types";
+import {
+  getFontFamily,
+  getGoogleFontLink,
+  getTypographyCss,
+} from "./typographyHelpers";
 
 // =============================================================================
 // EXPORT PAYLOAD BUILDER
@@ -56,6 +61,7 @@ function buildHtmlExport(state: TooltipState): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tooltip Component</title>
+  ${getGoogleFontLink(state)}
   <style>
     /* Tooltip Container */
     .tooltip-wrapper {
@@ -95,10 +101,7 @@ function buildHtmlExport(state: TooltipState): string {
       opacity: 0;
       visibility: hidden;
       z-index: ${state.zIndex};
-      font-family: ${state.fontFamily || "system-ui, -apple-system, sans-serif"};
-      font-size: ${state.fontSize || 14}px;
-      font-weight: ${state.fontWeight || 500};
-      text-align: ${state.textAlign || "center"};
+      ${getTypographyCss(state)}
       transition: opacity ${state.transitionDuration}ms ${state.transitionEasing},
                   transform ${state.transitionDuration}ms ${state.transitionEasing};
       ${getAnimationInitialCss(state)}
@@ -191,9 +194,14 @@ export default function Tooltip({
           opacity: isVisible ? ${state.opacity / 100} : 0,
           visibility: isVisible ? 'visible' : 'hidden',
           zIndex: ${state.zIndex},
-          fontFamily: '${state.fontFamily || "system-ui, -apple-system, sans-serif"}',
-          fontSize: '${state.fontSize || 14}px',
+          fontFamily: '${getFontFamily(state)}',
+          fontSize: '${state.fontSize || 14}${state.fontSizeUnit || "px"}',
           fontWeight: ${state.fontWeight || 500},
+          fontStyle: '${state.fontStyle || "normal"}',
+          textDecoration: '${state.textDecoration || "none"}',
+          textTransform: '${state.textTransform || "none"}',
+          letterSpacing: '${state.letterSpacing || 0}${state.letterSpacingUnit || "px"}',
+          lineHeight: ${state.lineHeight || 1.4},
           textAlign: '${state.textAlign || "center"}',
           transition: 'opacity ${state.transitionDuration}ms ${state.transitionEasing}, transform ${state.transitionDuration}ms ${state.transitionEasing}',
           pointerEvents: ${state.interactive ? "'auto'" : "'none'"},
@@ -319,10 +327,7 @@ function buildCssExport(state: TooltipState): string {
   ${state.backdropFilter !== "none" ? `backdrop-filter: ${state.backdropFilter};` : ""}
   
   /* Typography */
-  font-family: ${state.fontFamily || "system-ui, -apple-system, sans-serif"};
-  font-size: ${state.fontSize || 14}px;
-  font-weight: ${state.fontWeight || 500};
-  text-align: ${state.textAlign || "center"};
+  ${getTypographyCss(state)}
   
   /* Initial state (hidden) */
   opacity: 0;
