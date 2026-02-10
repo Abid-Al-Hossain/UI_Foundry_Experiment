@@ -37,6 +37,7 @@ export type AvatarPreviewProps = {
   borderStyle: string;
   objectFit: React.CSSProperties["objectFit"];
   filters: string;
+  loadingState: "default" | "loading" | "error";
 
   // Advanced State
   use3DBadge: ThreeDBadgeMode;
@@ -73,6 +74,7 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
     orbitSpeed,
     containerStyle,
     imageStyle,
+    loadingState,
   } = props;
 
   // Motion Variants
@@ -125,10 +127,34 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
   const [imgLoaded, setImgLoaded] = React.useState(false);
 
   // Reset states when src changes
+  // Reset states when src changes or loadingState changes
   React.useEffect(() => {
-    setImgError(false);
-    setImgLoaded(false);
-  }, [src]);
+    if (loadingState === "loading") {
+      setImgLoaded(false);
+      setImgError(false);
+    } else if (loadingState === "error") {
+      setImgError(true);
+      setImgLoaded(false);
+    } else {
+      setImgError(false);
+      setImgLoaded(false);
+    }
+  }, [src, loadingState]);
+
+  // Derived state for rendering
+  const showImage =
+    src && !imgError && loadingState !== "error" && loadingState !== "loading";
+  const showLoading =
+    loadingState === "loading" ||
+    (src && !imgLoaded && !imgError && loadingState === "default");
+
+  // Create a skeleton pulse for loading state if needed, or just rely on transparency/bg
+  const LoadingSkeleton = () => (
+    <motion.div
+      className="absolute inset-0 bg-slate-800 animate-pulse"
+      style={{ borderRadius: imageStyle.borderRadius }}
+    />
+  );
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-transparent">
@@ -157,8 +183,11 @@ export default function AvatarLivePreview(props: AvatarPreviewProps) {
           {initials}
         </div>
 
+        {/* Loading Skeleton */}
+        {showLoading && <LoadingSkeleton />}
+
         {/* Image Overlay - Fades in when loaded */}
-        {src && !imgError && (
+        {showImage && (
           <img
             src={src}
             alt={alt}

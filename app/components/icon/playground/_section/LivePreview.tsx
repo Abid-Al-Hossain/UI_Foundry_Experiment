@@ -57,6 +57,9 @@ export default function LivePreview({ state }: { state: IconState }) {
     rotateX,
     rotateY,
     rotateZ,
+    rotation,
+    flipHorizontal,
+    flipVertical,
     depth,
     perspective,
     animationType,
@@ -111,9 +114,7 @@ export default function LivePreview({ state }: { state: IconState }) {
 
     // 3D Wrapper
     transformStyle: "preserve-3d",
-    transform: use3D
-      ? `perspective(${perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`
-      : undefined,
+    // Transform is now handled in the render loop to separate 2D and 3D logic
   };
 
   // 2. Icon Style
@@ -155,12 +156,31 @@ export default function LivePreview({ state }: { state: IconState }) {
     })(),
   };
 
+  // 2D Transform Style (Applied to Outer Wrapper)
+  const transform2D = [
+    `rotate(${rotation}deg)`,
+    `scaleX(${flipHorizontal ? -1 : 1})`,
+    `scaleY(${flipVertical ? -1 : 1})`,
+  ].join(" ");
+
   return (
     <div className="flex items-center justify-center min-h-[300px] p-10">
       {/* 3D Scene Wrapper if needed for deep depth */}
-      <div style={{ perspective: use3D ? `${perspective}px` : undefined }}>
+      <div
+        style={{
+          perspective: use3D ? `${perspective}px` : undefined,
+          transform: transform2D, // Apply 2D transforms here
+          transition: "transform 0.3s ease", // Smooth transition for controls
+        }}
+      >
         <motion.div
-          style={containerStyle}
+          style={{
+            ...containerStyle,
+            // Override transform to only handle 3D if use3D is true, else clean
+            transform: use3D
+              ? `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)` // Perspective is on parent
+              : undefined,
+          }}
           initial="initial"
           animate="animate"
           whileHover="hover"

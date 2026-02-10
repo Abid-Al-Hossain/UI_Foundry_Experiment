@@ -56,6 +56,10 @@ export default function LivePreview(props: {
   buttonStyle: React.CSSProperties;
   label: string;
   iconColor: string;
+  activeEnabled: boolean;
+  forceActive: boolean;
+  activeScale: string;
+  activeTranslateY: string;
 }) {
   const {
     use3DIcon,
@@ -78,6 +82,10 @@ export default function LivePreview(props: {
     buttonStyle,
     label,
     iconColor,
+    activeEnabled,
+    forceActive,
+    activeScale,
+    activeTranslateY,
   } = props;
 
   // Motion State
@@ -158,6 +166,9 @@ export default function LivePreview(props: {
     ...buttonStyle,
     x: xValue,
     y: yValue,
+    scale: activeEnabled && forceActive ? Number(activeScale) || 1 : 1,
+    translateY:
+      activeEnabled && forceActive ? Number(activeTranslateY) || 0 : 0,
     rotateX: rotateXValue,
     rotateY: rotateYValue,
   };
@@ -169,7 +180,7 @@ export default function LivePreview(props: {
       const sx = (latestX + 0.5) * 100;
       const sy = (latestY + 0.5) * 100;
       return `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,0.4) 0%, transparent 60%)`;
-    }
+    },
   );
 
   return (

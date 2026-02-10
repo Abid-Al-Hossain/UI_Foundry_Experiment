@@ -17,7 +17,9 @@ import IconSelectionSection from "./_section/IconSelectionSection";
 import IconBasicsSection from "./_section/IconBasicsSection";
 import IconContainerSection from "./_section/IconContainerSection";
 import IconEffectsSection from "./_section/IconEffectsSection";
+import IconTransformSection from "./_section/IconTransformSection";
 import IconAnimationSection from "./_section/IconAnimationSection";
+import IconAccessibilitySection from "./_section/IconAccessibilitySection";
 import { buildIconExportPayload } from "./_utils/exportUtils";
 
 import { type IconState, INITIAL_ICON_STATE } from "./types";
@@ -65,8 +67,10 @@ export default function IconPlaygroundPage() {
     { id: "basics", label: "Basics", component: IconBasicsSection },
     { id: "container", label: "Container", component: IconContainerSection },
     { id: "icon", label: "Icon Lib", component: IconSelectionSection },
+    { id: "transform", label: "Transform", component: IconTransformSection },
     { id: "effects", label: "Effects", component: IconEffectsSection },
     { id: "animation", label: "Animation", component: IconAnimationSection },
+    { id: "a11y", label: "A11y", component: IconAccessibilitySection },
   ];
 
   // Generic Setter Helper

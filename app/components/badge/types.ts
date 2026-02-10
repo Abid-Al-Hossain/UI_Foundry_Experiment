@@ -17,6 +17,8 @@ export type BadgeState = {
   showIcon: boolean;
   iconName: string;
   iconPosition: BadgeIconPosition;
+  iconGap: number;
+  iconSize: number;
 
   // Appearance
   variant: BadgeVariant;
@@ -63,6 +65,11 @@ export type BadgeState = {
   interactive: boolean; // Hover effects
   hoverScale: number;
   clickRipple: boolean;
+
+  // Accessibility
+  ariaLabel: string;
+  ariaRole: "status" | "alert" | "none";
+  ariaLive: "off" | "polite" | "assertive";
 };
 
 export const INITIAL_BADGE_STATE: BadgeState = {
@@ -71,6 +78,8 @@ export const INITIAL_BADGE_STATE: BadgeState = {
   showIcon: false,
   iconName: "star",
   iconPosition: "left",
+  iconGap: 4,
+  iconSize: 100,
 
   variant: "solid",
   shape: "pill",
@@ -110,4 +119,8 @@ export const INITIAL_BADGE_STATE: BadgeState = {
   interactive: false,
   hoverScale: 1.05,
   clickRipple: false,
+
+  ariaLabel: "",
+  ariaRole: "status",
+  ariaLive: "polite",
 };

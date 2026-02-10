@@ -3,6 +3,15 @@
 import React, { useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Html, Float, Center } from "@react-three/drei";
+import {
+  Star,
+  Check,
+  AlertTriangle,
+  Bell,
+  Heart,
+  Shield,
+  Zap,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 // Types
@@ -25,6 +34,7 @@ export default function LivePreview({ state }: { state: any }) {
     size,
     color,
     textColor,
+    iconSize,
     paddingX,
     paddingY,
     fontSize,
@@ -111,6 +121,8 @@ export default function LivePreview({ state }: { state: any }) {
     ...getVariantStyles(),
   };
 
+  const iconSizePx = (fontSize * (iconSize || 100)) / 100;
+
   if (gradientEnabled && variant === "solid") {
     baseStyle.background = `linear-gradient(${gradientAngle}deg, ${gradientStart}, ${gradientEnd})`;
   }
@@ -160,7 +172,17 @@ export default function LivePreview({ state }: { state: any }) {
         )}
 
         {/* Icon Left */}
-        {showIcon && iconPosition === "left" && <Icon icon={iconName} />}
+        {showIcon && iconPosition === "left" && (
+          <>
+            {iconName === "star" && <Star size={iconSizePx} />}
+            {iconName === "check" && <Check size={iconSizePx} />}
+            {iconName === "alert" && <AlertTriangle size={iconSizePx} />}
+            {iconName === "bell" && <Bell size={iconSizePx} />}
+            {iconName === "heart" && <Heart size={iconSizePx} />}
+            {iconName === "shield" && <Shield size={iconSizePx} />}
+            {iconName === "zap" && <Zap size={iconSizePx} />}
+          </>
+        )}
 
         {/* Label */}
         <span>{label}</span>
@@ -173,7 +195,17 @@ export default function LivePreview({ state }: { state: any }) {
         )}
 
         {/* Icon Right */}
-        {showIcon && iconPosition === "right" && <Icon icon={iconName} />}
+        {showIcon && iconPosition === "right" && (
+          <>
+            {iconName === "star" && <Star size={iconSizePx} />}
+            {iconName === "check" && <Check size={iconSizePx} />}
+            {iconName === "alert" && <AlertTriangle size={iconSizePx} />}
+            {iconName === "bell" && <Bell size={iconSizePx} />}
+            {iconName === "heart" && <Heart size={iconSizePx} />}
+            {iconName === "shield" && <Shield size={iconSizePx} />}
+            {iconName === "zap" && <Zap size={iconSizePx} />}
+          </>
+        )}
 
         {/* Glare Effect */}
         {tiltEnabled && (
@@ -213,48 +245,4 @@ export default function LivePreview({ state }: { state: any }) {
       )}
     </div>
   );
-}
-
-// Simple Icon Map
-function Icon({ icon }: { icon: string }) {
-  // Just a placeholder SVG map
-  const svgs: Record<string, React.ReactNode> = {
-    star: (
-      <svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
-    check: (
-      <svg
-        width="1em"
-        height="1em"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M20 6L9 17l-5-5" />
-      </svg>
-    ),
-    alert: (
-      <svg
-        width="1em"
-        height="1em"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    ),
-    notification: (
-      <svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
-      </svg>
-    ),
-  };
-  return svgs[icon] || svgs.star;
 }

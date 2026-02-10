@@ -27,6 +27,7 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
   const isOverTrigger = useRef(false);
   const isOverTooltip = useRef(false);
@@ -295,23 +296,20 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
   // =========================================================================
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!state.followCursor || !containerRef.current) return;
-
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const relativeX = e.clientX - containerRect.left;
-      const relativeY = e.clientY - containerRect.top;
+      if (!state.followCursor) return;
 
       if (state.followCursor === "initial") {
         // Only set once when tooltip first appears
         return;
       }
 
+      // Store viewport coordinates
       if (state.followCursor === "horizontal") {
-        setCursorPosition((prev) => ({ ...prev, x: relativeX }));
+        setCursorPosition((prev) => ({ ...prev, x: e.clientX }));
       } else if (state.followCursor === "vertical") {
-        setCursorPosition((prev) => ({ ...prev, y: relativeY }));
+        setCursorPosition((prev) => ({ ...prev, y: e.clientY }));
       } else if (state.followCursor === true) {
-        setCursorPosition({ x: relativeX, y: relativeY });
+        setCursorPosition({ x: e.clientX, y: e.clientY });
       }
     },
     [state.followCursor],
@@ -545,50 +543,88 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
     const placement = computedPlacement;
 
     // Follow cursor mode - position based on cursor
-    if (state.followCursor && isVisible && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
+    if (state.followCursor && isVisible) {
+      const isPortal = state.appendTo === "body";
       const base: React.CSSProperties = {
-        position: "fixed",
+        position: isPortal ? "fixed" : "absolute",
         zIndex: state.zIndex,
         pointerEvents: state.interactive ? "auto" : "none",
+        transform: "translateX(-50%)", // Default center X
       };
 
+      // Get viewport coordinates
+      let viewportX = cursorPosition.x;
+      let viewportY = cursorPosition.y;
+
       if (state.followCursor === "initial") {
-        // Use initial cursor position (relative to viewport)
-        const viewportX = containerRect.left + initialCursorPosition.current.x;
-        const viewportY = containerRect.top + initialCursorPosition.current.y;
+        viewportX = initialCursorPosition.current.x;
+        viewportY = initialCursorPosition.current.y;
+      }
+
+      // Calculate base position (Left/Top)
+      if (isPortal) {
         base.left = viewportX;
-        base.top = viewportY - offset;
-        base.transform = "translateX(-50%) translateY(-100%)";
-      } else if (state.followCursor === "horizontal") {
-        // Follow cursor horizontally, fixed vertical position
-        const viewportX = containerRect.left + cursorPosition.x;
-        base.left = viewportX;
-        base.transform = "translateX(-50%)";
-        if (placement.startsWith("top")) {
-          base.top = containerRect.top - offset;
-          base.transform += " translateY(-100%)";
+        base.top = viewportY;
+      } else {
+        // Inline: calculate relative to wrapper
+        const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+        if (wrapperRect) {
+          base.left = viewportX - wrapperRect.left;
+          base.top = viewportY - wrapperRect.top;
         } else {
-          base.top = containerRect.bottom + offset;
+          base.left = viewportX;
+          base.top = viewportY;
+        }
+      }
+
+      // Apply constraints
+      if (state.followCursor === "initial") {
+        base.top = (base.top as number) - offset;
+        base.transform += " translateY(-100%)";
+      } else if (state.followCursor === "horizontal") {
+        // Fixed vertical position based on trigger
+        const triggerRect = triggerRef.current?.getBoundingClientRect();
+        const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+
+        if (triggerRect) {
+          const topRelative = isPortal
+            ? triggerRect.top
+            : triggerRect.top - (wrapperRect?.top || 0);
+          const bottomRelative = isPortal
+            ? triggerRect.bottom
+            : triggerRect.bottom - (wrapperRect?.top || 0);
+
+          if (placement.startsWith("top")) {
+            base.top = topRelative - offset;
+            base.transform += " translateY(-100%)";
+          } else {
+            base.top = bottomRelative + offset;
+          }
         }
       } else if (state.followCursor === "vertical") {
-        // Follow cursor vertically, fixed horizontal position
-        const viewportY = containerRect.top + cursorPosition.y;
-        base.top = viewportY;
-        base.transform = "translateY(-50%)";
-        if (placement.startsWith("left")) {
-          base.left = containerRect.left - offset;
-          base.transform += " translateX(-100%)";
-        } else {
-          base.left = containerRect.right + offset;
+        // Fixed horizontal position based on trigger
+        const triggerRect = triggerRef.current?.getBoundingClientRect();
+        const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+
+        if (triggerRect) {
+          const leftRelative = isPortal
+            ? triggerRect.left
+            : triggerRect.left - (wrapperRect?.left || 0);
+          const rightRelative = isPortal
+            ? triggerRect.right
+            : triggerRect.right - (wrapperRect?.left || 0);
+
+          if (placement.startsWith("left")) {
+            base.left = leftRelative - offset;
+            base.transform += " translateX(-100%)";
+          } else {
+            base.left = rightRelative + offset;
+          }
+          base.transform += " translateY(-50%)";
         }
       } else {
-        // Full follow - track cursor exactly
-        const viewportX = containerRect.left + cursorPosition.x;
-        const viewportY = containerRect.top + cursorPosition.y;
-        base.left = viewportX;
-        base.top = viewportY - offset - 10;
-        base.transform = "translateX(-50%)";
+        // Full follow (true)
+        base.top = (base.top as number) - offset - 10;
       }
 
       return base;
@@ -990,6 +1026,13 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
       style={{
         ...getPositionStyles(),
         ...getAnimationStyles(),
+        // Merge transforms so animation acts on top of positioning
+        transform: [
+          getPositionStyles().transform,
+          getAnimationStyles().transform,
+        ]
+          .filter(Boolean)
+          .join(" "),
         ...getInteractiveBorderStyles(),
         background: state.bgColor,
         color: state.textColor,
@@ -1064,7 +1107,7 @@ export default function TooltipPreview({ state }: TooltipPreviewProps) {
       ref={containerRef}
       className="flex items-center justify-center w-full h-full min-h-[300px]"
     >
-      <div className="relative inline-block">
+      <div className="relative inline-block" ref={wrapperRef}>
         {/* Trigger Element */}
         <button
           ref={triggerRef}

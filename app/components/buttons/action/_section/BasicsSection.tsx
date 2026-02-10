@@ -3,39 +3,30 @@
 import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
 
+import { ActionButtonState } from "../types";
+
 export type ButtonVariant = "solid" | "outline" | "ghost";
 export type AnimationPreset = "none" | "subtle-pop" | "pulse" | "float";
 
-export default function BasicsSection(props: {
-  label: string;
-  setLabel: (v: string) => void;
-
-  variant: ButtonVariant;
-  setVariant: (v: ButtonVariant) => void;
-
-  disabled: boolean;
-  setDisabled: (v: boolean) => void;
-
-  loading: boolean;
-  setLoading: (v: boolean) => void;
-
-  animation: AnimationPreset;
-  setAnimation: (v: AnimationPreset) => void;
-
-  idDisabled: string;
-  idLoading: string;
+export default function BasicsSection({
+  state,
+  setKey,
+}: {
+  state: ActionButtonState;
+  setKey: (key: keyof ActionButtonState) => (val: any) => void;
 }) {
   return (
     <SectionCard title="Basics" subtitle="Label, variant, and states.">
       <div className="space-y-4">
         <LabeledField label="Label">
           <input
-            value={props.label}
-            onChange={(e) => props.setLabel(e.target.value)}
+            value={state.label}
+            onChange={(e) => setKey("label")(e.target.value)}
             className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
             style={{
               borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+              background:
+                "color-mix(in oklab, var(--surface) 70%, transparent)",
               color: "var(--text)",
             }}
           />
@@ -43,8 +34,8 @@ export default function BasicsSection(props: {
 
         <LabeledField label="Variant">
           <Segmented
-            value={props.variant}
-            onChange={(v) => props.setVariant(v as ButtonVariant)}
+            value={state.variant}
+            onChange={(v) => setKey("variant")(v)}
             items={[
               { value: "solid", label: "Solid" },
               { value: "outline", label: "Outline" },
@@ -56,24 +47,32 @@ export default function BasicsSection(props: {
         <div className="grid grid-cols-2 gap-3">
           <div className="inline-flex items-center gap-2">
             <input
-              id={props.idDisabled}
+              id="disabled-check"
               type="checkbox"
-              checked={props.disabled}
-              onChange={(e) => props.setDisabled(e.target.checked)}
+              checked={state.disabled}
+              onChange={(e) => setKey("disabled")(e.target.checked)}
             />
-            <label htmlFor={props.idDisabled} className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
+            <label
+              htmlFor="disabled-check"
+              className="text-sm uf-clickable"
+              style={{ color: "var(--text)" }}
+            >
               Disabled
             </label>
           </div>
 
           <div className="inline-flex items-center gap-2">
             <input
-              id={props.idLoading}
+              id="loading-check"
               type="checkbox"
-              checked={props.loading}
-              onChange={(e) => props.setLoading(e.target.checked)}
+              checked={state.loading}
+              onChange={(e) => setKey("loading")(e.target.checked)}
             />
-            <label htmlFor={props.idLoading} className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
+            <label
+              htmlFor="loading-check"
+              className="text-sm uf-clickable"
+              style={{ color: "var(--text)" }}
+            >
               Loading
             </label>
           </div>
@@ -81,12 +80,13 @@ export default function BasicsSection(props: {
 
         <LabeledField label="Animation">
           <select
-            value={props.animation}
-            onChange={(e) => props.setAnimation(e.target.value as AnimationPreset)}
+            value={state.animation}
+            onChange={(e) => setKey("animation")(e.target.value)}
             className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
             style={{
               borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--surface) 70%, transparent)",
+              background:
+                "color-mix(in oklab, var(--surface) 70%, transparent)",
               color: "var(--text)",
             }}
           >

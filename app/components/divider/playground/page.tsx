@@ -17,6 +17,7 @@ import DividerBasicsSection from "../_section/DividerBasicsSection";
 import DividerContentSection from "../_section/DividerContentSection";
 import DividerEffectsSection from "../_section/DividerEffectsSection";
 import DividerHyperSection from "../_section/DividerHyperSection";
+import DividerAccessibilitySection from "../_section/DividerAccessibilitySection";
 import { buildDividerExportPayload } from "../_utils/exportUtils";
 
 import {
@@ -74,6 +75,7 @@ export default function DividerPage() {
     { id: "content", label: "Label", component: DividerContentSection },
     { id: "effects", label: "Effects", component: DividerEffectsSection },
     { id: "hyper", label: "Hyper FX", component: DividerHyperSection },
+    { id: "a11y", label: "A11y", component: DividerAccessibilitySection },
   ];
 
   // Generic Setter Helper

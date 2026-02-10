@@ -8,28 +8,24 @@ import {
 import Select from "@/app/components/controls/input/Select";
 import Switch from "@/app/components/controls/input/Switch";
 import Input from "@/app/components/controls/input/Input";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 
-export default function ContentSection(props: {
-  label: string;
-  setLabel: (v: string) => void;
-  count: string;
-  setCount: (v: string) => void;
-  showIcon: boolean;
-  setShowIcon: (v: boolean) => void;
-  iconName: string;
-  setIconName: (v: string) => void;
-  iconPosition: string;
-  setIconPosition: (v: string) => void;
-  dismissible: boolean;
-  setDismissible: (v: boolean) => void;
+export default function ContentSection({
+  state,
+  setKey,
+  setFloat,
+}: {
+  state: any;
+  setKey: (key: string) => (val: any) => void;
+  setFloat?: (key: string) => (val: any) => void;
 }) {
   return (
     <SectionCard title="Content" subtitle="Text, numbers, and icons.">
       <div className="space-y-4">
         <LabeledField label="Label">
           <Input
-            value={props.label}
-            onChange={(e) => props.setLabel(e.target.value)}
+            value={state.label}
+            onChange={(e) => setKey("label")(e.target.value)}
           />
         </LabeledField>
 
@@ -37,8 +33,8 @@ export default function ContentSection(props: {
           <div className="flex gap-2">
             <Input
               placeholder="e.g. 5, 99+, New"
-              value={props.count}
-              onChange={(e) => props.setCount(e.target.value)}
+              value={state.count}
+              onChange={(e) => setKey("count")(e.target.value)}
             />
           </div>
         </LabeledField>
@@ -47,34 +43,56 @@ export default function ContentSection(props: {
 
         <Switch
           label="Show Icon"
-          checked={props.showIcon}
-          onChange={props.setShowIcon}
+          checked={state.showIcon}
+          onChange={setKey("showIcon")}
         />
 
-        {props.showIcon && (
+        {state.showIcon && (
           <>
             <LabeledField label="Icon Name">
               <Select
-                value={props.iconName}
-                onChange={props.setIconName}
+                value={state.iconName}
+                onChange={setKey("iconName")}
                 options={[
                   { value: "star", label: "Star" },
                   { value: "check", label: "Check" },
+                  { value: "heart", label: "Heart" },
+                  { value: "shield", label: "Shield" },
+                  { value: "zap", label: "Bolt" },
+                  { value: "bell", label: "Bell" },
                   { value: "alert", label: "Alert" },
-                  { value: "notification", label: "Bell" },
                 ]}
               />
             </LabeledField>
             <LabeledField label="Position">
               <Segmented
-                value={props.iconPosition}
-                onChange={props.setIconPosition}
+                value={state.iconPosition}
+                onChange={setKey("iconPosition")}
                 items={[
                   { label: "Left", value: "left" },
                   { label: "Right", value: "right" },
                 ]}
               />
             </LabeledField>
+
+            <div className="grid grid-cols-2 gap-4">
+              <SizeControl
+                label="Icon Size (%)"
+                value={state.iconSize}
+                onChange={setKey("iconSize")}
+                min={50}
+                max={150}
+                step={5}
+              />
+              <SizeControl
+                label="Icon Gap (px)"
+                value={state.iconGap}
+                onChange={setKey("iconGap")}
+                min={0}
+                max={20}
+                step={1}
+              />
+            </div>
           </>
         )}
       </div>

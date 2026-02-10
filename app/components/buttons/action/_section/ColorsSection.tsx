@@ -5,45 +5,31 @@ import { SectionCard } from "./ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import GradientControl from "@/app/components/controls/effects/GradientControl";
 
+import { ActionButtonState } from "../types";
+import { PALETTE } from "../_data/buttonConstants";
+import { norm } from "../_utils/colorUtils";
+
 type ButtonVariant = "solid" | "outline" | "ghost";
 
-export default function ColorsSection(props: {
-  PALETTE: readonly string[];
-
-  variant: ButtonVariant;
-  // setVariant removed from props as it wasn't used
-
-  useGradient: boolean;
-  setUseGradient: (v: boolean) => void;
-
-  gradAngleText: string;
-  setGradAngleText: (v: string) => void;
-
-  gradStartInput: string;
-  setGradStartInput: (v: string) => void;
-  gradStartNorm: { ok: boolean; hex: string; rgb: string };
-
-  gradMidEnabled: boolean;
-  setGradMidEnabled: (v: boolean) => void;
-
-  gradMidInput: string;
-  setGradMidInput: (v: string) => void;
-  gradMidNorm: { ok: boolean; hex: string; rgb: string };
-
-  gradEndInput: string;
-  setGradEndInput: (v: string) => void;
-  gradEndNorm: { ok: boolean; hex: string; rgb: string };
-
-  bgInput: string;
-  setBgInput: (v: string) => void;
-  bgNorm: { ok: boolean; hex: string; rgb: string };
-
-  textInput: string;
-  setTextInput: (v: string) => void;
-  textNorm: { ok: boolean; hex: string; rgb: string };
+export default function ColorsSection({
+  state,
+  setKey,
+}: {
+  state: ActionButtonState;
+  setKey: (key: keyof ActionButtonState) => (val: any) => void;
 }) {
-  const ghost = props.variant === "ghost";
-  const outline = props.variant === "outline";
+  // Derived state
+  const ghost = state.variant === "ghost";
+  const outline = state.variant === "outline";
+
+  // Norms (calculated internally instead of passed)
+  // We can use useMemo if optimization is needed, but for these lightweight ops it's fine
+  // const gradStartNorm = norm(state.gradStartInput); // Not strictly used in UI but available if needed
+  // const gradMidNorm = norm(state.gradMidInput);
+  // const gradEndNorm = norm(state.gradEndInput);
+  // const bgNorm = norm(state.bgInput);
+  // const textNorm = norm(state.textInput);
+
   const presets = [
     { id: "sunset", label: "Sunset", angle: 90, stops: ["#f59e0b", "#ef4444"] },
     { id: "ocean", label: "Ocean", angle: 120, stops: ["#0ea5e9", "#2563eb"] },
@@ -65,15 +51,15 @@ export default function ColorsSection(props: {
   const applyPreset = (id: string) => {
     const preset = presets.find((p) => p.id === id);
     if (!preset) return;
-    props.setUseGradient(true);
-    props.setGradAngleText(String(preset.angle));
-    props.setGradStartInput(preset.stops[0]);
-    props.setGradEndInput(preset.stops[preset.stops.length - 1]);
+    setKey("useGradient")(true);
+    setKey("gradAngleText")(String(preset.angle));
+    setKey("gradStartInput")(preset.stops[0]);
+    setKey("gradEndInput")(preset.stops[preset.stops.length - 1]);
     if (preset.stops.length >= 3) {
-      props.setGradMidEnabled(true);
-      props.setGradMidInput(preset.stops[1]);
+      setKey("gradMidEnabled")(true);
+      setKey("gradMidInput")(preset.stops[1]);
     } else {
-      props.setGradMidEnabled(false);
+      setKey("gradMidEnabled")(false);
     }
   };
 
@@ -86,8 +72,8 @@ export default function ColorsSection(props: {
             <input
               id="grad-toggle"
               type="checkbox"
-              checked={props.useGradient}
-              onChange={(e) => props.setUseGradient(e.target.checked)}
+              checked={state.useGradient}
+              onChange={(e) => setKey("useGradient")(e.target.checked)}
               className="uf-clickable"
             />
             <label
@@ -101,7 +87,7 @@ export default function ColorsSection(props: {
         )}
 
         <div className="flex flex-col gap-5">
-          {props.useGradient && !ghost && !outline ? (
+          {state.useGradient && !ghost && !outline ? (
             <div>
               <label
                 className="text-sm font-medium"
@@ -131,22 +117,22 @@ export default function ColorsSection(props: {
           ) : null}
 
           {/* --- BACKGROUND LOGIC --- */}
-          {props.useGradient && !ghost && !outline ? (
+          {state.useGradient && !ghost && !outline ? (
             <>
               {/* Gradient Controls */}
               <GradientControl
                 label="Gradient"
-                angle={Number(props.gradAngleText) || 0}
-                setAngle={(v) => props.setGradAngleText(String(v))}
-                startColor={props.gradStartInput}
-                setStartColor={props.setGradStartInput}
-                endColor={props.gradEndInput}
-                setEndColor={props.setGradEndInput}
-                midEnabled={props.gradMidEnabled}
-                setMidEnabled={props.setGradMidEnabled}
-                midColor={props.gradMidInput}
-                setMidColor={props.setGradMidInput}
-                palette={props.PALETTE}
+                angle={Number(state.gradAngleText) || 0}
+                setAngle={(v) => setKey("gradAngleText")(String(v))}
+                startColor={state.gradStartInput}
+                setStartColor={(v) => setKey("gradStartInput")(v)}
+                endColor={state.gradEndInput}
+                setEndColor={(v) => setKey("gradEndInput")(v)}
+                midEnabled={state.gradMidEnabled}
+                setMidEnabled={(v) => setKey("gradMidEnabled")(v)}
+                midColor={state.gradMidInput}
+                setMidColor={(v) => setKey("gradMidInput")(v)}
+                palette={PALETTE}
               />
             </>
           ) : (
@@ -155,19 +141,18 @@ export default function ColorsSection(props: {
               label={
                 outline || ghost ? "Background (Hover/Base)" : "Background"
               }
-              palette={props.PALETTE}
-              value={props.bgInput}
-              onChange={props.setBgInput}
+              palette={PALETTE}
+              value={state.bgInput}
+              onChange={(v) => setKey("bgInput")(v)}
             />
           )}
 
           {/* --- TEXT COLOR (Always Visible) --- */}
-          {/* Moved outside the ternary operator so it doesn't vanish */}
           <ColorControl
             label="Text"
-            palette={props.PALETTE}
-            value={props.textInput}
-            onChange={props.setTextInput}
+            palette={PALETTE}
+            value={state.textInput}
+            onChange={(v) => setKey("textInput")(v)}
           />
         </div>
       </div>

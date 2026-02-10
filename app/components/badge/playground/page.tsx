@@ -20,6 +20,7 @@ import AppearanceSection from "../_section/AppearanceSection";
 import StatusSection from "../_section/StatusSection";
 import EffectsSection from "../_section/EffectsSection";
 import ThreeBadgeSection from "../_section/ThreeBadgeSection";
+import BadgeAccessibilitySection from "./_section/BadgeAccessibilitySection";
 import { buildBadgeExportPayload } from "../_utils/exportUtils";
 
 // --- Types ---
@@ -55,6 +56,8 @@ export default function BadgePage() {
     showIcon,
     iconName,
     iconPosition,
+    iconGap,
+    iconSize,
     variant,
     shape,
     size,
@@ -87,9 +90,19 @@ export default function BadgePage() {
     interactive,
     hoverScale,
     clickRipple,
+    ariaLabel,
+    ariaRole,
+    ariaLive,
   } = state;
 
   // -- Setters (Boilerplate Proxies) --
+  const setKey = (key: string) => (v: any) => {
+    updateState((s) => ({
+      ...s,
+      [key]: typeof v === "function" ? v(s[key as keyof BadgeState]) : v,
+    }));
+  };
+
   // I'll create a helper or just define them inline in sections for brevity if possible,
   // but sticking to your pattern:
   const setLabel = (v: any) =>
@@ -116,6 +129,16 @@ export default function BadgePage() {
     updateState((s) => ({
       ...s,
       iconPosition: typeof v === "function" ? v(s.iconPosition) : v,
+    }));
+  const setIconGap = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconGap: typeof v === "function" ? v(s.iconGap) : v,
+    }));
+  const setIconSize = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      iconSize: typeof v === "function" ? v(s.iconSize) : v,
     }));
 
   const setVariant = (v: any) =>
@@ -284,6 +307,21 @@ export default function BadgePage() {
       ...s,
       clickRipple: typeof v === "function" ? v(s.clickRipple) : v,
     }));
+  const setAriaLabel = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaLabel: typeof v === "function" ? v(s.ariaLabel) : v,
+    }));
+  const setAriaRole = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaRole: typeof v === "function" ? v(s.ariaRole) : v,
+    }));
+  const setAriaLive = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaLive: typeof v === "function" ? v(s.ariaLive) : v,
+    }));
 
   // --- Export Logic ---
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -322,22 +360,7 @@ export default function BadgePage() {
     {
       id: "content",
       label: "Content",
-      content: (
-        <ContentSection
-          label={label}
-          setLabel={setLabel}
-          count={count}
-          setCount={setCount}
-          showIcon={showIcon}
-          setShowIcon={setShowIcon}
-          iconName={iconName}
-          setIconName={setIconName}
-          iconPosition={iconPosition}
-          setIconPosition={setIconPosition}
-          dismissible={dismissible}
-          setDismissible={setDismissible}
-        />
-      ),
+      content: <ContentSection state={state} setKey={setKey} />,
     },
     {
       id: "appearance",
@@ -430,6 +453,22 @@ export default function BadgePage() {
           setIcon3DGeometry={setIcon3DGeometry}
           icon3DSpinSpeed={icon3DSpinSpeed}
           setIcon3DSpinSpeed={setIcon3DSpinSpeed}
+        />
+      ),
+    },
+    {
+      id: "a11y",
+      label: "A11y",
+      content: (
+        <BadgeAccessibilitySection
+          ariaLabel={ariaLabel}
+          setAriaLabel={setAriaLabel}
+          ariaRole={ariaRole}
+          setAriaRole={setAriaRole}
+          ariaLive={ariaLive}
+          setAriaLive={setAriaLive}
+          label={label}
+          count={count}
         />
       ),
     },

@@ -175,6 +175,10 @@ export interface ImageState {
   entranceAnimation: EntranceAnimation;
   entranceDuration: string;
   entranceDelay: string;
+
+  // Accessibility
+  ariaRole: "img" | "presentation" | "figure" | "none";
+  ariaHidden: boolean;
 }
 
 export const INITIAL_IMAGE_STATE: ImageState = {
@@ -297,6 +301,9 @@ export const INITIAL_IMAGE_STATE: ImageState = {
   entranceAnimation: "none",
   entranceDuration: "600",
   entranceDelay: "0",
+
+  ariaRole: "img",
+  ariaHidden: false,
 };
 
 // Image preset gallery

@@ -9,6 +9,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Switch from "@/app/components/controls/input/Switch";
 import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
 
 export default function DividerContentSection({ state, setKey }: any) {
   const {
@@ -18,6 +19,13 @@ export default function DividerContentSection({ state, setKey }: any) {
     labelBackground,
     labelColor,
     labelPadding,
+    contentType,
+    iconName,
+    iconSize,
+    fontSize,
+    fontWeight,
+    labelTransform,
+    letterSpacing,
   } = state;
 
   return (
@@ -31,12 +39,84 @@ export default function DividerContentSection({ state, setKey }: any) {
 
         {showLabel && (
           <div className="space-y-4 pl-4 border-l-2 border-slate-700/50">
-            <LabeledField label="Text">
-              <Input
-                value={labelText}
-                onChange={(e) => setKey("labelText")(e.target.value)}
+            <LabeledField label="Content Type">
+              <Segmented
+                value={contentType}
+                onChange={setKey("contentType")}
+                items={[
+                  { label: "Text", value: "text" },
+                  { label: "Icon", value: "icon" },
+                ]}
               />
             </LabeledField>
+
+            {contentType === "text" ? (
+              <>
+                <LabeledField label="Text">
+                  <Input
+                    value={labelText}
+                    onChange={(e) => setKey("labelText")(e.target.value)}
+                  />
+                </LabeledField>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <SizeControl
+                    label="Font Size"
+                    value={fontSize}
+                    onChange={setKey("fontSize")}
+                    min={10}
+                    max={32}
+                    step={1}
+                  />
+                  <SizeControl
+                    label="Spacing"
+                    value={letterSpacing}
+                    onChange={setKey("letterSpacing")}
+                    min={-2}
+                    max={10}
+                    step={0.5}
+                  />
+                </div>
+
+                <LabeledField label="Transform">
+                  <Segmented
+                    value={labelTransform}
+                    onChange={setKey("labelTransform")}
+                    items={[
+                      { label: "None", value: "none" },
+                      { label: "ABC", value: "uppercase" },
+                      { label: "abc", value: "lowercase" },
+                    ]}
+                  />
+                </LabeledField>
+              </>
+            ) : (
+              <>
+                <LabeledField label="Icon">
+                  <Select
+                    value={iconName}
+                    onChange={setKey("iconName")}
+                    options={[
+                      { value: "star", label: "Star" },
+                      { value: "check", label: "Check" },
+                      { value: "heart", label: "Heart" },
+                      { value: "shield", label: "Shield" },
+                      { value: "zap", label: "Bolt" },
+                      { value: "bell", label: "Bell" },
+                      { value: "alert", label: "Alert" },
+                    ]}
+                  />
+                </LabeledField>
+                <SizeControl
+                  label="Icon Size"
+                  value={iconSize}
+                  onChange={setKey("iconSize")}
+                  min={12}
+                  max={48}
+                  step={2}
+                />
+              </>
+            )}
 
             <LabeledField label="Position">
               <Segmented

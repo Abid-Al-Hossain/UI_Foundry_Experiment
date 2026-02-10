@@ -21,6 +21,7 @@ import ImageShapeSection from "../_section/ImageShapeSection";
 import ImageMaskingSection from "../_section/ImageMaskingSection";
 import ImageEffectsSection from "../_section/ImageEffectsSection";
 import ImageAnimationSection from "../_section/ImageAnimationSection";
+import ImageAccessibilitySection from "../_section/ImageAccessibilitySection";
 
 // Types & Utils
 import { type ImageState, INITIAL_IMAGE_STATE } from "../types";
@@ -75,6 +76,7 @@ export default function ImagePlaygroundPage() {
     { id: "masking", label: "Masking", component: ImageMaskingSection },
     { id: "effects", label: "Effects", component: ImageEffectsSection },
     { id: "animation", label: "Animation", component: ImageAnimationSection },
+    { id: "a11y", label: "A11y", component: ImageAccessibilitySection },
   ];
 
   const activeComp = sections.find((s) => s.id === activeSection);

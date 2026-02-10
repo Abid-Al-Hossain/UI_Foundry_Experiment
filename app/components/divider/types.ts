@@ -20,6 +20,17 @@ export type DividerState = {
   labelColor: string;
   labelPadding: number;
 
+  // Icon Content
+  contentType: "text" | "icon";
+  iconName: string;
+  iconSize: number;
+
+  // Typography
+  fontSize: number;
+  fontWeight: string;
+  labelTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  letterSpacing: number;
+
   // Advanced Visuals
   gradientEnabled: boolean;
   gradientStart: string;
@@ -39,6 +50,10 @@ export type DividerState = {
   glowBlur: number;
 
   interactiveResize: boolean;
+
+  // Accessibility
+  ariaRole: "separator" | "presentation" | "none";
+  ariaLabel: string;
 };
 
 export const INITIAL_DIVIDER_STATE: DividerState = {
@@ -57,6 +72,15 @@ export const INITIAL_DIVIDER_STATE: DividerState = {
   labelColor: "#64748b",
   labelPadding: 12,
 
+  contentType: "text",
+  iconName: "star",
+  iconSize: 20,
+
+  fontSize: 14,
+  fontWeight: "normal",
+  labelTransform: "none",
+  letterSpacing: 0,
+
   gradientEnabled: false,
   gradientStart: "#3b82f6",
   gradientEnd: "#9333ea",
@@ -74,4 +98,7 @@ export const INITIAL_DIVIDER_STATE: DividerState = {
   glowBlur: 8,
 
   interactiveResize: false, // For now false defaults
+
+  ariaRole: "separator",
+  ariaLabel: "",
 };

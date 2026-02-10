@@ -52,6 +52,7 @@ type AvatarState = {
   initials: string;
   objectFit: "cover" | "contain" | "fill" | "none" | "scale-down";
   objectPosition: string;
+  loadingState: "default" | "loading" | "error";
   // Sizing
   size: string;
   aspectRatio: string;
@@ -105,6 +106,10 @@ type AvatarState = {
   hoverEffect: MotionHover;
   textureEffect: "none" | "glitch" | "fluid" | "glass";
   borderEffect: "none" | "snake" | "heartbeat" | "glow-pulse";
+
+  // Accessibility
+  ariaLabel: string;
+  ariaRole: "img" | "figure" | "presentation" | "none";
 };
 
 const INITIAL_STATE: AvatarState = {
@@ -114,6 +119,7 @@ const INITIAL_STATE: AvatarState = {
   initials: "JD",
   objectFit: "cover",
   objectPosition: "center",
+  loadingState: "default",
   size: "128px",
   aspectRatio: "1/1",
   radiusMode: "circle",
@@ -154,6 +160,9 @@ const INITIAL_STATE: AvatarState = {
   hoverEffect: "none",
   textureEffect: "none",
   borderEffect: "none",
+
+  ariaLabel: "",
+  ariaRole: "img",
 };
 
 // Sections
@@ -163,6 +172,7 @@ import StyleSection from "./_section/StyleSection";
 import StatusSection from "./_section/StatusSection";
 import EffectsSection from "./_section/EffectsSection";
 import GroupPreviewSection from "./_section/GroupPreviewSection";
+import AccessibilitySection from "./_section/AccessibilitySection";
 
 import useHydrated from "@/components/hooks/useHydrated";
 
@@ -219,6 +229,7 @@ export default function AvatarPage() {
     imageRotation,
     imageScale,
     effect3D,
+    loadingState,
     use3DBadge,
     badgeAnimate,
     use3DStatus,
@@ -229,6 +240,8 @@ export default function AvatarPage() {
     hoverEffect,
     textureEffect,
     borderEffect,
+    ariaLabel,
+    ariaRole,
   } = state;
 
   // -- Proxy Setters for Backward Compatibility --
@@ -456,6 +469,21 @@ export default function AvatarPage() {
       ...s,
       borderEffect: typeof v === "function" ? v(s.borderEffect) : v,
     }));
+  const setAriaLabel = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaLabel: typeof v === "function" ? v(s.ariaLabel) : v,
+    }));
+  const setAriaRole = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      ariaRole: typeof v === "function" ? v(s.ariaRole) : v,
+    }));
+  const setLoadingState = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      loadingState: typeof v === "function" ? v(s.loadingState) : v,
+    }));
 
   // Export
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -472,6 +500,7 @@ export default function AvatarPage() {
     { id: "motion", label: "Motion (New)" },
     { id: "status", label: "Status" },
     { id: "group", label: "Group" },
+    { id: "a11y", label: "A11y" },
   ];
 
   // --- Preview Logic (PostMessage) ---
@@ -521,6 +550,7 @@ export default function AvatarPage() {
       imageRotation,
       imageScale,
       effect3D,
+      loadingState,
     };
   };
 
@@ -628,6 +658,8 @@ export default function AvatarPage() {
             setInitials={setInitials}
             objectFit={objectFit}
             setObjectFit={setObjectFit}
+            loadingState={loadingState}
+            setLoadingState={setLoadingState}
           />
         );
       case "sizing":
@@ -735,6 +767,17 @@ export default function AvatarPage() {
             setGroupDirection={setGroupDirection}
           />
         );
+      case "a11y":
+        return (
+          <AccessibilitySection
+            alt={alt}
+            setAlt={setAlt}
+            ariaLabel={ariaLabel}
+            setAriaLabel={setAriaLabel}
+            ariaRole={ariaRole}
+            setAriaRole={setAriaRole}
+          />
+        );
       default:
         return null;
     }
@@ -796,6 +839,7 @@ export default function AvatarPage() {
         borderStyle={borderStyle}
         objectFit={objectFit}
         filters=""
+        loadingState={loadingState}
         use3DBadge={use3DBadge}
         badgeAnimate={badgeAnimate}
         use3DStatus={use3DStatus}

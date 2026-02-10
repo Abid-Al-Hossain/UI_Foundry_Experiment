@@ -62,6 +62,11 @@ export interface IconState {
   fillOpacity: number; // 0-1
   opacity: number; // 0-1
 
+  // Transforms
+  rotation: number;
+  flipHorizontal: boolean;
+  flipVertical: boolean;
+
   // Gradient (Stroke)
   gradientEnabled: boolean;
   gradientStart: string;
@@ -122,6 +127,11 @@ export interface IconState {
 
   hoverEffect: IconHoverEffect;
   entranceAnimation: IconEntranceAnimation;
+
+  // --- Accessibility ---
+  ariaLabel: string;
+  ariaRole: "img" | "presentation" | "none";
+  ariaHidden: boolean;
 }
 
 export const INITIAL_ICON_STATE: IconState = {
@@ -135,6 +145,10 @@ export const INITIAL_ICON_STATE: IconState = {
   fillColor: "#3b82f6",
   fillOpacity: 0,
   opacity: 1,
+
+  rotation: 0,
+  flipHorizontal: false,
+  flipVertical: false,
 
   gradientEnabled: false,
   gradientStart: "#3b82f6",
@@ -186,4 +200,8 @@ export const INITIAL_ICON_STATE: IconState = {
 
   hoverEffect: "none",
   entranceAnimation: "none",
+
+  ariaLabel: "",
+  ariaRole: "img",
+  ariaHidden: false,
 };

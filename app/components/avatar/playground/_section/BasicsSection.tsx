@@ -13,8 +13,10 @@ export default function BasicsSection(props: {
   setInitials: (v: string) => void;
   objectFit: "cover" | "contain" | "fill" | "none" | "scale-down";
   setObjectFit: (
-    v: "cover" | "contain" | "fill" | "none" | "scale-down"
+    v: "cover" | "contain" | "fill" | "none" | "scale-down",
   ) => void;
+  loadingState: "default" | "loading" | "error";
+  setLoadingState: (v: "default" | "loading" | "error") => void;
 }) {
   return (
     <div className="space-y-6">
@@ -33,6 +35,21 @@ export default function BasicsSection(props: {
             }}
           />
         </LabeledField>
+      </SectionCard>
+
+      <SectionCard
+        title="State Simulation"
+        subtitle="Preview loading and error states."
+      >
+        <Segmented
+          value={props.loadingState}
+          onChange={(v) => props.setLoadingState(v as any)}
+          items={[
+            { value: "default", label: "Default" },
+            { value: "loading", label: "Loading" },
+            { value: "error", label: "Error" },
+          ]}
+        />
       </SectionCard>
 
       <SectionCard
