@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import ReactDOMServer from "react-dom/server";
 import dynamic from "next/dynamic";
 import * as LucideIcons from "lucide-react";
@@ -2322,8 +2328,8 @@ export default function ActionButtonPage() {
         ? `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossDark}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossLight})`
         : `drop-shadow(${iconEmbossDepthPx}px ${iconEmbossDepthPx}px ${embossBlur}px ${embossLight}) drop-shadow(${-iconEmbossDepthPx}px ${-iconEmbossDepthPx}px ${embossBlur}px ${embossDark})`;
   // --- Export Logic ---
-  const handleDownload = () => {
-    const { filename, content } = buildExportPayload({
+  const exportPayload = useMemo(
+    () => ({
       downloadFormat,
       downloadName,
       confetti: clickEffect === "confetti",
@@ -2432,13 +2438,144 @@ export default function ActionButtonPage() {
       use3DIcon,
       icon3DAnimation,
       clickEffect,
-    });
+    }),
+    [
+      downloadFormat,
+      downloadName,
+      clickEffect,
+      touchWidth,
+      touchHeight,
+      fontSizeValue,
+      fontSizeUnit,
+      letterSpacingValue,
+      letterSpacingUnit,
+      ariaLabel,
+      ariaPressedMode,
+      ariaBusyMode,
+      loading,
+      tsXText,
+      tsYText,
+      tsBlurText,
+      textShadowEnabled,
+      tsColor,
+      transitionColorMs,
+      transitionColorEasing,
+      transitionTransformMs,
+      transitionTransformEasing,
+      boxShadowCss,
+      boxShadowHoverCss,
+      boxShadowActiveCss,
+      topGradientCss,
+      parallaxHighlightEnabled,
+      parallaxStrength,
+      iconEmbossFilter,
+      hoverTiltX,
+      hoverTiltY,
+      hoverPerspective,
+      loadingLabel,
+      animation,
+      iconSizeText,
+      iconGapText,
+      loadingSpinnerMode,
+      loadingSpinnerSvg,
+      loadingSpinnerPosition,
+      label,
+      baseIconSvg,
+      hoverIconSvg,
+      activeIconSvg,
+      loadingIconSvg,
+      iconSource,
+      iconName,
+      iconColorMode,
+      iconColorInput,
+      iconPosition,
+      disabled,
+      hoverEnabled,
+      hoverBgMode,
+      hoverTextMode,
+      hoverTextInput,
+      hoverBorderMode,
+      hoverBorderInput,
+      hoverBorderWidthPx,
+      activeEnabled,
+      cssActiveBg,
+      cssActiveText,
+      cssActiveBorder,
+      activeBorderWidthPx,
+      cssActiveFilter,
+      activeTranslateYText,
+      activeScaleText,
+      disabledHoverSuppressed,
+      cssDisabledBg,
+      cssDisabledText,
+      cssDisabledBorder,
+      disabledBorderWidthPx,
+      disabledTextShadowCss,
+      disabledOpacity,
+      disabledCursor,
+      align,
+      cssBg,
+      textInput,
+      borderInput,
+      cssHoverBg,
+      cssHoverText,
+      cssHoverBorder,
+      cssHoverFilter,
+      borderStyle,
+      borderWidthPx,
+      padX,
+      padY,
+      rTL,
+      rTR,
+      rBR,
+      rBL,
+      fontBucket,
+      googleFontFamily,
+      fontFamily,
+      fontWeight,
+      lHeight,
+      underline,
+      focusRingEnabled,
+      focusRingWidthText,
+      focusRingOffsetText,
+      focusRingInput,
+      previewBgHex,
+      fontStyle,
+      textTransform,
+      backdropBlurEnabled,
+      backdropBlurText,
+      use3DIcon,
+      icon3DAnimation,
+      clickEffect,
+    ],
+  );
+
+  /* 
+     Optimization: Defer the payload first so the expensive buildExportPayload 
+     function only runs on the deferred value, keeping the UI responsive during drags.
+  */
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildExportPayload(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
+  const deferredExportCode = useDeferredValue(exportCode);
+
+  const handleDownload = () => {
+    // We can use the layout effect version or just fresh payload for download
+    // For download, we want the LATEST, not deferred.
+    // So we rebuild it from current exportPayload to be safe/instant
+    const { filename, content } = buildExportPayload(exportPayload);
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -3284,6 +3421,7 @@ export default function ActionButtonPage() {
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       previewNode={livePreviewNode}
+      code={exportCode.content}
     />
   );
 
