@@ -7,47 +7,38 @@ import BorderControl from "@/app/components/controls/layout/BorderControl";
 type BorderStyle = "none" | "solid" | "dashed" | "dotted" | "double";
 type ButtonVariant = "solid" | "outline" | "ghost";
 
-export default function BorderSection(props: {
+import { ActionButtonState } from "@/app/components/buttons/action/types";
+
+export default function BorderSection({
+  state,
+  setKey,
+  PALETTE,
+}: {
+  state: ActionButtonState;
+  setKey: (key: keyof ActionButtonState) => (val: any) => void;
   PALETTE: readonly string[];
-
-  variant: ButtonVariant;
-
-  borderWidthText: string;
-  setBorderWidthText: (v: string) => void;
-
-  borderStyle: BorderStyle;
-  setBorderStyle: (v: BorderStyle) => void;
-
-  borderInput: string;
-  setBorderInput: (v: string) => void;
-
-  borderNorm: { ok: boolean; hex: string; rgb: string };
-
-  computedBorderWidth: number;
-  computedBorderStyle: BorderStyle;
-
-  borderHoverWidthText: string;
-  setBorderHoverWidthText: (v: string) => void;
-
-  borderActiveWidthText: string;
-  setBorderActiveWidthText: (v: string) => void;
 }) {
-  const ghost = props.variant === "ghost";
+  const ghost = state.variant === "ghost";
 
   return (
     <SectionCard title="Border" subtitle="Stroke width, style, and color.">
       <BorderControl
-        width={Number(props.borderWidthText) || 0}
-        setWidth={(v) => props.setBorderWidthText(String(v))}
-        style={props.borderStyle}
-        setStyle={props.setBorderStyle}
-        hoverWidth={Number(props.borderHoverWidthText) || 0}
-        setHoverWidth={(v) => props.setBorderHoverWidthText(String(v))}
-        activeWidth={Number(props.borderActiveWidthText) || 0}
-        setActiveWidth={(v) => props.setBorderActiveWidthText(String(v))}
-        palette={props.PALETTE}
-        color={props.borderInput}
-        setColor={props.setBorderInput}
+        width={Number(state.borderWidthText) || 0}
+        setWidth={(v) => setKey("borderWidthText")(String(v))}
+        style={state.borderStyle}
+        setStyle={setKey("borderStyle")}
+        // No, setKey("borderStyle")(v)
+        // But BorderControl expects setStyle prop...
+        // Let's check BorderControl props. It expects (v: BorderStyle) => void.
+        // setKey("borderStyle") returns (val: any) => void.
+        // So (v) => setKey("borderStyle")(v) works.
+        hoverWidth={Number(state.borderHoverWidthText) || 0}
+        setHoverWidth={(v) => setKey("borderHoverWidthText")(String(v))}
+        activeWidth={Number(state.borderActiveWidthText) || 0}
+        setActiveWidth={(v) => setKey("borderActiveWidthText")(String(v))}
+        palette={PALETTE}
+        color={state.borderInput}
+        setColor={(v) => setKey("borderInput")(v)}
       />
     </SectionCard>
   );

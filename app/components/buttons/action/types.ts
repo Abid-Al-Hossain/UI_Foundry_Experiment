@@ -8,15 +8,19 @@ import {
   type ButtonVariant,
   type AnimationPreset,
 } from "./_section/BasicsSection";
-import {
-  type FontStyleKey,
-  type FontWeightKey,
-  type TextTransformKey,
-} from "./_section/TypographySection";
+export type FontStyleKey = "normal" | "italic";
+export type FontWeightKey = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+export type TextTransformKey =
+  | "none"
+  | "uppercase"
+  | "lowercase"
+  | "capitalize";
 import { type AlignKey } from "./_section/TextPositionSection";
 import { type PreviewBgMode } from "./_section/PreviewBackgroundSection";
 import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { type GroupAlign } from "./_section/GroupPreviewSection";
+
+export type SystemFontItem = { label: string; css: string };
 
 export type TransitionEasing =
   | "ease"

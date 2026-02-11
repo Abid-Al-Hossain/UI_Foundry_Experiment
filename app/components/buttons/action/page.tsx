@@ -19,11 +19,7 @@ import ColorsSection from "./_section/ColorsSection";
 import BorderSection from "./_section/BorderSection";
 import RadiusSection from "./_section/RadiusSection";
 import ShadowSection from "./_section/ShadowSection";
-import TypographySection, {
-  type FontStyleKey,
-  type FontWeightKey,
-  type TextTransformKey,
-} from "./_section/TypographySection";
+import TypographySection from "./_section/TypographySection";
 import TextPositionSection, {
   type AlignKey,
 } from "./_section/TextPositionSection";
@@ -2248,103 +2244,6 @@ export default function ActionButtonPage() {
     setHoverBorderInput(hexWithAlpha(contrast, 0.35));
   };
 
-  const applyElevationPreset = (
-    preset: "flat" | "raised" | "lifted" | "inset",
-  ) => {
-    setElevationPreset(preset);
-    if (preset === "flat") {
-      setShadowEnabled(false);
-      setDepthText("0");
-      setShadowStackEnabled(false);
-      setInnerShadowEnabled(false);
-      setGlossEnabled(false);
-      setBevelEnabled(false);
-    } else if (preset === "raised") {
-      setShadowEnabled(true);
-      setDepthText("6");
-      setShadowStackEnabled(false);
-      setInnerShadowEnabled(false);
-      setGlossEnabled(true);
-      setGlossSizeText("6");
-      setGlossOpacityText("0.2");
-      setBevelEnabled(true);
-      setBevelSizeText("2");
-      setBevelSoftnessText("2");
-    } else if (preset === "lifted") {
-      setShadowEnabled(true);
-      setDepthText("12");
-      setShadowStackEnabled(false);
-      setInnerShadowEnabled(false);
-      setGlossEnabled(true);
-      setGlossSizeText("8");
-      setGlossOpacityText("0.25");
-      setBevelEnabled(true);
-      setBevelSizeText("3");
-      setBevelSoftnessText("3");
-    } else {
-      setShadowEnabled(false);
-      setDepthText("0");
-      setShadowStackEnabled(false);
-      setInnerShadowEnabled(true);
-      setGlossEnabled(false);
-      setBevelEnabled(false);
-    }
-  };
-
-  const applyMaterialPreset = (
-    preset: "custom" | "plastic" | "matte" | "metal" | "glass",
-  ) => {
-    setMaterialPreset(preset);
-    if (preset === "custom") return;
-    if (preset === "plastic") {
-      setGlossEnabled(true);
-      setGlossSizeText("10");
-      setGlossOpacityText("0.35");
-      setSpecularStrengthText("0.9");
-      setRoughnessText("0.25");
-      setBevelEnabled(true);
-      setBevelSizeText("3");
-      setBevelSoftnessText("3");
-      setEdgeGradientEnabled(true);
-      setEdgeGradientSizeText("2");
-      setEdgeGradientStrengthText("0.3");
-      setAoStrengthText("0.2");
-    } else if (preset === "matte") {
-      setGlossEnabled(false);
-      setSpecularStrengthText("0.2");
-      setRoughnessText("0.8");
-      setBevelEnabled(false);
-      setEdgeGradientEnabled(false);
-      setAoStrengthText("0.3");
-    } else if (preset === "metal") {
-      setGlossEnabled(true);
-      setGlossSizeText("6");
-      setGlossOpacityText("0.28");
-      setSpecularStrengthText("1");
-      setRoughnessText("0.15");
-      setBevelEnabled(true);
-      setBevelSizeText("2");
-      setBevelSoftnessText("2");
-      setEdgeGradientEnabled(true);
-      setEdgeGradientSizeText("2");
-      setEdgeGradientStrengthText("0.4");
-      setAoStrengthText("0.35");
-    } else if (preset === "glass") {
-      setGlossEnabled(true);
-      setGlossSizeText("14");
-      setGlossOpacityText("0.45");
-      setSpecularStrengthText("1");
-      setRoughnessText("0.1");
-      setBevelEnabled(true);
-      setBevelSizeText("2");
-      setBevelSoftnessText("4");
-      setEdgeGradientEnabled(true);
-      setEdgeGradientSizeText("1");
-      setEdgeGradientStrengthText("0.2");
-      setAoStrengthText("0.1");
-    }
-  };
-
   // --- Dynamic Icon Generation ---
   const getDynamicIconSvg = (
     source: IconSource,
@@ -2834,168 +2733,6 @@ export default function ActionButtonPage() {
 
   const initialSrcDoc = PREVIEW_SRC_DOC;
 
-  const shadowSectionProps = {
-    PALETTE,
-    shadowEnabled,
-    setShadowEnabled,
-    shXText,
-    setShXText,
-    shYText,
-    setShYText,
-    shBlurText,
-    setShBlurText,
-    shSpreadText,
-    setShSpreadText,
-    shOpacityText,
-    setShOpacityText,
-    shColorInput,
-    setShColorInput,
-    shColorOk: shColorNorm.ok,
-    shColorHex: shColorNorm.hex,
-    shColorRgb: shColorNorm.rgb,
-    shadowTemp,
-    setShadowTemp,
-    elevationPreset,
-    setElevationPreset,
-    onApplyElevationPreset: handleApplyElevationPreset,
-    depthText,
-    setDepthText,
-    depthPx,
-    lightDirection,
-    setLightDirection,
-    lightAngleText,
-    setLightAngleText,
-    shadowStackEnabled,
-    setShadowStackEnabled,
-    stack1Enabled,
-    setStack1Enabled,
-    stack1XText,
-    setStack1XText,
-    stack1YText,
-    setStack1YText,
-    stack1BlurText,
-    setStack1BlurText,
-    stack1SpreadText,
-    setStack1SpreadText,
-    stack1OpacityText,
-    setStack1OpacityText,
-    stack2Enabled,
-    setStack2Enabled,
-    stack2XText,
-    setStack2XText,
-    stack2YText,
-    setStack2YText,
-    stack2BlurText,
-    setStack2BlurText,
-    stack2SpreadText,
-    setStack2SpreadText,
-    stack2OpacityText,
-    setStack2OpacityText,
-    stack3Enabled,
-    setStack3Enabled,
-    stack3XText,
-    setStack3XText,
-    stack3YText,
-    setStack3YText,
-    stack3BlurText,
-    setStack3BlurText,
-    stack3SpreadText,
-    setStack3SpreadText,
-    stack3OpacityText,
-    setStack3OpacityText,
-    innerShadowEnabled,
-    setInnerShadowEnabled,
-    glossEnabled,
-    setGlossEnabled,
-    glossSizeText,
-    setGlossSizeText,
-    glossOpacityText,
-    setGlossOpacityText,
-    bevelEnabled,
-    setBevelEnabled,
-    bevelSizeText,
-    setBevelSizeText,
-    bevelSoftnessText,
-    setBevelSoftnessText,
-    materialPreset,
-    setMaterialPreset,
-    onApplyMaterialPreset: handleApplyMaterialPreset,
-    edgeThicknessText,
-    setEdgeThicknessText,
-    edgeGradientEnabled,
-    setEdgeGradientEnabled,
-    edgeGradientSizeText,
-    setEdgeGradientSizeText,
-    edgeGradientStrengthText,
-    setEdgeGradientStrengthText,
-    topGradientEnabled,
-    setTopGradientEnabled,
-    topGradAngleText,
-    setTopGradAngleText,
-    topGradStartInput,
-    setTopGradStartInput,
-    topGradStartNorm,
-    topGradMidEnabled,
-    setTopGradMidEnabled,
-    topGradMidInput,
-    setTopGradMidInput,
-    topGradMidNorm,
-    topGradEndInput,
-    setTopGradEndInput,
-    topGradEndNorm,
-    topGradOpacityText,
-    setTopGradOpacityText,
-    parallaxHighlightEnabled,
-    setParallaxHighlightEnabled,
-    parallaxStrengthText,
-    setParallaxStrengthText,
-    rimLightEnabled,
-    setRimLightEnabled,
-    rimLightColorInput,
-    setRimLightColorInput,
-    rimLightOk: rimLightNorm.ok,
-    rimLightHex: rimLightNorm.hex,
-    rimLightRgb: rimLightNorm.rgb,
-    rimLightSizeText,
-    setRimLightSizeText,
-    rimLightOpacityText,
-    setRimLightOpacityText,
-    iconEmbossMode,
-    setIconEmbossMode,
-    iconEmbossDepthText,
-    setIconEmbossDepthText,
-    iconEmbossStrengthText,
-    setIconEmbossStrengthText,
-    borderDepthMode,
-    setBorderDepthMode,
-    borderDepthSizeText,
-    setBorderDepthSizeText,
-    baseShadowEnabled,
-    setBaseShadowEnabled,
-    baseShadowSizeText,
-    setBaseShadowSizeText,
-    baseShadowOpacityText,
-    setBaseShadowOpacityText,
-    pressedDepthText,
-    setPressedDepthText,
-    pressedInsetEnabled,
-    setPressedInsetEnabled,
-    hoverLiftText,
-    setHoverLiftText,
-    specularStrengthText,
-    setSpecularStrengthText,
-    roughnessText,
-    setRoughnessText,
-    aoStrengthText,
-    setAoStrengthText,
-    hoverTiltXText,
-    setHoverTiltXText,
-    hoverTiltYText,
-    setHoverTiltYText,
-    hoverPerspectiveText,
-    setHoverPerspectiveText,
-  };
-
   const iconSectionProps = {
     PALETTE,
     iconName,
@@ -3264,101 +3001,35 @@ export default function ActionButtonPage() {
       id: "border",
       label: "Border",
       content: (
-        <BorderSection
-          PALETTE={PALETTE}
-          variant={variant}
-          borderWidthText={borderWidthText}
-          setBorderWidthText={setBorderWidthText}
-          borderHoverWidthText={borderHoverWidthText}
-          setBorderHoverWidthText={setBorderHoverWidthText}
-          borderActiveWidthText={borderActiveWidthText}
-          setBorderActiveWidthText={setBorderActiveWidthText}
-          borderStyle={borderStyle}
-          setBorderStyle={setBorderStyle}
-          borderInput={borderInput}
-          setBorderInput={setBorderInput}
-          borderNorm={norm(borderInput)}
-          computedBorderWidth={Number(borderWidthText)}
-          computedBorderStyle={borderStyle}
-        />
+        <BorderSection state={state} setKey={setKey} PALETTE={PALETTE} />
       ),
     },
     {
       id: "radius",
       label: "Radius",
-      content: (
-        <RadiusSection
-          linkRadius={linkRadius}
-          setLinkRadius={setLinkRadius}
-          radiusText={radiusText}
-          setRadiusText={setRadiusText}
-          radiusTLText={radiusTLText}
-          setRadiusTLText={setRadiusTLText}
-          radiusTRText={radiusTRText}
-          setRadiusTRText={setRadiusTRText}
-          radiusBRText={radiusBRText}
-          setRadiusBRText={setRadiusBRText}
-          radiusBLText={radiusBLText}
-          setRadiusBLText={setRadiusBLText}
-          radiusUnified={Number(radiusText)}
-          radiusTL={rTL}
-          radiusTR={rTR}
-          radiusBR={rBR}
-          radiusBL={rBL}
-        />
-      ),
+      content: <RadiusSection state={state} setKey={setKey} />,
     },
     {
       id: "shadow",
       label: "Shadow",
-      content: <ShadowSection {...shadowSectionProps} />,
+      content: (
+        <ShadowSection
+          state={state}
+          setKey={setKey}
+          updateState={updateState}
+        />
+      ),
     },
     {
       id: "typography",
       label: "Typography",
       content: (
         <TypographySection
-          fontBucket={fontBucket}
-          setFontBucket={setFontBucket}
-          fontSearch={fontSearch}
-          setFontSearch={setFontSearch}
-          systemFonts={SYSTEM_FONTS}
-          filteredSystemFonts={filteredSystemFonts}
-          systemFontIdx={systemFontIdx}
-          setSystemFontIdx={setSystemFontIdx}
-          googleFonts={GOOGLE_FONTS}
-          filteredGoogleFonts={filteredGoogleFonts}
-          googleFontFamily={googleFontFamily}
-          setGoogleFontFamily={setGoogleFontFamily}
-          fontSizeText={fontSizeText}
-          setFontSizeText={setFontSizeText}
-          fontSizeDisplay={fontSizeDisplay}
-          fontSizeUnit={fontSizeUnit}
-          setFontSizeUnit={setFontSizeUnit}
+          state={state}
+          setKey={setKey}
           fontSizeMin={fontSizeMin}
           fontSizeMax={fontSizeMax}
           fontSizeStep={fontSizeStep}
-          fontWeight={fontWeight}
-          setFontWeight={setFontWeight}
-          letterSpacingDisplay={letterSpacingDisplay}
-          letterSpacingUnit={letterSpacingUnit}
-          setLetterSpacingUnit={setLetterSpacingUnit}
-          letterSpacingMin={letterSpacingMin}
-          letterSpacingMax={letterSpacingMax}
-          letterSpacingStep={letterSpacingStep}
-          letterSpacingText={letterSpacingText}
-          setLetterSpacingText={setLetterSpacingText}
-          lineHeight={lHeight}
-          lineHeightText={lineHeightText}
-          setLineHeightText={setLineHeightText}
-          fontStyle={fontStyle}
-          setFontStyle={setFontStyle}
-          textTransform={textTransform}
-          setTextTransform={setTextTransform}
-          underline={underline}
-          setUnderline={setUnderline}
-          idItalic={idItalic}
-          idUnderline={idUnderline}
         />
       ),
     },

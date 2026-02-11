@@ -1,6 +1,6 @@
 "use client";
 
-import type { SystemFontItem } from "../_section/TypographySection";
+import type { SystemFontItem } from "../types";
 
 export type IconName = string;
 export type IconSource = "library" | "custom";

@@ -4,27 +4,14 @@ import React from "react";
 import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 
-export default function RadiusSection(props: {
-  linkRadius: boolean;
-  setLinkRadius: (v: boolean) => void;
+import { ActionButtonState } from "@/app/components/buttons/action/types";
 
-  radiusText: string;
-  setRadiusText: (v: string) => void;
-
-  radiusTLText: string;
-  setRadiusTLText: (v: string) => void;
-  radiusTRText: string;
-  setRadiusTRText: (v: string) => void;
-  radiusBRText: string;
-  setRadiusBRText: (v: string) => void;
-  radiusBLText: string;
-  setRadiusBLText: (v: string) => void;
-
-  radiusUnified: number;
-  radiusTL: number;
-  radiusTR: number;
-  radiusBR: number;
-  radiusBL: number;
+export default function RadiusSection({
+  state,
+  setKey,
+}: {
+  state: ActionButtonState;
+  setKey: (key: keyof ActionButtonState) => (val: any) => void;
 }) {
   return (
     <SectionCard
@@ -34,23 +21,23 @@ export default function RadiusSection(props: {
       <div className="space-y-4">
         <button
           type="button"
-          onClick={() => props.setLinkRadius(!props.linkRadius)}
+          onClick={() => setKey("linkRadius")(!state.linkRadius)}
           className="rounded-xl border px-3 py-2 text-sm font-semibold uf-clickable"
           style={{
             borderColor: "var(--border)",
-            background: props.linkRadius ? "var(--primary)" : "transparent",
-            color: props.linkRadius ? "white" : "var(--text)",
+            background: state.linkRadius ? "var(--primary)" : "transparent",
+            color: state.linkRadius ? "white" : "var(--text)",
           }}
         >
-          Link corners: {props.linkRadius ? "On" : "Off"}
+          Link corners: {state.linkRadius ? "On" : "Off"}
         </button>
 
-        {props.linkRadius ? (
+        {state.linkRadius ? (
           <>
             <SizeControl
               label="Radius (px)"
-              value={Number(props.radiusText) || 0}
-              onChange={(v) => props.setRadiusText(String(v))}
+              value={Number(state.radiusText) || 0}
+              onChange={(v) => setKey("radiusText")(String(v))}
               min={0}
               max={60}
               step={1}
@@ -64,16 +51,16 @@ export default function RadiusSection(props: {
               </div>
               <Segmented
                 value={
-                  props.radiusText === "0"
+                  state.radiusText === "0"
                     ? "Square"
-                    : props.radiusText === "9999"
+                    : state.radiusText === "9999"
                       ? "Pill"
                       : "Custom"
                 }
                 onChange={(v) => {
-                  if (v === "Square") props.setRadiusText("0");
-                  if (v === "Pill") props.setRadiusText("9999");
-                  if (v === "Custom") props.setRadiusText("8");
+                  if (v === "Square") setKey("radiusText")("0");
+                  if (v === "Pill") setKey("radiusText")("9999");
+                  if (v === "Custom") setKey("radiusText")("8");
                 }}
                 items={[
                   { value: "Square", label: "Square" },
@@ -87,32 +74,32 @@ export default function RadiusSection(props: {
           <div className="grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Top-left"
-              value={Number(props.radiusTLText) || 0}
-              onChange={(v) => props.setRadiusTLText(String(v))}
+              value={Number(state.radiusTLText) || 0}
+              onChange={(v) => setKey("radiusTLText")(String(v))}
               min={0}
               max={60}
               step={1}
             />
             <SizeControl
               label="Top-right"
-              value={Number(props.radiusTRText) || 0}
-              onChange={(v) => props.setRadiusTRText(String(v))}
+              value={Number(state.radiusTRText) || 0}
+              onChange={(v) => setKey("radiusTRText")(String(v))}
               min={0}
               max={60}
               step={1}
             />
             <SizeControl
               label="Bottom-right"
-              value={Number(props.radiusBRText) || 0}
-              onChange={(v) => props.setRadiusBRText(String(v))}
+              value={Number(state.radiusBRText) || 0}
+              onChange={(v) => setKey("radiusBRText")(String(v))}
               min={0}
               max={60}
               step={1}
             />
             <SizeControl
               label="Bottom-left"
-              value={Number(props.radiusBLText) || 0}
-              onChange={(v) => props.setRadiusBLText(String(v))}
+              value={Number(state.radiusBLText) || 0}
+              onChange={(v) => setKey("radiusBLText")(String(v))}
               min={0}
               max={60}
               step={1}

@@ -1,116 +1,79 @@
-"use client";
-
-import React from "react";
+import React, { useId } from "react";
 import { SectionCard } from "./ui";
 import TypographyControl from "@/app/components/controls/typography/TypographyControl";
+import { ActionButtonState } from "@/app/components/buttons/action/types";
+import { SYSTEM_FONTS, GOOGLE_FONTS } from "../_data/buttonConstants";
 
-export type FontStyleKey = "normal" | "italic";
-export type FontWeightKey = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-export type TextTransformKey =
-  | "none"
-  | "uppercase"
-  | "lowercase"
-  | "capitalize";
-
-export type SystemFontItem = { label: string; css: string };
-
-export default function TypographySection(props: {
-  // state
-  fontBucket: "system" | "google";
-  setFontBucket: (v: "system" | "google") => void;
-
-  fontSearch: string;
-  setFontSearch: (v: string) => void;
-
-  systemFonts: SystemFontItem[];
-  filteredSystemFonts: SystemFontItem[];
-  systemFontIdx: number;
-  setSystemFontIdx: (v: number) => void;
-
-  googleFonts: string[];
-  filteredGoogleFonts: string[];
-  googleFontFamily: string;
-  setGoogleFontFamily: (v: string) => void;
-
-  // style numbers
-  fontSizeText: string;
-  setFontSizeText: (v: string) => void;
-  fontSizeDisplay: string;
-  fontSizeUnit: "px" | "rem";
-  setFontSizeUnit: (v: "px" | "rem") => void;
-  fontSizeMin: number;
-  fontSizeMax: number;
-  fontSizeStep: number;
-
-  fontWeight: FontWeightKey;
-  setFontWeight: (v: FontWeightKey) => void;
-
-  fontStyle: FontStyleKey;
-  setFontStyle: (v: FontStyleKey) => void;
-
-  underline: boolean;
-  setUnderline: (v: boolean) => void;
-
-  textTransform: TextTransformKey;
-  setTextTransform: (v: TextTransformKey) => void;
-
-  letterSpacingText: string;
-  setLetterSpacingText: (v: string) => void;
-  letterSpacingDisplay: string;
-  letterSpacingUnit: "px" | "em";
-  setLetterSpacingUnit: (v: "px" | "em") => void;
-  letterSpacingMin: number;
-  letterSpacingMax: number;
-  letterSpacingStep: number;
-
-  lineHeightText: string;
-  setLineHeightText: (v: string) => void;
-  lineHeight: number;
-
-  // ids
-  idItalic: string;
-  idUnderline: string;
+export default function TypographySection({
+  state,
+  setKey,
+  fontSizeMin = 8,
+  fontSizeMax = 200,
+  fontSizeStep = 1,
+  letterSpacingMin = -5,
+  letterSpacingMax = 20,
+  letterSpacingStep = 0.1,
+}: {
+  state: ActionButtonState;
+  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  fontSizeMin?: number;
+  fontSizeMax?: number;
+  fontSizeStep?: number;
+  letterSpacingMin?: number;
+  letterSpacingMax?: number;
+  letterSpacingStep?: number;
 }) {
+  const idItalic = useId();
+  const idUnderline = useId();
+
+  const search = state.fontSearch.toLowerCase();
+  const filteredSystemFonts = SYSTEM_FONTS.filter((f) =>
+    f.label.toLowerCase().includes(search),
+  );
+  const filteredGoogleFonts = GOOGLE_FONTS.filter((f) =>
+    f.toLowerCase().includes(search),
+  );
+
   return (
     <SectionCard title="Typography" subtitle="Font + spacing + decoration.">
       <TypographyControl
         // Font Family
-        fontBucket={props.fontBucket}
-        setFontBucket={props.setFontBucket}
-        fontSearch={props.fontSearch}
-        setFontSearch={props.setFontSearch}
-        systemFonts={props.systemFonts}
-        filteredSystemFonts={props.filteredSystemFonts}
-        systemFontIdx={props.systemFontIdx}
-        setSystemFontIdx={props.setSystemFontIdx}
-        googleFonts={props.googleFonts}
-        filteredGoogleFonts={props.filteredGoogleFonts}
-        googleFontFamily={props.googleFontFamily}
-        setGoogleFontFamily={props.setGoogleFontFamily}
+        fontBucket={state.fontBucket}
+        setFontBucket={setKey("fontBucket")}
+        fontSearch={state.fontSearch}
+        setFontSearch={setKey("fontSearch")}
+        systemFonts={SYSTEM_FONTS}
+        filteredSystemFonts={filteredSystemFonts}
+        systemFontIdx={state.systemFontIdx}
+        setSystemFontIdx={setKey("systemFontIdx")}
+        googleFonts={GOOGLE_FONTS}
+        filteredGoogleFonts={filteredGoogleFonts}
+        googleFontFamily={state.googleFontFamily}
+        setGoogleFontFamily={setKey("googleFontFamily")}
         // Font Size
-        fontSize={Number(props.fontSizeText) || 0}
-        setFontSize={(v) => props.setFontSizeText(String(v))}
-        fontSizeUnit={props.fontSizeUnit}
-        setFontSizeUnit={props.setFontSizeUnit}
-        fontSizeMin={props.fontSizeMin}
-        fontSizeMax={props.fontSizeMax}
+        fontSize={Number(state.fontSizeText) || 0}
+        setFontSize={(v) => setKey("fontSizeText")(String(v))}
+        fontSizeUnit={state.fontSizeUnit}
+        setFontSizeUnit={setKey("fontSizeUnit")}
+        fontSizeMin={fontSizeMin}
+        fontSizeMax={fontSizeMax}
         // Weight
-        fontWeight={props.fontWeight}
-        setFontWeight={(v) => props.setFontWeight(v as FontWeightKey)}
+        fontWeight={state.fontWeight}
+        setFontWeight={setKey("fontWeight")}
         // Decoration
-        fontStyle={props.fontStyle}
-        setFontStyle={props.setFontStyle}
-        textDecoration={props.underline ? "underline" : "none"}
-        setTextDecoration={(v) => props.setUnderline(v === "underline")}
-        textTransform={props.textTransform}
-        setTextTransform={props.setTextTransform}
+        fontStyle={state.fontStyle}
+        setFontStyle={setKey("fontStyle")}
+        textDecoration={state.underline ? "underline" : "none"}
+        setTextDecoration={(v) => setKey("underline")(v === "underline")}
+        textTransform={state.textTransform}
+        setTextTransform={setKey("textTransform")}
         // Spacing
-        letterSpacing={Number(props.letterSpacingText) || 0}
-        setLetterSpacing={(v) => props.setLetterSpacingText(String(v))}
-        letterSpacingUnit={props.letterSpacingUnit}
-        setLetterSpacingUnit={props.setLetterSpacingUnit}
-        lineHeight={Number(props.lineHeightText) || 1}
-        setLineHeight={(v) => props.setLineHeightText(String(v))}
+        letterSpacing={Number(state.letterSpacingText) || 0}
+        setLetterSpacing={(v) => setKey("letterSpacingText")(String(v))}
+        letterSpacingUnit={state.letterSpacingUnit}
+        setLetterSpacingUnit={setKey("letterSpacingUnit")}
+        lineHeight={Number(state.lineHeightText) || 1}
+        setLineHeight={(v) => setKey("lineHeightText")(String(v))}
       />
     </SectionCard>
   );
