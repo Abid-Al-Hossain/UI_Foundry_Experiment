@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -51,12 +57,24 @@ export default function DividerPage() {
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("divider-component");
 
-  const handleDownload = () => {
-    const { content, filename } = buildDividerExportPayload({
+  // Refactored Export for Code View
+  const exportPayload = useMemo(() => {
+    return {
       downloadFormat,
-      downloadName,
+      downloadName: downloadName || "divider-component",
       ...state,
-    });
+    };
+  }, [downloadFormat, downloadName, state]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildDividerExportPayload(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
+  const handleDownload = () => {
+    const { content, filename } = buildDividerExportPayload(exportPayload);
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -133,6 +151,7 @@ export default function DividerPage() {
         setDownloadName={setDownloadName}
         handleDownload={handleDownload}
         previewNode={<LivePreview state={state} />}
+        code={exportCode.content}
       />
     </div>
   );

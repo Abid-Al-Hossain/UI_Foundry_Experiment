@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -90,6 +90,14 @@ export default function SpinnerPlayground() {
     </div>
   );
 
+  // Export Logic
+  const exportPayload = useMemo(() => state, [state]);
+  const deferredExportPayload = useDeferredValue(exportPayload);
+  const exportCode = useMemo(
+    () => buildSpinnerExport(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
   // --- Preview ---
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -104,7 +112,7 @@ export default function SpinnerPlayground() {
       setDownloadFormat={(v) => handleUpdate("downloadFormat", v)}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
       handleDownload={() => {
-        const { content, filename } = buildSpinnerExport(state);
+        const { content, filename } = buildSpinnerExport(exportPayload);
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -113,6 +121,7 @@ export default function SpinnerPlayground() {
         a.click();
       }}
       previewNode={<SpinnerPreview state={state} />}
+      code={exportCode.content}
     />
   );
 

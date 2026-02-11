@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -49,12 +55,24 @@ export default function ImagePlaygroundPage() {
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("styled-image");
 
-  const handleDownload = () => {
-    const { content, filename } = buildImageExportPayload({
+  // Refactored Export for Code View
+  const exportPayload = useMemo(() => {
+    return {
       downloadFormat,
-      downloadName,
+      downloadName: downloadName || "styled-image",
       ...state,
-    });
+    };
+  }, [downloadFormat, downloadName, state]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildImageExportPayload(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
+  const handleDownload = () => {
+    const { content, filename } = buildImageExportPayload(exportPayload);
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -115,6 +133,7 @@ export default function ImagePlaygroundPage() {
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       previewNode={<LivePreview state={state} />}
+      code={exportCode.content}
     />
   );
 

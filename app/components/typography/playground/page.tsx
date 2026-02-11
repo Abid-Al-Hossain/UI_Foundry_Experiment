@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -123,6 +123,14 @@ export default function TypographyPlayground() {
     </div>
   );
 
+  // Export Logic
+  const exportPayload = useMemo(() => state, [state]);
+  const deferredExportPayload = useDeferredValue(exportPayload);
+  const exportCode = useMemo(
+    () => buildTypographyExport(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
   // --- Preview ---
   const preview = (
     <PreviewDownloadPanel
@@ -135,7 +143,7 @@ export default function TypographyPlayground() {
       setDownloadFormat={(v) => handleUpdate("downloadFormat", v as any)}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
       handleDownload={() => {
-        const { content, filename } = buildTypographyExport(state);
+        const { content, filename } = buildTypographyExport(exportPayload);
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -151,6 +159,7 @@ export default function TypographyPlayground() {
           selectedBody={selectedBody}
         />
       }
+      code={exportCode.content}
     />
   );
 

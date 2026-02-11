@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
 import PreviewDownloadPanel, {
@@ -567,7 +573,63 @@ export default function AvatarPage() {
   }, [previewPayload]);
 
   // --- Export Handler ---
-  const getExportParams = () => ({
+  const exportPayload = useMemo(() => {
+    return {
+      src,
+      srcSet,
+      alt,
+      initials,
+      objectFit,
+      objectPosition,
+      size,
+      aspectRatio,
+      radiusMode,
+      radiusValue,
+      borderWidth,
+      borderColor,
+      borderStyle,
+      borderOffset,
+      shadow: "",
+      opacity,
+      initialsBg,
+      initialsColor,
+      fontFamily,
+      filterGrayscale,
+      filterBlur,
+      filterBrightness,
+      filterContrast,
+      filterSepia,
+      status,
+      statusPosition,
+      statusAnimation,
+      badgeCount,
+      hoverZoom,
+      hoverGrayscale,
+      groupSpacing,
+      groupLimit,
+      groupDirection,
+      showGroup,
+      imageRotation,
+      imageScale,
+      effect3D,
+      use3DBadge,
+      badgeAnimate,
+      use3DStatus,
+      accessoryType,
+      accessoryColor,
+      orbitSpeed,
+      entranceAnimation,
+      hoverEffect,
+      textureEffect,
+      borderEffect,
+      downloadFormat: "html" as const,
+      downloadName: downloadName || "",
+    };
+  }, [
+    state, // state includes most things
+    // We need to list specific dependencies if getExportParams reads from state directly
+    // getExportParams reads individual vars.
+    // Let's list what getExportParams uses + extra spreads
     src,
     srcSet,
     alt,
@@ -582,7 +644,6 @@ export default function AvatarPage() {
     borderColor,
     borderStyle,
     borderOffset,
-    shadow: "",
     opacity,
     initialsBg,
     initialsColor,
@@ -615,26 +676,19 @@ export default function AvatarPage() {
     hoverEffect,
     textureEffect,
     borderEffect,
-    downloadFormat: "html" as const,
-    downloadName: "",
-  });
+    downloadFormat,
+    downloadName,
+  ]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildAvatarExport(deferredExportPayload),
+    [deferredExportPayload],
+  );
 
   const handleDownload = () => {
-    const { filename, content } = buildAvatarExport({
-      ...getExportParams(),
-      use3DBadge,
-      badgeAnimate,
-      use3DStatus,
-      accessoryType,
-      accessoryColor,
-      orbitSpeed,
-      entranceAnimation,
-      hoverEffect,
-      textureEffect,
-      borderEffect,
-      downloadFormat,
-      downloadName,
-    });
+    const { filename, content } = buildAvatarExport(exportPayload);
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -894,6 +948,7 @@ export default function AvatarPage() {
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       previewNode={livePreviewNode}
+      code={exportCode.content}
     />
   );
 

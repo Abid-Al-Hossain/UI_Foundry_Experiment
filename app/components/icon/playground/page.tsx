@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -44,12 +44,24 @@ export default function IconPlaygroundPage() {
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("react");
   const [downloadName, setDownloadName] = useState("icon-component");
 
-  const handleDownload = () => {
-    const { content, filename } = buildIconExportPayload({
+  // Refactored Export for Code View
+  const exportPayload = useMemo(() => {
+    return {
       downloadFormat,
-      downloadName,
+      downloadName: downloadName || "icon-component",
       ...state,
-    });
+    };
+  }, [downloadFormat, downloadName, state]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildIconExportPayload(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
+  const handleDownload = () => {
+    const { content, filename } = buildIconExportPayload(exportPayload);
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -125,6 +137,7 @@ export default function IconPlaygroundPage() {
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       previewNode={<LivePreview state={state} />}
+      code={exportCode.content}
     />
   );
 

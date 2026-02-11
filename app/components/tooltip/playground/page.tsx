@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -59,8 +59,27 @@ export default function TooltipPlayground() {
   ];
 
   // Handle download
+  // Handle download
+  const exportPayload = useMemo(
+    () => ({ ...state, downloadFormat: state.downloadFormat }),
+    [state],
+  );
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () =>
+      buildExportPayload(
+        deferredExportPayload,
+        deferredExportPayload.downloadFormat,
+      ),
+    [deferredExportPayload],
+  );
+
   const handleDownload = () => {
-    const { code, filename } = buildExportPayload(state, state.downloadFormat);
+    const { code, filename } = buildExportPayload(
+      exportPayload,
+      exportPayload.downloadFormat,
+    );
     const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -144,6 +163,7 @@ export default function TooltipPlayground() {
       }
       handleDownload={handleDownload}
       previewNode={<TooltipPreview state={state} />}
+      code={exportCode.code}
     />
   );
 

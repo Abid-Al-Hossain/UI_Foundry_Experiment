@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
@@ -102,6 +102,33 @@ export default function ProgressBarPlayground() {
   // --- Preview & Download ---
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // Refactored Export for Code View
+  const exportPayload = useMemo(() => {
+    return {
+      ...state,
+      downloadFormat: state.downloadFormat || "react",
+      downloadName: state.downloadName || "progress",
+    };
+  }, [state]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildProgressExport(deferredExportPayload),
+    [deferredExportPayload],
+  );
+
+  const handleDownload = () => {
+    const { content, filename } = buildProgressExport(exportPayload);
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const preview = (
     <PreviewDownloadPanel
       mounted={mounted}
@@ -112,19 +139,7 @@ export default function ProgressBarPlayground() {
       downloadName={state.downloadName || "progress"}
       setDownloadFormat={(v) => handleUpdate("downloadFormat", v)}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
-      handleDownload={() => {
-        const { content, filename } = buildProgressExport({
-          ...state,
-          downloadFormat: state.downloadFormat || "react",
-          downloadName: state.downloadName || "progress",
-        });
-        const blob = new Blob([content], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-      }}
+      handleDownload={handleDownload}
       previewNode={
         <div className="flex items-center justify-center p-12 bg-slate-900 rounded-xl min-h-[400px] overflow-hidden relative w-full h-full">
           <div
@@ -138,6 +153,7 @@ export default function ProgressBarPlayground() {
           <ProgressPreview state={state} />
         </div>
       }
+      code={exportCode.content}
     />
   );
 

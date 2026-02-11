@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -336,14 +342,24 @@ export default function BadgePage() {
     }
   }, [previewPayload]);
 
-  // ... (inside component)
+  // Refactored Export for Code View
+  const exportPayload = useMemo(() => {
+    return {
+      downloadFormat,
+      downloadName: downloadName || "badge-component",
+      ...state,
+    };
+  }, [downloadFormat, downloadName, state]);
+
+  const deferredExportPayload = useDeferredValue(exportPayload);
+
+  const exportCode = useMemo(
+    () => buildBadgeExportPayload(deferredExportPayload),
+    [deferredExportPayload],
+  );
 
   const handleDownload = () => {
-    const { content, filename } = buildBadgeExportPayload({
-      downloadFormat,
-      downloadName,
-      ...state,
-    });
+    const { content, filename } = buildBadgeExportPayload(exportPayload);
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -512,6 +528,7 @@ export default function BadgePage() {
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       previewNode={<LivePreview state={state} />}
+      code={exportCode.content}
     />
   );
 
