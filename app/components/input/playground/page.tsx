@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useDeferredValue,
-} from "react";
+import React, { useState, useRef, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "../../../hooks/useHistoryState";
@@ -18,28 +12,21 @@ import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLay
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
-// Sections
-import DividerBasicsSection from "../_section/DividerBasicsSection";
-import DividerContentSection from "../_section/DividerContentSection";
-import DividerEffectsSection from "../_section/DividerEffectsSection";
-import DividerHyperSection from "../_section/DividerHyperSection";
-import DividerAccessibilitySection from "../_section/DividerAccessibilitySection";
-import { buildDividerExportPayload } from "../_utils/exportUtils";
+import BasicsSection from "../_section/BasicsSection";
+import StylingSection from "../_section/StylingSection";
+import TypographySection from "../_section/TypographySection";
+import StatesSection from "../_section/StatesSection";
+import EffectsSection from "../_section/EffectsSection";
+import LabelsSection from "../_section/LabelsSection";
+import AccessibilitySection from "../_section/AccessibilitySection";
+import { buildTextInputExportPayload } from "../_utils/exportUtils";
 
-import {
-  type DividerOrientation,
-  type DividerVariant,
-  type DividerContentPosition,
-  type DividerState,
-  INITIAL_DIVIDER_STATE,
-} from "../types";
+import { type TextInputState, INITIAL_STATE } from "../types";
 
-export default function DividerPage() {
+export default function TextInputPlaygroundPage() {
   const mounted = useHydrated();
-  // Layout & Resize State
   const [activeSection, setActiveSection] = useState("basics");
 
-  // History State
   const {
     state,
     set: updateState,
@@ -48,34 +35,29 @@ export default function DividerPage() {
     reset,
     canUndo,
     canRedo,
-  } = useHistoryState<DividerState>(INITIAL_DIVIDER_STATE);
+  } = useHistoryState<TextInputState>(INITIAL_STATE);
 
-  // Resize Logic
-
-  // Download Props
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
-  const [downloadName, setDownloadName] = useState("divider-component");
+  const [downloadName, setDownloadName] = useState("text-input");
 
-  // Refactored Export for Code View
-  const exportPayload = useMemo(() => {
-    return {
-      downloadFormat,
-      downloadName: downloadName || "divider-component",
+  const exportPayload = useMemo(
+    () => ({
       ...state,
-    };
-  }, [downloadFormat, downloadName, state]);
+      downloadFormat,
+      downloadName: downloadName || "text-input",
+    }),
+    [downloadFormat, downloadName, state],
+  );
 
   const deferredExportPayload = useDeferredValue(exportPayload);
-
   const exportCode = useMemo(
-    () => buildDividerExportPayload(deferredExportPayload),
+    () => buildTextInputExportPayload(deferredExportPayload),
     [deferredExportPayload],
   );
 
   const handleDownload = () => {
-    const { content, filename } = buildDividerExportPayload(exportPayload);
-
+    const { content, filename } = buildTextInputExportPayload(exportPayload);
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -87,29 +69,25 @@ export default function DividerPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Section Mapping
   const sections = [
-    { id: "basics", label: "Basics", component: DividerBasicsSection },
-    { id: "content", label: "Label", component: DividerContentSection },
-    { id: "effects", label: "Effects", component: DividerEffectsSection },
-    { id: "hyper", label: "Hyper FX", component: DividerHyperSection },
-    { id: "a11y", label: "A11y", component: DividerAccessibilitySection },
+    { id: "basics", label: "Basics", component: BasicsSection },
+    { id: "styling", label: "Styling", component: StylingSection },
+    { id: "typography", label: "Typography", component: TypographySection },
+    { id: "states", label: "States", component: StatesSection },
+    { id: "effects", label: "Effects", component: EffectsSection },
+    { id: "labels", label: "Labels", component: LabelsSection },
+    { id: "a11y", label: "A11y", component: AccessibilitySection },
   ];
 
-  // Generic Setter Helper
-  const setKey = (key: keyof DividerState) => (val: any) => {
+  const setKey = (key: keyof TextInputState) => (val: any) => {
     updateState((prev) => ({
       ...prev,
       [key]: typeof val === "function" ? val(prev[key]) : val,
     }));
   };
-  const setFloat = (key: keyof DividerState) => (val: any) => {
-    const num = parseFloat(val);
-    updateState((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
-  };
 
   const activeComp = sections.find((s) => s.id === activeSection);
-  const ActiveComponent = activeComp?.component || DividerBasicsSection;
+  const ActiveComponent = activeComp?.component || BasicsSection;
 
   const headerActions = (
     <UndoRedoButtons
@@ -128,13 +106,7 @@ export default function DividerPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-
-      <ActiveComponent
-        state={state}
-        setKey={setKey}
-        setFloat={setFloat}
-        updateState={updateState}
-      />
+      <ActiveComponent state={state} setKey={setKey} />
     </>
   );
 
@@ -157,7 +129,7 @@ export default function DividerPage() {
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
-        title="Divider Studio"
+        title="Text Input Studio"
         headerActions={headerActions}
         controls={controls}
         preview={preview}
