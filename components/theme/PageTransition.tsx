@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useTransition } from "./TransitionProvider";
 import { ANIMATIONS } from "./animations";
+// Force rebuild
 import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useContext, useRef } from "react";
+import ThreeDWrapper from "./ThreeDWrapper";
 
 // Helper to freeze the route for exit animations
 function FrozenRoute({ children }: { children: React.ReactNode }) {
@@ -44,7 +46,7 @@ export default function PageTransition({
   return (
     <div
       className="grid h-full w-full overflow-hidden"
-      style={{ perspective: "1200px" }}
+      style={{ perspective: "var(--ui-perspective, 1200px)" }}
     >
       <AnimatePresence mode="popLayout" initial={false} custom={direction}>
         <motion.div
@@ -67,7 +69,9 @@ export default function PageTransition({
             gridArea: "1 / 1", // Force overlap in grid
           }}
         >
-          <FrozenRoute>{children}</FrozenRoute>
+          <ThreeDWrapper>
+            <FrozenRoute>{children}</FrozenRoute>
+          </ThreeDWrapper>
         </motion.div>
       </AnimatePresence>
     </div>
