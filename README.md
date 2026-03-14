@@ -2,98 +2,113 @@
 
 **UI Foundry** is a premium, laboratory-grade UI component platform designed for developers and designers who need high-performance, fully customizable, and production-ready components. 
 
-Instead of simple static components, UI Foundry provides a **Studio Experience** for every element—allowing you to visually tweak every property (shadows, animations, typography, border-radius) in real-time and export the resulting code in multiple formats.
+Unlike traditional component libraries, UI Foundry provides a **Studio-First workflow**, allowing you to visually refine parameters and export pixel-perfect code in real-time.
 
 ---
 
-## 🚀 The Concept: "Component Studio"
-Most UI kits give you a `.tsx` file and expect you to change the code. UI Foundry flips this:
-1. **Explore**: Browse a rich gallery of atomic and complex components.
-2. **Experiment**: Open the **Studio** to access professional-grade sliders, color pickers, and state toggles.
-3. **Export**: Click one button to get the **HTML**, **React (JSX/TSX)**, or **Design Tokens** for exactly what you just built.
+## 🚀 Core Philosophy: "The Component Laboratory"
+The web is full of static UI kits. UI Foundry is built on a different principle: **Total Parameterization**. Every component is treated as a set of variables (state) that can be manipulated through a professional-grade interface.
+
+1. **Precision Control**: Adjust shadows, 3D tilts, magnetic strengths, and typography scales with granular precision.
+2. **Multi-Format Export**: One-click code generation for:
+   - **React (TSX)**: Fully typed, modern React 19 components.
+   - **HTML/CSS**: Vanilla web standard for maximum compatibility.
+   - **Tailwind CSS**: Utility-first code using arbitrary value syntax.
+   - **Design Tokens**: JSON-based tokens for Figma and cross-platform design systems.
+   - **Style Sheets**: Modular SCSS and CSS variable files.
 
 ---
 
-## 🛠️ Tech Stack
-This project is built using the bleeding edge of the web ecosystem:
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **Runtime**: [React 19](https://react.dev/)
-- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/) (The next generation of CSS utility frameworks)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/) & CSS Transitions
-- **3D Engine**: [React Three Fiber](https://r3f.docs.pmnd.rs/getting-started/introduction) & [Three.js](https://threejs.org/) (used in premium Avatar and Button effects)
-- **Icons**: [Lucide React](https://lucide.dev/) & [Heroicons](https://heroicons.com/)
+## 🛠️ The Tech Stack
+Built for speed, scalability, and developer experience:
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Turbopack)
+- **Runtime**: [React 19](https://react.dev/) (Hooks-first, optimized state updates)
+- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/) & [OKLCH Color Space](https://oklch.com/)
+- **Motion**: [Framer Motion](https://www.framer.com/motion/) for complex layout transitions.
+- **3D Engine**: [React Three Fiber](https://r3f.docs.pmnd.rs/) for immersive elements.
+- **State Engine**: Native React State + Undo/Redo historical snapshots.
 
 ---
 
-## 🗂️ Component Registry
-The project features a growing library of **15+ completed premium components**:
+## 🏗️ Project Architecture
+The project follows a **Registry-Driven Architecture**, making it infinitely extensible:
 
-### 🔹 Basic / Atomic
-- **Button Pro**: 3D effects, magnetic interactions, and multi-state animations.
-- **Avatar Pro**: Features a "3D Presence" engine, status indicators, and grouping logic.
-- **Badge / Tag**: Versatile labels for status, categories, or counts.
-- **Divider**: Visual separators with text integration and sleek styling.
-- **Icon Studio**: Search and customize SVG icons with real-time scaling and coloring.
-- **Image Wrapper**: Premium responsive image wrappers with fallback and filter effects.
-- **Progress Bar**: Liquid, glitch, and stripe-animated progress indicators.
-- **Spinner**: 12+ unique loading animations for high-end async states.
-- **Typography**: Complete control over font families (Google/System), scales, and hierarchy.
+### 📁 Directory Anatomy
+```bash
+/app
+  /components
+    /[component-name]
+      /playground          # The Studio interface
+        /_section          # Modular UI panels (Basics, Effects, etc.)
+        /_utils            # Export and logic utilities
+        page.tsx           # Entry point for the component studio
+      types.ts             # Strict TypeScript interface for the component state
+/components
+  /registry
+    componentRegistry.ts   # Central manifest for the whole system
+  /shared                 # Low-level layout and input building blocks
+```
 
-### 🔸 Input & Forms
-- **Toggle / Switch**: (New!) Precision controls for track, thumb, and transitional icons.
-- **Checkbox**: Custom checkmark paths, indeterminate states, and focus ring styling.
-- **Radio Button**: Radio group builder with custom indicators and horizontal/vertical layouts.
-- **Text Input**: Premium single-line fields with focus effects and label positioning.
-- **Textarea**: Auto-resizing multi-line fields with state-based styling.
-- **Tooltip**: Advanced positioning, arrow customization, and timing controls.
-
----
-
-## 🏗️ Architecture & Registry
-UI Foundry is architected for scalability. Adding a new component to the entire ecosystem only requires:
-1. Creating a folder in `app/components/[component-name]`.
-2. Defining the component's **State Interface** in `types.ts`.
-3. Adding a entry to the `SECTION_LIST` in `components/registry/componentRegistry.ts`.
-
-All components automatically benefit from the **Unified AppShell**, **Theme Provider**, and **History Management (Undo/Redo)** system.
+### 💉 Adding New Components
+To add a new component to the Foundry:
+1. Create the component folder structure in `/app/components`.
+2. Define the `State` interface in `types.ts`.
+3. Register the component in `componentRegistry.ts` under the appropriate category.
+4. The system automatically handles routing, sidebar navigation, and layout.
 
 ---
 
-## 🚦 Getting Started
+## 🗂️ Premium Component Gallery
+The Foundry currently houses **15+ high-fidelity components**:
 
-### 1. Prerequisites
-- Node.js 18.x or later
+### ⚛️ Atomic Components
+- **Button Pro**: Magnetic hover, 3D embossed states, and loading transitions.
+- **Avatar Pro**: Status presence, 3D orbit effects, and automatic grouping.
+- **Icon Studio**: Real-time SVG manipulation and scaling engine.
+- **Badge**: Dynamic status labels with 3D depth and shimmer effects.
+
+### 🎛️ Input Controls
+- **Toggle / Switch**: Precision thumb tracking and custom track animations.
+- **Checkbox/Radio**: Path-animated checkmarks and custom grouped layouts.
+- **Typography Engine**: Integrated Google Font loader and scale generator.
+
+### 🌊 Layout & Feedback
+- **Progress Bar**: Glitch effects, liquid fills, and 3D cuboid modes.
+- **Spinner**: 12+ optimized SVG-based loading indicators.
+- **Tooltip**: Physics-based positioning and arrow customization.
+
+---
+
+## 📦 Standalone Extraction Engine
+One of the most powerful features of UI Foundry is its **Extraction System**. While components are developed in this "Mother Project," they are designed to be exported as **Standalone Next.js Projects**.
+
+Each standalone export includes:
+- A dedicated, minimal Tailwind setup.
+- Isolated shared infrastructure (hooks/themes).
+- Full "Studio" functionality in a single-purpose project.
+
+---
+
+## 🚦 Installation & Setup
+
+### 1. Requirements
+- Node.js 20.x or later (Optimized for React 19)
 - npm or pnpm
 
-### 2. Installation
+### 2. Quick Start
 ```bash
 # Clone the repository
 git clone https://github.com/Abid-Al-Hossain/UI_Foundry_Experiment.git
 
-# Navigate to the project
-cd UI_Foundry_Experiment
-
 # Install dependencies
 npm install
-```
 
-### 3. Development
-```bash
+# Start the Studio
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to see the main dashboard.
 
 ---
 
-## 📦 Standalone Extraction
-This "Mother Project" is used to develop the core components. Each component can also be extracted into its own standalone project for individual distribution.
-
-To extract a component:
-1. Use the provided extraction script (available in the internal tools directory).
-2. The script clones the `template-base` and injects the specific component's `_section`, `_utils`, and `types`.
-3. The result is a minimal, fully isolated Next.js project.
-
----
-
-## 📜 License
-This project is for experimental and commercial distribution purposes. All rights reserved by [Abid Al Hossain](https://github.com/Abid-Al-Hossain).
+## 📜 License & Credits
+Developed by **Abid Al Hossain**. This project is part of a premium UI research experiment.  
+[GitHub Profile](https://github.com/Abid-Al-Hossain) | [Portfolio](https://abidalhossain.com)
