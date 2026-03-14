@@ -3,20 +3,19 @@
 import React from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
+  PerspectiveCamera,
   Float,
   MeshDistortMaterial,
-  Sphere,
-  Box,
-  Tetrahedron,
   MeshTransmissionMaterial,
   MeshWobbleMaterial,
-  Torus,
-  Icosahedron,
   Sparkles,
+  Text,
+  Center,
 } from "@react-three/drei";
+import * as THREE from "three";
 import CanvasConfetti from "canvas-confetti";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 
 import {
   type ThreeDIconMode,
@@ -40,6 +39,8 @@ export default function LivePreview(props: {
   iconMetalness: string;
   iconTransmission: string;
   iconEmissive: string;
+  icon3DColorInput: string;
+  icon3DText: string;
 
   iconDistortion: string;
   iconThickness: string;
@@ -71,6 +72,8 @@ export default function LivePreview(props: {
     iconTransmission,
 
     iconEmissive,
+    icon3DColorInput,
+    icon3DText,
     iconDistortion,
     iconThickness,
     iconChromaticAberration,
@@ -213,24 +216,20 @@ export default function LivePreview(props: {
               pointerEvents: "none",
             }}
           >
-            <Canvas gl={{ alpha: true }}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[2, 5, 2]} />
-              {use3DIcon !== "none" && (
-                <IconMesh
-                  geometry={icon3DGeometry}
-                  material={icon3DMaterial}
-                  animation={icon3DAnimation}
-                  color={iconColor}
-                  roughness={Number(iconRoughness)}
-                  metalness={Number(iconMetalness)}
-                  transmission={Number(iconTransmission)}
-                  emissive={Number(iconEmissive)}
-                  distortion={Number(iconDistortion)}
-                  thickness={Number(iconThickness)}
-                  chromaticAberration={Number(iconChromaticAberration)}
-                />
-              )}
+            <Canvas
+              camera={{ position: [0, 0, 5], fov: 35 }}
+              gl={{ alpha: true, antialias: true }}
+              dpr={[1, 2]}
+            >
+              <ambientLight intensity={0.8} />
+              <pointLight position={[10, 10, 10]} intensity={1} />
+              <spotLight
+                position={[-10, 10, 10]}
+                angle={0.15}
+                penumbra={1}
+                intensity={1}
+              />
+              {/* 3D Icon Engine Disabled */}
               {hoverEffect === "sparkles" && (
                 <Sparkles
                   count={50}
@@ -263,6 +262,7 @@ function IconMesh({
   distortion,
   thickness,
   chromaticAberration,
+  text,
 }: {
   geometry: string;
   material: string;
@@ -275,9 +275,41 @@ function IconMesh({
   distortion: number;
   thickness: number;
   chromaticAberration: number;
+  text: string;
 }) {
   // Determine Geometry scale factor (visual balance)
-  const scale = 1.8;
+  const scale = 2.4;
+
+  const starShape = useMemo(() => {
+    const shape = new THREE.Shape();
+    const points = 5;
+    const outerRadius = 1;
+    const innerRadius = 0.5;
+    for (let i = 0; i < points * 2; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = (i * Math.PI) / points;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      if (i === 0) shape.moveTo(x, y);
+      else shape.lineTo(x, y);
+    }
+    shape.closePath();
+    return shape;
+  }, []);
+
+  const heartShape = useMemo(() => {
+    const shape = new THREE.Shape();
+    const x = 0,
+      y = 0;
+    shape.moveTo(x + 5, y + 5);
+    shape.bezierCurveTo(x + 5, y + 5, x + 4, y, x, y);
+    shape.bezierCurveTo(x - 6, y, x - 6, y + 7, x - 6, y + 7);
+    shape.bezierCurveTo(x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19);
+    shape.bezierCurveTo(x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7);
+    shape.bezierCurveTo(x + 16, y + 7, x + 16, y, x + 10, y);
+    shape.bezierCurveTo(x + 7, y, x + 5, y + 5, x + 5, y + 5);
+    return shape;
+  }, []);
 
   // Pulse Animation for Neon
   const [pulse, setPulse] = useState(1);
@@ -390,11 +422,53 @@ function IconMesh({
         {geometry === "icosa" && (
           <icosahedronGeometry args={[scale * 0.8, 0]} />
         )}
-        {geometry === "torus" && (
-          <torusGeometry args={[scale * 0.5, scale * 0.2, 16, 32]} />
+        {geometry === "star" && (
+          <extrudeGeometry
+            args={[
+              starShape,
+              { depth: 0.4, bevelEnabled: true, bevelThickness: 0.1 },
+            ]}
+          />
+        )}
+        {geometry === "heart" && (
+          <mesh
+            scale={0.1}
+            rotation={[Math.PI, 0, 0]}
+            position={[0.5, 1, 0]}
+          >
+            <extrudeGeometry
+              args={[
+                heartShape,
+                { depth: 2, bevelEnabled: true, bevelThickness: 1 },
+              ]}
+            />
+            <MaterialComponent />
+          </mesh>
+        )}
+        {geometry === "diamond" && (
+          <octahedronGeometry args={[scale * 0.8]} />
+        )}
+        {geometry === "ring" && (
+          <torusGeometry args={[scale * 0.6, scale * 0.2, 16, 32]} />
+        )}
+        {geometry === "knot" && (
+          <torusKnotGeometry args={[scale * 0.5, scale * 0.2, 128, 32]} />
+        )}
+        {geometry === "text" && (
+          <Center>
+            <Text
+              fontSize={scale * 0.8}
+              color={color}
+              anchorX="center"
+              anchorY="middle"
+              maxWidth={scale * 2}
+            >
+              {text || "⭐"}
+            </Text>
+          </Center>
         )}
 
-        <MaterialComponent />
+        {geometry !== "heart" && <MaterialComponent />}
       </mesh>
     </Float>
   );

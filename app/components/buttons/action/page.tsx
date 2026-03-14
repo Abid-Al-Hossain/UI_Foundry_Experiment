@@ -279,6 +279,7 @@ export default function ActionButtonPage() {
     icon3DAnimation,
     icon3DColorMode,
     icon3DColorInput,
+    icon3DText,
     iconRoughness,
 
     iconMetalness,
@@ -980,6 +981,11 @@ export default function ActionButtonPage() {
     updateState((s) => ({
       ...s,
       icon3DColorInput: v instanceof Function ? v(s.icon3DColorInput) : v,
+    }));
+  const setIcon3DText = (v: any) =>
+    updateState((s) => ({
+      ...s,
+      icon3DText: v instanceof Function ? v(s.icon3DText) : v,
     }));
   const setIconDistortion = (v: any) =>
     updateState((s) => ({
@@ -2939,6 +2945,8 @@ export default function ActionButtonPage() {
     setIcon3DColorMode,
     icon3DColorInput,
     setIcon3DColorInput,
+    icon3DText,
+    setIcon3DText,
     iconDistortion,
     setIconDistortion,
     iconThickness,
@@ -3372,6 +3380,8 @@ export default function ActionButtonPage() {
         buttonStyle={style}
         label={label}
         iconColor={icon3DColorMode === "text" ? cssText : icon3DColorInput}
+        icon3DColorInput={icon3DColorInput}
+        icon3DText={icon3DText}
         activeEnabled={activeEnabled}
         forceActive={forceActive}
         activeScale={activeScaleText}

@@ -228,6 +228,7 @@ export type ActionButtonState = {
   iconEmissive: string;
   icon3DColorMode: "text" | "custom";
   icon3DColorInput: string;
+  icon3DText: string;
   iconDistortion: string;
   iconThickness: string;
   iconChromaticAberration: string;
@@ -553,15 +554,16 @@ export const INITIAL_STATE: ActionButtonState = {
   downloadName: "action-button",
   // 3D & Effects
   use3DIcon: "none",
-  icon3DGeometry: "cube",
-  icon3DMaterial: "glass",
+  icon3DGeometry: "star",
+  icon3DMaterial: "metal",
   icon3DAnimation: "spin",
   iconRoughness: "0.2",
-  iconMetalness: "0.8",
+  iconMetalness: "0.6",
   iconTransmission: "0.9",
-  iconEmissive: "0.5",
+  iconEmissive: "0",
   icon3DColorMode: "text",
-  icon3DColorInput: "#FFD700",
+  icon3DColorInput: "#ffffff",
+  icon3DText: "⭐",
   iconDistortion: "0.5",
   iconThickness: "1",
   iconChromaticAberration: "0.1",
