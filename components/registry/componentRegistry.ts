@@ -86,7 +86,7 @@ export const SECTION_LIST: ComponentSection[] = [
       },
       {
         name: "Radio Button",
-        slug: "radio-group",
+        slug: "radio",
         description: "Select exactly one option.",
       },
       {
@@ -121,7 +121,7 @@ export const SECTION_LIST: ComponentSection[] = [
       },
       {
         name: "Toggle / Switch",
-        slug: "switch",
+        slug: "toggle",
         description: "Binary on/off selection.",
       },
     ],
