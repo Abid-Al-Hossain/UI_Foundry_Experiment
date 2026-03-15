@@ -383,17 +383,19 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
       btn.style.setProperty('--btn-text', d.cssText);
       btn.style.setProperty('--btn-border', d.cssBorder);
       
-      btn.style.setProperty('--btn-hover-bg', d.cssHoverBg);
-      btn.style.setProperty('--btn-hover-text', d.cssHoverText);
-      btn.style.setProperty('--btn-hover-border', d.cssHoverBorder);
-      btn.style.setProperty('--btn-hover-filter', d.cssHoverFilter);
+      const hoverVisualsEnabled = d.hoverEnabled && !d.disabled && !d.loading;
+      const activeVisualsEnabled = d.activeEnabled && !d.disabled && !d.loading;
+      btn.style.setProperty('--btn-hover-bg', hoverVisualsEnabled ? d.cssHoverBg : d.cssBg);
+      btn.style.setProperty('--btn-hover-text', hoverVisualsEnabled ? d.cssHoverText : d.cssText);
+      btn.style.setProperty('--btn-hover-border', hoverVisualsEnabled ? d.cssHoverBorder : d.cssBorder);
+      btn.style.setProperty('--btn-hover-filter', hoverVisualsEnabled ? d.cssHoverFilter : 'none');
 
-      btn.style.setProperty('--btn-active-bg', d.cssActiveBg);
-      btn.style.setProperty('--btn-active-text', d.cssActiveText);
-      btn.style.setProperty('--btn-active-border', d.cssActiveBorder);
-      btn.style.setProperty('--btn-active-filter', d.cssActiveFilter);
-      btn.style.setProperty('--btn-active-ty', d.activeTy + "px");
-      btn.style.setProperty('--btn-active-scale', d.activeScale);
+      btn.style.setProperty('--btn-active-bg', activeVisualsEnabled ? d.cssActiveBg : d.cssBg);
+      btn.style.setProperty('--btn-active-text', activeVisualsEnabled ? d.cssActiveText : d.cssText);
+      btn.style.setProperty('--btn-active-border', activeVisualsEnabled ? d.cssActiveBorder : d.cssBorder);
+      btn.style.setProperty('--btn-active-filter', activeVisualsEnabled ? d.cssActiveFilter : 'none');
+      btn.style.setProperty('--btn-active-ty', activeVisualsEnabled ? (d.activeTy + "px") : "0px");
+      btn.style.setProperty('--btn-active-scale', activeVisualsEnabled ? d.activeScale : "1");
       
       btn.style.setProperty('--btn-disabled-bg', d.cssDisabledBg);
       btn.style.setProperty('--btn-disabled-text', d.cssDisabledText);
@@ -410,11 +412,11 @@ export const PREVIEW_SRC_DOC = `<!doctype html>
 
       // Box Shadow
       btn.style.setProperty('--btn-shadow', d.boxShadow || 'none');
-      btn.style.setProperty('--btn-hover-shadow', d.boxShadowHover || d.boxShadow || 'none');
-      btn.style.setProperty('--btn-active-shadow', d.boxShadowActive || d.boxShadow || 'none');
-      btn.style.setProperty('--btn-hover-tilt-x', (d.hoverTiltX || 0) + "deg");
-      btn.style.setProperty('--btn-hover-tilt-y', (d.hoverTiltY || 0) + "deg");
-      btn.style.setProperty('--btn-hover-perspective', (d.hoverPerspective || 800) + "px");
+      btn.style.setProperty('--btn-hover-shadow', hoverVisualsEnabled ? (d.boxShadowHover || d.boxShadow || 'none') : (d.boxShadow || 'none'));
+      btn.style.setProperty('--btn-active-shadow', activeVisualsEnabled ? (d.boxShadowActive || d.boxShadow || 'none') : (d.boxShadow || 'none'));
+      btn.style.setProperty('--btn-hover-tilt-x', hoverVisualsEnabled ? ((d.hoverTiltX || 0) + "deg") : "0deg");
+      btn.style.setProperty('--btn-hover-tilt-y', hoverVisualsEnabled ? ((d.hoverTiltY || 0) + "deg") : "0deg");
+      btn.style.setProperty('--btn-hover-perspective', hoverVisualsEnabled ? ((d.hoverPerspective || 800) + "px") : "800px");
       btn.style.setProperty('--btn-top-gradient', d.topGradient || 'none');
       btn.style.setProperty('--btn-backdrop-blur', d.backdropBlurEnabled && d.backdropBlurText ? (d.backdropBlurText + "px") : "0px");
       btn.style.setProperty('--btn-parallax-opacity', 0);

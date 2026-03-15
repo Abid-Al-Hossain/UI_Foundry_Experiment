@@ -1,6 +1,7 @@
 "use client";
 
 import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 import { type CheckboxState } from "../types";
 
 export type CheckboxExportInput = CheckboxState & {
@@ -23,6 +24,11 @@ export function buildCheckboxExportPayload(params: CheckboxExportInput) {
               ? "scss"
               : "html";
   const filename = `${downloadName}.${ext}`;
+  const labelFontFamily =
+    params.fontBucket === "google"
+      ? params.googleFontFamily || "inherit"
+      : SYSTEM_FONTS[params.systemFontIdx]?.css || "inherit";
+  const labelFontSize = `${params.labelFontSize}${params.fontSizeUnit}`;
 
   const attrs = [
     `type="checkbox"`,
@@ -63,8 +69,8 @@ export function buildCheckboxExportPayload(params: CheckboxExportInput) {
   align-items: center;
   gap: ${params.labelGap}px;
   cursor: pointer;
-  font-family: ${params.labelFontFamily};
-  font-size: ${params.labelFontSize}px;
+  font-family: ${labelFontFamily};
+  font-size: ${labelFontSize};
   font-weight: ${params.labelFontWeight};
   color: ${params.labelColor};
 }
@@ -95,7 +101,7 @@ export function buildCheckboxExportPayload(params: CheckboxExportInput) {
 export default function CustomCheckbox() {
   const [checked, setChecked] = useState(${params.checked});
   return (
-    <label style={{ display: 'inline-flex', alignItems: 'center', gap: ${params.labelGap}, cursor: 'pointer', fontFamily: '${params.labelFontFamily}', fontSize: ${params.labelFontSize}, color: '${params.labelColor}' }}>
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: ${params.labelGap}, cursor: 'pointer', fontFamily: '${labelFontFamily}', fontSize: '${labelFontSize}', color: '${params.labelColor}' }}>
       <input
         type="checkbox"
         checked={checked}

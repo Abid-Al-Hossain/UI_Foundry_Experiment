@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
   useMemo,
-  useDeferredValue,
 } from "react";
 import ReactDOMServer from "react-dom/server";
 import dynamic from "next/dynamic";
@@ -2338,7 +2337,7 @@ export default function ActionButtonPage() {
     () => ({
       downloadFormat,
       downloadName,
-      confetti: clickEffect === "confetti",
+      confetti: clickEffect === "confetti" || clickEffect === "explosion",
       ripple: clickEffect === "ripple" || clickEffect === "shockwave",
       touchWidth,
       touchHeight,
@@ -2444,11 +2443,13 @@ export default function ActionButtonPage() {
       use3DIcon,
       icon3DAnimation,
       clickEffect,
+      clickParticleCount,
     }),
     [
       downloadFormat,
       downloadName,
       clickEffect,
+      clickParticleCount,
       touchWidth,
       touchHeight,
       fontSizeValue,
@@ -2556,24 +2557,13 @@ export default function ActionButtonPage() {
     ],
   );
 
-  /* 
-     Optimization: Defer the payload first so the expensive buildExportPayload 
-     function only runs on the deferred value, keeping the UI responsive during drags.
-  */
-  const deferredExportPayload = useDeferredValue(exportPayload);
-
   const exportCode = useMemo(
-    () => buildExportPayload(deferredExportPayload),
-    [deferredExportPayload],
+    () => buildExportPayload(exportPayload),
+    [exportPayload],
   );
 
-  const deferredExportCode = useDeferredValue(exportCode);
-
   const handleDownload = () => {
-    // We can use the layout effect version or just fresh payload for download
-    // For download, we want the LATEST, not deferred.
-    // So we rebuild it from current exportPayload to be safe/instant
-    const { filename, content } = buildExportPayload(exportPayload);
+    const { filename, content } = exportCode;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -3311,15 +3301,16 @@ export default function ActionButtonPage() {
     sectionItems.find((item) => item.id === activeSection) ?? sectionItems[0];
 
   // --- Live Preview Node construction ---
-  const showLivePreview = use3DIcon !== "none" || clickEffect !== "none";
+  const showLivePreview = clickEffect !== "none";
   let livePreviewNode = null;
 
   if (showLivePreview) {
+    const previewIsDisabled = disabled || loading;
     const style: React.CSSProperties = {
-      backgroundColor: cssBg,
-      color: cssText,
-      borderColor: cssBorder,
-      borderWidth: `${borderWidthPx}px`,
+      backgroundColor: previewIsDisabled ? cssDisabledBg : cssBg,
+      color: previewIsDisabled ? cssDisabledText : cssText,
+      borderColor: previewIsDisabled ? cssDisabledBorder : cssBorder,
+      borderWidth: `${previewIsDisabled ? disabledBorderWidthPx : borderWidthPx}px`,
       borderStyle: borderStyle as any,
       borderRadius: `${rTL}px ${rTR}px ${rBR}px ${rBL}px`,
       paddingTop: `${padY}px`,
@@ -3336,15 +3327,15 @@ export default function ActionButtonPage() {
       fontStyle: fontStyle,
       textTransform: textTransform,
       textDecoration: underline ? "underline" : "none",
-      // Shadows
       boxShadow: boxShadowCss,
-      // Transforms removed to avoid conflict with framer-motion in LivePreview
-      cursor: disabled ? disabledCursor : "pointer",
-      opacity: disabled ? disabledOpacity : 1,
-      // Transitions
+      textShadow: previewIsDisabled
+        ? disabledTextShadowCss
+        : textShadowEnabled
+          ? `${Number(tsXText) || 0}px ${Number(tsYText) || 0}px ${Number(tsBlurText) || 0}px ${tsColor}`
+          : "none",
+      cursor: loading ? "wait" : previewIsDisabled ? disabledCursor : "pointer",
+      opacity: previewIsDisabled ? disabledOpacity : 1,
       transition: `all ${transitionColorMs}ms ${transitionColorEasing}, transform ${transitionTransformMs}ms ${transitionTransformEasing}`,
-
-      // Flex
       display: "flex",
       alignItems: align.startsWith("top")
         ? "flex-start"
@@ -3378,10 +3369,11 @@ export default function ActionButtonPage() {
         hoverSpringStiffness={hoverSpringStiffness}
         hoverSpringDamping={hoverSpringDamping}
         buttonStyle={style}
-        label={label}
+        label={loading ? loadingLabel || label : label}
         iconColor={icon3DColorMode === "text" ? cssText : icon3DColorInput}
         icon3DColorInput={icon3DColorInput}
         icon3DText={icon3DText}
+        isDisabled={previewIsDisabled}
         activeEnabled={activeEnabled}
         forceActive={forceActive}
         activeScale={activeScaleText}

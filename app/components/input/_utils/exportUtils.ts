@@ -1,6 +1,7 @@
 "use client";
 
 import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 import { type TextInputState } from "../types";
 
 export type TextInputExportInput = TextInputState & {
@@ -24,6 +25,12 @@ export function buildTextInputExportPayload(params: TextInputExportInput) {
               ? "scss"
               : "html";
   const filename = `${downloadName}.${ext}`;
+  const fontFamily =
+    params.fontBucket === "google"
+      ? params.googleFontFamily || "inherit"
+      : SYSTEM_FONTS[params.systemFontIdx]?.css || "inherit";
+  const fontSize = `${params.fontSize}${params.fontSizeUnit}`;
+  const letterSpacing = `${params.letterSpacing}${params.letterSpacingUnit}`;
 
   const radius = params.linkRadius
     ? `${params.borderRadius}px`
@@ -77,12 +84,12 @@ export function buildTextInputExportPayload(params: TextInputExportInput) {
   width: 100%;
   height: ${params.height}px;
   padding: ${params.paddingY}px ${params.paddingX}px;
-  font-family: ${params.fontFamily};
-  font-size: ${params.fontSize}px;
+  font-family: ${fontFamily};
+  font-size: ${fontSize};
   font-weight: ${params.fontWeight};
   font-style: ${params.fontStyle};
   color: ${params.textColor};
-  letter-spacing: ${params.letterSpacing}px;
+  letter-spacing: ${letterSpacing};
   text-align: ${params.textAlign};
   text-transform: ${params.textTransform};
   line-height: ${params.lineHeight};
@@ -167,8 +174,8 @@ ${params.labelPosition !== "hidden" ? `      <label style={{ display: 'block', m
             width: '100%',
             height: ${params.height},
             padding: '${params.paddingY}px ${params.paddingX}px',
-            fontFamily: '${params.fontFamily}',
-            fontSize: ${params.fontSize},
+            fontFamily: '${fontFamily}',
+            fontSize: '${fontSize}',
             fontWeight: ${params.fontWeight},
             color: '${params.textColor}',
             background: '${bg}',
@@ -203,7 +210,7 @@ ${helperHtml ? `  ${helperHtml}\n` : ""}${errorHtml ? `  ${errorHtml}\n` : ""}</
   --input-height: ${params.height}px;
   --input-px: ${params.paddingX}px;
   --input-py: ${params.paddingY}px;
-  --input-font-size: ${params.fontSize}px;
+  --input-font-size: ${fontSize};
   --input-font-weight: ${params.fontWeight};
   --input-color: ${params.textColor};
   --input-bg: ${params.backgroundColor};
@@ -266,8 +273,8 @@ ${helperHtml ? `  ${helperHtml}\n` : ""}${errorHtml ? `  ${errorHtml}\n` : ""}</
           },
           hover: { borderColor: { value: params.hoverBorderColor } },
           typography: {
-            fontFamily: { value: params.fontFamily },
-            fontSize: { value: `${params.fontSize}px` },
+            fontFamily: { value: fontFamily },
+            fontSize: { value: fontSize },
             fontWeight: { value: params.fontWeight },
           },
         },

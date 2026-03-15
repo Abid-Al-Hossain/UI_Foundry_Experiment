@@ -1,11 +1,28 @@
 "use client";
 import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 import { type ToggleState } from "../types";
 
 export type ToggleExportInput = ToggleState & {
   downloadFormat: DownloadFormat;
   downloadName: string;
 };
+
+function hexToRgb(hex: string) {
+  const raw = hex.replace("#", "");
+  const full =
+    raw.length === 3
+      ? raw
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : raw;
+  const int = Number.parseInt(full, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `${r}, ${g}, ${b}`;
+}
 
 export function buildToggleExportPayload(params: ToggleExportInput) {
   const { downloadFormat, downloadName } = params;
@@ -22,6 +39,14 @@ export function buildToggleExportPayload(params: ToggleExportInput) {
               ? "scss"
               : "html";
   const filename = `${downloadName}.${ext}`;
+  const labelFontFamily =
+    params.fontBucket === "google"
+      ? params.googleFontFamily || "inherit"
+      : SYSTEM_FONTS[params.systemFontIdx]?.css || "inherit";
+  const labelFontSize = `${params.labelFontSize}${params.fontSizeUnit}`;
+  const thumbShadow = params.shadowEnabled
+    ? `${params.shadowX}px ${params.shadowY}px ${params.shadowBlur}px ${params.shadowSpread}px rgba(${hexToRgb(params.shadowColor)}, ${params.shadowOpacity})`
+    : "none";
 
   const pad = (params.trackHeight - params.thumbSize) / 2;
   const onX = params.trackWidth - params.thumbSize - pad;
@@ -38,10 +63,10 @@ export function buildToggleExportPayload(params: ToggleExportInput) {
 </label>
 
 <style>
-.toggle-label { display: inline-flex; align-items: center; gap: ${params.labelGap}px; cursor: pointer; font-family: ${params.labelFontFamily}; font-size: ${params.labelFontSize}px; color: ${params.labelColor}; }
+.toggle-label { display: inline-flex; align-items: center; gap: ${params.labelGap}px; cursor: pointer; font-family: ${labelFontFamily}; font-size: ${labelFontSize}; color: ${params.labelColor}; }
 .toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
 .toggle-track { position: relative; width: ${params.trackWidth}px; height: ${params.trackHeight}px; border-radius: ${params.trackBorderRadius}px; background: ${params.trackOffBg}; transition: all ${params.transitionDuration}ms ${params.transitionEasing}; }
-.toggle-thumb { position: absolute; top: ${pad}px; left: ${pad}px; width: ${params.thumbSize}px; height: ${params.thumbSize}px; border-radius: ${params.thumbBorderRadius}%; background: ${params.thumbOffBg}; box-shadow: ${params.thumbShadow}; transition: all ${params.transitionDuration}ms ${params.transitionEasing}; }
+.toggle-thumb { position: absolute; top: ${pad}px; left: ${pad}px; width: ${params.thumbSize}px; height: ${params.thumbSize}px; border-radius: ${params.thumbBorderRadius}%; background: ${params.thumbOffBg}; box-shadow: ${thumbShadow}; transition: all ${params.transitionDuration}ms ${params.transitionEasing}; }
 .toggle-input:checked + .toggle-track { background: ${params.trackOnBg}; }
 .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(${onX}px); }
 .toggle-input:focus-visible + .toggle-track { box-shadow: 0 0 0 ${params.focusRingWidth}px ${params.focusRingColor}; }
@@ -56,7 +81,7 @@ export default function ToggleSwitch() {
   const onX = ${onX};
 
   return (
-    <label style={{ display: 'inline-flex', alignItems: 'center', gap: ${params.labelGap}, cursor: 'pointer', fontFamily: '${params.labelFontFamily}', fontSize: ${params.labelFontSize}, color: '${params.labelColor}' }}>
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: ${params.labelGap}, cursor: 'pointer', fontFamily: '${labelFontFamily}', fontSize: '${labelFontSize}', color: '${params.labelColor}' }}>
       <div
         onClick={() => setChecked(!checked)}
         style={{
@@ -72,7 +97,7 @@ export default function ToggleSwitch() {
           width: ${params.thumbSize}, height: ${params.thumbSize},
           borderRadius: '${params.thumbBorderRadius}%',
           background: checked ? '${params.thumbOnBg}' : '${params.thumbOffBg}',
-          boxShadow: '${params.thumbShadow}',
+          boxShadow: '${thumbShadow}',
           transition: 'all ${params.transitionDuration}ms ${params.transitionEasing}',
         }} />
       </div>

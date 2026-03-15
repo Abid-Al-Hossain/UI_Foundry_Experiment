@@ -73,7 +73,6 @@ export default function StylingSection({
         {/* Border */}
         <div className="pt-4 border-t border-slate-700/50 space-y-3">
           <BorderControl
-            label="Border"
             width={state.borderWidth}
             setWidth={(v) => setKey("borderWidth")(v)}
             style={state.borderStyle}

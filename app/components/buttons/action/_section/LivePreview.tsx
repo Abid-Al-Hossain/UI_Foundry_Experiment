@@ -57,6 +57,7 @@ export default function LivePreview(props: {
   buttonStyle: React.CSSProperties;
   label: string;
   iconColor: string;
+  isDisabled: boolean;
   activeEnabled: boolean;
   forceActive: boolean;
   activeScale: string;
@@ -85,6 +86,7 @@ export default function LivePreview(props: {
     buttonStyle,
     label,
     iconColor,
+    isDisabled,
     activeEnabled,
     forceActive,
     activeScale,
@@ -112,6 +114,7 @@ export default function LivePreview(props: {
   const spotlightY = useTransform(springY, [-0.5, 0.5], ["0%", "100%"]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDisabled) return;
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -126,11 +129,13 @@ export default function LivePreview(props: {
   };
 
   const handleMouseLeave = () => {
+    if (isDisabled) return;
     x.set(0);
     y.set(0);
   };
 
   const handleClick = (e: React.MouseEvent) => {
+    if (isDisabled) return;
     if (clickEffect === "confetti" || clickEffect === "explosion") {
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       const x = (rect.left + rect.width / 2) / window.innerWidth;
