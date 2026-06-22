@@ -1,19 +1,20 @@
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
+import SizeControl from "@/app/components/controls/input/SizeControl";
 import TypographyControl from "@/app/components/controls/typography/TypographyControl";
 import {
   SYSTEM_FONTS,
   GOOGLE_FONTS,
 } from "@/app/components/controls/typography/fontConstants";
-import { CheckboxState } from "../types";
+import { type CheckboxState, type CheckboxSetter } from "../types";
 
 export default function TypographySection({
   state,
   setKey,
 }: {
   state: CheckboxState;
-  setKey: (key: keyof CheckboxState) => (val: any) => void;
+  setKey: CheckboxSetter;
 }) {
   // Simple filtering for fonts
   const search = state.fontSearch.toLowerCase();
@@ -56,7 +57,7 @@ export default function TypographySection({
           setFontStyle={setKey("labelFontStyle")}
           textDecoration={state.labelUnderline ? "underline" : "none"}
           setTextDecoration={(v) => setKey("labelUnderline")(v === "underline")}
-          textTransform={state.labelTextTransform as any}
+          textTransform={state.labelTextTransform}
           setTextTransform={setKey("labelTextTransform")}
           // Spacing
           letterSpacing={state.labelLetterSpacing}
@@ -81,6 +82,14 @@ export default function TypographySection({
             ]}
             value={state.labelColor}
             onChange={setKey("labelColor")}
+          />
+          <SizeControl
+            label="Label gap (px)"
+            value={state.labelGap}
+            onChange={(v) => setKey("labelGap")(v)}
+            min={0}
+            max={24}
+            step={1}
           />
         </div>
       </div>

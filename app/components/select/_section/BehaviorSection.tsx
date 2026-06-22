@@ -1,0 +1,41 @@
+"use client";
+
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
+import Switch from "@/app/components/controls/input/Switch";
+import type { SelectStudioState } from "../types";
+
+type Props = {
+  state: SelectStudioState;
+  update: <K extends keyof SelectStudioState>(key: K, value: SelectStudioState[K]) => void;
+};
+
+export default function BehaviorSection({ state, update }: Props) {
+  return (
+    <SectionCard title="Behavior" subtitle="Behavior controls that are native, preview-honest, and React-export-honest.">
+      <div className="space-y-4">
+      <Input label="Autocomplete" value={state.autocomplete} onChange={(value) => update("autocomplete", value)} />
+      <Select label="Input mode" value={state.inputMode} options={[
+  "none",
+  "text",
+  "numeric",
+  "decimal",
+  "search",
+  "email",
+  "tel",
+  "url"
+]} onChange={(value) => update("inputMode", value)} />
+      <Select label="Enter key hint" value={state.enterKeyHint} options={[
+  "enter",
+  "done",
+  "go",
+  "next",
+  "previous",
+  "search",
+  "send"
+]} onChange={(value) => update("enterKeyHint", value)} />
+    </div>
+    </SectionCard>
+  );
+}

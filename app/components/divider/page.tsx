@@ -3,57 +3,25 @@
 import GalleryPageTemplate from "@/app/components/controls/templates/GalleryPageTemplate";
 import { useMemo } from "react";
 
-function buildMiniDividerPreview() {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: sans-serif; background: #fff; }
-  .wrapper { width: 80%; max-width: 300px; display: flex; flex-direction: column; gap: 24px; color: #64748b; font-size: 14px; }
-  .divider { 
-    height: 1px;
-    width: 100%;
-    background: #e2e8f0;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .label {
-    background: #fff;
-    padding: 0 12px;
-    color: #94a3b8;
-    font-size: 12px;
-    font-weight: 500;
-  }
-</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div>Text Block A</div>
-    <div class="divider">
-      <span class="label">OR</span>
-    </div>
-    <div>Text Block B</div>
-  </div>
-</body>
-</html>`;
+function buildMiniPreview() {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" />
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#fff;color:#0f172a}
+.card{padding:18px 24px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:18px;box-shadow:0 10px 30px rgba(99,102,241,.35)}</style>
+</head><body><div class="card">Divider</div></body></html>`;
 }
 
-export default function DividerGalleryPage() {
-  const srcDoc = useMemo(() => buildMiniDividerPreview(), []);
-
+export default function dividerGalleryPage() {
+  const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate
       title="Divider"
-      description="Smart divider components with content support, beam effects, and gradients."
+      description="Visual separation between content."
       playgroundLink="/components/divider/playground"
       playgroundTitle="Divider Studio"
-      playgroundDescription='Full editor with "Hyper FX" (beams, neon) and strict layout controls.'
+      playgroundDescription="Full editor with live preview, presets, and code export."
       playgroundButtonLabel="Open Studio"
       previewSrcDoc={srcDoc}
-      featureTags={["Beams", "Gradients", "Content/Labels"]}
+      featureTags={["Presets", "Live Preview", "Export"]}
     />
   );
 }

@@ -46,6 +46,7 @@ export type TriggerEvent =
   | "manual";
 
 export type HideOnClickMode = boolean | "toggle";
+export type TooltipControlMode = "uncontrolled" | "controlled" | "manual";
 
 // --- Animation Types ---
 export type AnimationType =
@@ -60,12 +61,9 @@ export type AnimationType =
 export type TooltipTheme = "dark" | "light" | "translucent" | "custom";
 
 // --- Role Types ---
-export type TooltipRole = "tooltip" | "menu" | "dialog" | "listbox";
+export type TooltipRole = "tooltip";
 
-export type FocusManagementMode = "none" | "first" | "trap";
-
-// --- Download Format ---
-export type DownloadFormat = "html" | "react" | "react-tailwind" | "css-only";
+export type FocusManagementMode = "none";
 
 // =============================================================================
 // TOOLTIP STATE INTERFACE
@@ -94,6 +92,7 @@ export interface TooltipState {
   paddingY: number;
   maxWidth: number;
   borderWidth: number;
+  borderStyle: "solid" | "dashed" | "dotted";
   borderColor: string;
   shadowEnabled: boolean;
   shadowX: number;
@@ -114,22 +113,38 @@ export interface TooltipState {
   animationType: AnimationType;
   transitionDuration: number;
   transitionEasing: string;
-  showDelay: number;
-  hideDelay: number;
+  openDelay: number;
+  closeDelay: number;
   inertia: boolean;
   mountTransition: boolean;
   unmountTransition: boolean;
 
   // === INTERACTION & TRIGGERS ===
+  controlMode: TooltipControlMode;
+  controlledOpen: boolean;
   triggerEvent: TriggerEvent;
   interactive: boolean;
   interactiveBorder: number;
   hideOnClick: HideOnClickMode;
+  closeOnPointerDown: boolean;
   hideOnScroll: boolean;
   hideOnEscapeKey: boolean;
   touchHoldDelay: number;
   singleton: boolean;
   disabled: boolean;
+  disabledOpacity: number;
+  disabledCursor: "not-allowed" | "default" | "pointer";
+  disabledUseCustomColors: boolean;
+
+  // === FOCUS RING (trigger) ===
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+
+  // === HOVER (interactive re-hover bubble) ===
+  hoverBgColor: string;
+  hoverTextColor: string;
 
   // === CONTENT & DATA ===
   content: string;
@@ -162,8 +177,6 @@ export interface TooltipState {
   // === TRIGGER ELEMENT (for preview) ===
   triggerText: string;
 
-  // === EXPORT ===
-  downloadFormat: DownloadFormat;
   downloadName: string;
 }
 
@@ -194,6 +207,7 @@ export const DEFAULT_TOOLTIP_STATE: TooltipState = {
   paddingY: 8,
   maxWidth: 300,
   borderWidth: 0,
+  borderStyle: "solid",
   borderColor: "#475569",
   shadowEnabled: true,
   shadowX: 0,
@@ -214,22 +228,36 @@ export const DEFAULT_TOOLTIP_STATE: TooltipState = {
   animationType: "fade",
   transitionDuration: 200,
   transitionEasing: "ease-out",
-  showDelay: 0,
-  hideDelay: 0,
+  openDelay: 0,
+  closeDelay: 0,
   inertia: false,
   mountTransition: true,
   unmountTransition: true,
 
   // Interaction & Triggers
+  controlMode: "uncontrolled",
+  controlledOpen: false,
   triggerEvent: "mouseenter focus",
   interactive: false,
   interactiveBorder: 2,
   hideOnClick: false,
+  closeOnPointerDown: false,
   hideOnScroll: false,
   hideOnEscapeKey: true,
   touchHoldDelay: 300,
   singleton: false,
   disabled: false,
+  disabledOpacity: 0.5,
+  disabledCursor: "not-allowed",
+  disabledUseCustomColors: false,
+
+  focusRingEnabled: true,
+  focusRingWidth: 2,
+  focusRingOffset: 2,
+  focusRingColor: "#6366f1",
+
+  hoverBgColor: "#1e293b",
+  hoverTextColor: "#ffffff",
 
   // Content & Data
   content: "This is a tooltip!",
@@ -262,8 +290,6 @@ export const DEFAULT_TOOLTIP_STATE: TooltipState = {
   // Trigger Element
   triggerText: "Hover me",
 
-  // Export
-  downloadFormat: "html",
   downloadName: "tooltip",
 };
 
@@ -370,9 +396,6 @@ export const THEME_OPTIONS: { value: TooltipTheme; label: string }[] = [
 
 export const ROLE_OPTIONS: { value: TooltipRole; label: string }[] = [
   { value: "tooltip", label: "Tooltip" },
-  { value: "menu", label: "Menu" },
-  { value: "dialog", label: "Dialog" },
-  { value: "listbox", label: "Listbox" },
 ];
 
 export const FOCUS_MANAGEMENT_OPTIONS: {
@@ -380,8 +403,6 @@ export const FOCUS_MANAGEMENT_OPTIONS: {
   label: string;
 }[] = [
   { value: "none", label: "None" },
-  { value: "first", label: "First Element" },
-  { value: "trap", label: "Focus Trap" },
 ];
 
 export const BACKDROP_FILTER_OPTIONS: { value: string; label: string }[] = [
@@ -391,16 +412,6 @@ export const BACKDROP_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "blur(12px)", label: "Blur 12px" },
   { value: "saturate(1.5)", label: "Saturate" },
   { value: "blur(8px) saturate(1.5)", label: "Blur + Saturate" },
-];
-
-export const DOWNLOAD_FORMAT_OPTIONS: {
-  value: DownloadFormat;
-  label: string;
-}[] = [
-  { value: "html", label: "HTML + CSS" },
-  { value: "react", label: "React Component" },
-  { value: "react-tailwind", label: "React + Tailwind" },
-  { value: "css-only", label: "CSS Only" },
 ];
 
 // Theme presets for quick styling

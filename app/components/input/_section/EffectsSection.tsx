@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { SectionCard, LabeledField } from "../../buttons/action/_section/ui";
+import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
-import { TextInputState } from "../types";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -25,14 +25,11 @@ export default function EffectsSection({
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   return (
     <SectionCard title="Effects & Animation" subtitle="Shadow and transitions.">
       <div className="space-y-5">
-        import ShadowLayerControl from
-        "@/app/components/controls/effects/ShadowLayerControl"; // ... inside
-        component ...
         {/* Shadow */}
         <div className="space-y-3">
           <ShadowLayerControl
@@ -72,7 +69,11 @@ export default function EffectsSection({
           <LabeledField label="Easing">
             <Select
               value={state.transitionEasing}
-              onChange={(v) => setKey("transitionEasing")(v)}
+              onChange={(v) =>
+                setKey("transitionEasing")(
+                  v as TextInputState["transitionEasing"],
+                )
+              }
               options={[
                 { value: "ease", label: "Ease" },
                 { value: "ease-in", label: "Ease In" },
@@ -118,7 +119,9 @@ export default function EffectsSection({
               <LabeledField label="Position">
                 <Select
                   value={state.iconPosition}
-                  onChange={(v) => setKey("iconPosition")(v)}
+                  onChange={(v) =>
+                    setKey("iconPosition")(v as TextInputState["iconPosition"])
+                  }
                   options={[
                     { value: "left", label: "Left" },
                     { value: "right", label: "Right" },

@@ -12,6 +12,7 @@ export type AspectRatioPreset =
   | "none";
 export type ObjectFit = "cover" | "contain" | "fill" | "none" | "scale-down";
 export type LoadingMode = "lazy" | "eager";
+export type DecodingMode = "auto" | "async" | "sync";
 export type BorderStyle = "solid" | "dashed" | "dotted" | "double" | "none";
 export type ClipPathShape = "none" | "circle" | "ellipse" | "polygon" | "inset";
 export type MaskType =
@@ -67,6 +68,7 @@ export interface ImageState {
   objectPositionX: string;
   objectPositionY: string;
   loading: LoadingMode;
+  decoding: DecodingMode;
 
   // Filters
   brightness: string;
@@ -114,7 +116,6 @@ export interface ImageState {
   borderRadiusBL: string;
 
   clipPathShape: ClipPathShape;
-  clipPathValue: string;
 
   borderWidth: string;
   borderStyle: BorderStyle;
@@ -179,6 +180,32 @@ export interface ImageState {
   // Accessibility
   ariaRole: "img" | "presentation" | "figure" | "none";
   ariaHidden: boolean;
+  ariaLabel: string;
+  ariaDescribedBy: string;
+
+  // Focus Ring
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+
+  // Transitions
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+
+  // Disabled state
+  disabled: boolean;
+  disabledOpacity: number;
+
+  // Link wrapping
+  linkHref: string;
+  linkTarget: "_self" | "_blank";
+  linkRel: string;
+
+  // Fallback / loading
+  objectFitFallbackBg: string;
+  loadingPlaceholder: "none" | "skeleton" | "blur";
+  loadingPlaceholderColor: string;
 }
 
 export const INITIAL_IMAGE_STATE: ImageState = {
@@ -196,6 +223,7 @@ export const INITIAL_IMAGE_STATE: ImageState = {
   objectPositionX: "50",
   objectPositionY: "50",
   loading: "lazy",
+  decoding: "auto",
 
   // Filters
   brightness: "100",
@@ -241,7 +269,6 @@ export const INITIAL_IMAGE_STATE: ImageState = {
   borderRadiusBL: "0",
 
   clipPathShape: "none",
-  clipPathValue: "",
 
   borderWidth: "0",
   borderStyle: "solid",
@@ -304,6 +331,27 @@ export const INITIAL_IMAGE_STATE: ImageState = {
 
   ariaRole: "img",
   ariaHidden: false,
+  ariaLabel: "",
+  ariaDescribedBy: "",
+
+  focusRingEnabled: true,
+  focusRingWidth: 2,
+  focusRingOffset: 2,
+  focusRingColor: "#38bdf8",
+
+  transitionDuration: 200,
+  transitionEasing: "ease",
+
+  disabled: false,
+  disabledOpacity: 0.5,
+
+  linkHref: "",
+  linkTarget: "_self",
+  linkRel: "noopener noreferrer",
+
+  objectFitFallbackBg: "#1e293b",
+  loadingPlaceholder: "none",
+  loadingPlaceholderColor: "#334155",
 };
 
 // Image preset gallery

@@ -5,11 +5,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
-import { TextareaState } from "../types";
+import { type TextareaSetter, type TextareaState } from "../types";
 
 const PRESET_COLORS = [
   "#334155",
@@ -26,12 +26,12 @@ export default function LabelsSection({
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   return (
     <SectionCard
       title="Labels & Messages"
-      subtitle="Label, helper, error, and char count."
+      subtitle="Label composition, supporting copy, validation, and counters."
     >
       <div className="space-y-4">
         <LabeledField label="Label Text">
@@ -50,7 +50,9 @@ export default function LabelsSection({
         <LabeledField label="Position">
           <Segmented
             value={state.labelPosition}
-            onChange={(v) => setKey("labelPosition")(v)}
+            onChange={(v) =>
+              setKey("labelPosition")(v as TextareaState["labelPosition"])
+            }
             items={[
               { value: "top", label: "Top" },
               { value: "left", label: "Left" },
@@ -76,7 +78,9 @@ export default function LabelsSection({
         <LabeledField label="Font Weight">
           <Select
             value={String(state.labelFontWeight)}
-            onChange={(v) => setKey("labelFontWeight")(Number(v))}
+            onChange={(v) =>
+              setKey("labelFontWeight")(Number(v) as TextareaState["labelFontWeight"])
+            }
             options={[
               { value: "400", label: "Regular" },
               { value: "500", label: "Medium" },
@@ -131,6 +135,14 @@ export default function LabelsSection({
             Show Character Count
           </label>
         </div>
+        {state.charCount && (
+          <Select
+            label="Character Count Position"
+            value={state.characterCountPosition}
+            options={["below", "above", "inside", "floating"]}
+            onChange={(value) => setKey("characterCountPosition")(value as TextareaState["characterCountPosition"])}
+          />
+        )}
         <div className="pt-4 border-t border-slate-700/50 space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
@@ -157,6 +169,25 @@ export default function LabelsSection({
             value={state.helperColor}
             onChange={setKey("helperColor")}
           />
+          <LabeledField label="Description Text">
+            <input
+              value={state.descriptionText}
+              onChange={(e) => setKey("descriptionText")(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  "color-mix(in oklab, var(--surface) 70%, transparent)",
+                color: "var(--text)",
+              }}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Description Color"
+            palette={PRESET_COLORS}
+            value={state.descriptionColor}
+            onChange={setKey("descriptionColor")}
+          />
           <LabeledField label="Error Text">
             <input
               value={state.errorText}
@@ -175,6 +206,25 @@ export default function LabelsSection({
             palette={PRESET_COLORS}
             value={state.errorColor}
             onChange={setKey("errorColor")}
+          />
+          <LabeledField label="Success Text">
+            <input
+              value={state.successText}
+              onChange={(e) => setKey("successText")(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  "color-mix(in oklab, var(--surface) 70%, transparent)",
+                color: "var(--text)",
+              }}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Success Color"
+            palette={PRESET_COLORS}
+            value={state.successColor}
+            onChange={setKey("successColor")}
           />
         </div>
       </div>

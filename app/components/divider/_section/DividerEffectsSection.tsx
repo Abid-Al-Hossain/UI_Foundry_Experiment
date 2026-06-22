@@ -1,63 +1,66 @@
 "use client";
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import type { DividerState } from "../types";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
 
-const PRESET_GRADIENTS = [
+type SetterValue<T> = T | ((prev: T) => T);
+type DividerSetter = <K extends keyof DividerState>(
+  key: K,
+) => (val: SetterValue<DividerState[K]>) => void;
+
+const PRESET_EFFECT_COLORS = [
   "#3b82f6",
-  "#9333ea",
-  "#ec4899",
-  "#f59e0b",
+  "#ef4444",
   "#10b981",
-  "#ffffff",
+  "#f59e0b",
+  "#6366f1",
+  "#ec4899",
+  "#8b5cf6",
+  "#14b8a6",
 ];
 
-export default function DividerEffectsSection({ state, setKey }: any) {
-  const { gradientEnabled, gradientStart, gradientEnd, opacity } = state;
+export default function DividerEffectsSection({
+  state,
+  setKey,
+}: {
+  state: DividerState;
+  setKey: DividerSetter;
+}) {
+  const { neonGlow, glowColor, glowBlur } = state;
 
   return (
-    <SectionCard title="Visual Effects" subtitle="Gradients and transparency">
+    <SectionCard
+      title="Effects"
+      subtitle="Glow treatments that stay native to separator styling."
+    >
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-300">
-            Gradient Flow
-          </label>
-          <input
-            type="checkbox"
-            checked={gradientEnabled}
-            onChange={(e) => setKey("gradientEnabled")(e.target.checked)}
-            className="accent-blue-500 scale-125"
-          />
-        </div>
+        <Switch
+          label="Neon Glow"
+          checked={neonGlow}
+          onChange={(v) => setKey("neonGlow")(v)}
+        />
 
-        {gradientEnabled && (
-          <div className="pl-4 border-l-2 border-slate-700/50 space-y-4">
+        {neonGlow ? (
+          <div className="space-y-4 border-l-2 border-slate-700/50 pl-4">
             <ColorControl
-              label="Start Color"
-              palette={PRESET_GRADIENTS}
-              value={gradientStart}
-              onChange={setKey("gradientStart")}
+              label="Glow Color"
+              palette={PRESET_EFFECT_COLORS}
+              value={glowColor}
+              onChange={setKey("glowColor")}
             />
-            <ColorControl
-              label="End Color"
-              palette={PRESET_GRADIENTS}
-              value={gradientEnd}
-              onChange={setKey("gradientEnd")}
+            <SizeControl
+              label="Glow Blur (px)"
+              value={glowBlur}
+              onChange={setKey("glowBlur")}
+              min={0}
+              max={100}
+              step={1}
             />
           </div>
-        )}
-
-        <div className="pt-4 border-t border-slate-700/50">
-          <SizeControl
-            label="Opacity"
-            value={opacity}
-            onChange={(v) => setKey("opacity")(v)}
-            min={0}
-            max={1}
-            step={0.05}
-          />
-        </div>
+        ) : null}
       </div>
     </SectionCard>
   );

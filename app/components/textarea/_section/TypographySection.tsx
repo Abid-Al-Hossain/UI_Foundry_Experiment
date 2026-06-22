@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import TypographyControl from "@/app/components/controls/typography/TypographyControl";
+import ColorControl from "@/app/components/controls/color/ColorControl";
+import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import {
   SYSTEM_FONTS,
   GOOGLE_FONTS,
 } from "@/app/components/controls/typography/fontConstants";
-import { TextareaState } from "../types";
+import { type TextareaSetter, type TextareaState } from "../types";
 
 export default function TypographySection({
   state,
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   const filteredSystemFonts = useMemo(
     () =>
@@ -63,13 +65,15 @@ export default function TypographySection({
           fontSizeMax={64}
           // Weight
           fontWeight={state.fontWeight}
-          setFontWeight={setKey("fontWeight")}
+          setFontWeight={(v) =>
+            setKey("fontWeight")(v as TextareaState["fontWeight"])
+          }
           // Decoration
           fontStyle={state.fontStyle}
           setFontStyle={setKey("fontStyle")}
           textDecoration="none"
           setTextDecoration={() => {}}
-          textTransform={state.textTransform as any}
+          textTransform={state.textTransform}
           setTextTransform={setKey("textTransform")}
           // Spacing
           letterSpacing={state.letterSpacing}
@@ -79,6 +83,21 @@ export default function TypographySection({
           lineHeight={state.lineHeight}
           setLineHeight={(v) => setKey("lineHeight")(v)}
         />
+        <div className="pt-4 border-t space-y-4" style={{ borderColor: "var(--border)" }}>
+          <div>
+            <label className="text-sm font-medium block mb-2" style={{ color: "var(--text)" }}>Text Align</label>
+            <SegmentedControl
+              value={state.textAlign}
+              onChange={(v) => setKey("textAlign")(v as "left" | "center" | "right")}
+              items={[{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }]}
+            />
+          </div>
+          <ColorControl
+            label="Text Color"
+            value={state.textColor}
+            onChange={setKey("textColor")}
+          />
+        </div>
       </div>
     </SectionCard>
   );

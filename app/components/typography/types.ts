@@ -28,6 +28,10 @@ export type FontStyle = "normal" | "italic" | "oblique";
 export type TextAlign = "left" | "center" | "right" | "justify";
 export type TextTransform = "none" | "uppercase" | "lowercase" | "capitalize";
 export type TextDecoration = "none" | "underline" | "overline" | "line-through";
+export type SystemFontItem = {
+  label: string;
+  css: string;
+};
 export type TextDecorationStyle =
   | "solid"
   | "double"
@@ -117,17 +121,43 @@ export interface TypographyState {
   whiteSpace: WhiteSpace;
   direction: Direction;
 
+  // Text Wrapping
+  hyphens: "none" | "manual" | "auto";
+  wordBreak: "normal" | "break-all" | "break-word" | "keep-all";
+  overflowWrap: "normal" | "break-word" | "anywhere";
+  textIndent: number;
+
+  // Multi-column Layout
+  columnCount: number;
+  columnGap: number;
+  columnRule: string;
+
+  // Typographic Widow/Orphan Control
+  orphans: number;
+  widows: number;
+
+  // OpenType Features
+  fontFeatureSettings: string;
+
   // ARIA / A11y
   ariaLabel: string;
+
+  // Preview Container
+  previewPadding: number;
+  previewRadius: number;
 
   // Preview Colors (user-controlled)
   previewBgColor: string;
   previewTextColor: string;
 
   // Export
-  downloadFormat: "react" | "css-vars" | "tailwind";
   downloadName: string;
 }
+
+export type TypographyUpdater = <K extends keyof TypographyState>(
+  key: K,
+  value: TypographyState[K],
+) => void;
 
 // Default heading configurations based on modular scale
 function generateDefaultHeadings(
@@ -239,15 +269,35 @@ export const DEFAULT_TYPOGRAPHY_STATE: TypographyState = {
   whiteSpace: "normal",
   direction: "ltr",
 
+  // Text Wrapping
+  hyphens: "none",
+  wordBreak: "normal",
+  overflowWrap: "normal",
+  textIndent: 0,
+
+  // Multi-column Layout
+  columnCount: 1,
+  columnGap: 32,
+  columnRule: "none",
+
+  // Widow/Orphan Control
+  orphans: 2,
+  widows: 2,
+
+  // OpenType Features
+  fontFeatureSettings: "normal",
+
   // ARIA
   ariaLabel: "",
+
+  // Preview Container
+  previewPadding: 24,
+  previewRadius: 12,
 
   // Preview Colors
   previewBgColor: "#ffffff",
   previewTextColor: "#0f172a",
 
-  // Export
-  downloadFormat: "react",
   downloadName: "typography",
 };
 

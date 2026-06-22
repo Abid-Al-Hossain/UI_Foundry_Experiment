@@ -38,7 +38,7 @@ export default function ColorControl(props: {
     if (currentParsed.ok && currentParsed.hex === value) return;
 
     setText(value);
-  }, [value]);
+  }, [text, value]);
 
   const handleChange = (newText: string) => {
     setText(newText);

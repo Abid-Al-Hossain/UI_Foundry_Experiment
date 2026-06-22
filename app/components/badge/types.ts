@@ -66,6 +66,31 @@ export type BadgeState = {
   hoverScale: number;
   clickRipple: boolean;
 
+  // Border style
+  borderStyle: "solid" | "dashed" | "dotted";
+
+  // Disabled state
+  disabled: boolean;
+  disabledOpacity: number;
+  disabledCursor: "not-allowed" | "default" | "pointer";
+
+  // Transitions
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+
+  // Focus ring
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingColor: string;
+
+  // Hover colors (interactive)
+  hoverBgColor: string;
+  hoverTextColor: string;
+
+  // Typography
+  letterSpacing: number;
+  textTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+
   // Accessibility
   ariaLabel: string;
   ariaRole: "status" | "alert" | "none";
@@ -119,6 +144,25 @@ export const INITIAL_BADGE_STATE: BadgeState = {
   interactive: false,
   hoverScale: 1.05,
   clickRipple: false,
+
+  borderStyle: "solid",
+
+  disabled: false,
+  disabledOpacity: 0.5,
+  disabledCursor: "not-allowed",
+
+  transitionDuration: 200,
+  transitionEasing: "ease",
+
+  focusRingEnabled: true,
+  focusRingWidth: 2,
+  focusRingColor: "#38bdf8",
+
+  hoverBgColor: "#2563eb",
+  hoverTextColor: "#ffffff",
+
+  letterSpacing: 0,
+  textTransform: "none",
 
   ariaLabel: "",
   ariaRole: "status",

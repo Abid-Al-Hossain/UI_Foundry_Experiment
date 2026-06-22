@@ -1,13 +1,11 @@
 import type { ImageState } from "../types";
-import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 
 interface ExportOptions extends ImageState {
-  downloadFormat: DownloadFormat;
   downloadName: string;
 }
 
 export function buildImageExportPayload(options: ExportOptions) {
-  const { downloadFormat, downloadName, ...state } = options;
+  const { downloadName, ...state } = options;
 
   // 1. Build Base Values (Dimensions, Colors, etc.)
   // ---------------------------------------------------------------------------
@@ -50,12 +48,10 @@ export function buildImageExportPayload(options: ExportOptions) {
 
   // Transform String
   const transforms: string[] = [];
-  const scaleX = state.flipHorizontal
-    ? -parseFloat(state.scaleX)
-    : parseFloat(state.scaleX);
-  const scaleY = state.flipVertical
-    ? -parseFloat(state.scaleY)
-    : parseFloat(state.scaleY);
+  const rawScaleX = parseFloat(state.scaleX);
+  const rawScaleY = state.scaleUnified ? rawScaleX : parseFloat(state.scaleY);
+  const scaleX = state.flipHorizontal ? -rawScaleX : rawScaleX;
+  const scaleY = state.flipVertical ? -rawScaleY : rawScaleY;
   if (scaleX !== 1 || scaleY !== 1)
     transforms.push(`scale(${scaleX}, ${scaleY})`);
   if (state.rotate !== "0") transforms.push(`rotate(${state.rotate}deg)`);
@@ -120,11 +116,13 @@ export function buildImageExportPayload(options: ExportOptions) {
     state.hoverEffect === "lift" ? -parseFloat(state.hoverLiftAmount) : 0;
   const hoverTilt =
     state.hoverEffect === "tilt" ? parseFloat(state.hoverTiltAmount) : 0;
-  const cursor = state.hoverEffect !== "none" ? "pointer" : "default";
+  const cursor = state.disabled ? "not-allowed" : state.hoverEffect !== "none" || state.linkHref ? "pointer" : "default";
   const transition =
     state.hoverEffect !== "none"
       ? `all ${state.hoverDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`
-      : "none";
+      : state.transitionDuration > 0
+        ? `opacity ${state.transitionDuration}ms ${state.transitionEasing}`
+        : "none";
 
   // Duotone & Overlay Logics
   const duotoneFilter = state.duotoneEnabled ? "grayscale(100%)" : "";
@@ -155,10 +153,15 @@ export function buildImageExportPayload(options: ExportOptions) {
 
   // 2. Global CSS (HTML/React/Vue/CSS Vars)
   // ---------------------------------------------------------------------------
+  const focusRingCss = state.focusRingEnabled && state.linkHref
+    ? `.image-wrapper:focus-visible { outline: ${state.focusRingWidth}px solid ${state.focusRingColor}; outline-offset: ${state.focusRingOffset}px; }`
+    : "";
   const globalCss = `
     .image-container { position: relative; display: inline-block; perspective: ${state.perspective !== "0" ? state.perspective + "px" : "none"}; width: ${widthVal}; height: ${heightVal}; }
-    .image-wrapper { position: relative; display: inline-block; width: 100%; height: 100%; cursor: ${cursor}; overflow: hidden; border-radius: ${borderRadius}; clip-path: ${clipPath}; box-shadow: ${boxShadow}; border: ${state.borderWidth !== "0" ? `${state.borderWidth}px ${state.borderStyle} ${state.borderColor}` : "none"}; }
-    .main-image { display: block; width: 100%; height: 100%; object-fit: ${state.objectFit}; object-position: ${state.objectPositionX}% ${state.objectPositionY}%; aspect-ratio: ${aspectRatio}; transform-origin: ${state.transformOrigin}; transform: ${baseTransform}; filter: ${finalFilter}; mask-image: ${maskImage !== "none" ? maskImage : "none"}; -webkit-mask-image: ${maskImage !== "none" ? maskImage : "none"}; mix-blend-mode: ${state.mixBlendMode}; transition: ${transition}; 
+    .image-wrapper { position: relative; display: inline-block; width: 100%; height: 100%; cursor: ${cursor}; overflow: hidden; border-radius: ${borderRadius}; clip-path: ${clipPath}; box-shadow: ${boxShadow}; border: ${state.borderWidth !== "0" ? `${state.borderWidth}px ${state.borderStyle} ${state.borderColor}` : "none"}; background-color: ${state.objectFitFallbackBg}; opacity: ${state.disabled ? state.disabledOpacity : 1}; pointer-events: ${state.disabled ? "none" : "auto"}; }
+    ${focusRingCss}
+    .image-placeholder { position: absolute; inset: 0; border-radius: ${borderRadius}; background: ${state.loadingPlaceholder === "skeleton" ? `linear-gradient(90deg, ${state.loadingPlaceholderColor}, color-mix(in oklab, ${state.loadingPlaceholderColor} 60%, white), ${state.loadingPlaceholderColor})` : state.loadingPlaceholderColor}; filter: ${state.loadingPlaceholder === "blur" ? "blur(12px)" : "none"}; }
+    .main-image { display: block; width: 100%; height: 100%; object-fit: ${state.objectFit}; object-position: ${state.objectPositionX}% ${state.objectPositionY}%; aspect-ratio: ${aspectRatio}; transform-origin: ${state.transformOrigin}; transform: ${baseTransform}; filter: ${finalFilter}; mask-image: ${maskImage !== "none" ? maskImage : "none"}; -webkit-mask-image: ${maskImage !== "none" ? maskImage : "none"}; mix-blend-mode: ${state.mixBlendMode}; transition: ${transition};
       animation-name: ${state.entranceAnimation !== "none" ? `image-entrance-${state.entranceAnimation}` : "none"}; animation-duration: ${state.entranceDuration}ms; animation-delay: ${state.entranceDelay}ms; animation-fill-mode: both; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
     .image-wrapper:hover .main-image {
        ${state.hoverEffect === "zoom-in" || state.hoverEffect === "zoom-out" ? `transform: ${baseTransform === "none" ? "" : baseTransform} scale(${hoverZoom});` : ""}
@@ -182,207 +185,38 @@ export function buildImageExportPayload(options: ExportOptions) {
   // 3. Generators
   // ---------------------------------------------------------------------------
 
-  if (downloadFormat === "html") {
-    const content = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Exported Image</title><style>${globalCss}</style></head>
-<body>${getHtmlStructure(state, "image-container", "image-wrapper", "main-image")}</body></html>`;
-    return { content, filename: `${downloadName}.html` };
-  }
-
-  if (downloadFormat === "react") {
-    const content = `import React from 'react';
-export default function StyledImage() { return (<><style jsx>{\`${globalCss}\`}</style>${getJsxStructure(state, "image-container", "image-wrapper", "main-image")}</>); }`;
-    return { content, filename: `${downloadName}.tsx` };
-  }
-
-  if (downloadFormat === "tailwind") {
-    const tw = generateTailwindClasses(
-      state,
-      widthVal,
-      heightVal,
-      aspectRatio,
-      borderRadius,
-    );
-    const content = `<!-- Tailwind Component -->
-<div class="${tw.container}">
-  <div class="${tw.wrapper}">
-    <img src="${state.src}" alt="${state.alt}" loading="${state.loading}" class="${tw.image}" />
-    ${state.duotoneEnabled ? `<div class="absolute inset-0 pointer-events-none mix-blend-multiply" style="background-color: ${state.duotoneColor1}"></div><div class="absolute inset-0 pointer-events-none mix-blend-screen" style="background-color: ${state.duotoneColor2}"></div>` : ""}
-    ${state.overlayEnabled ? `<div class="absolute inset-0 pointer-events-none mix-blend-${state.overlayBlendMode}" style="background-color: ${state.overlayColor}; opacity: ${parseInt(state.overlayOpacity) / 100}"></div>` : ""}
-    ${state.captionEnabled ? `<div class="${tw.captionContainer}"><div class="${tw.captionText}">${state.captionText}</div></div>` : ""}
-  </div>
-</div>`;
-    return { content, filename: `${downloadName}.html` };
-  }
-
-  if (downloadFormat === "scss") {
-    const scss = generateScss(
-      state,
-      widthVal,
-      heightVal,
-      borderRadius,
-      boxShadow,
-      clipPath,
-      baseTransform,
-      finalFilter,
-      maskImage,
-      transition,
-      cursor,
-    );
-    const content = `<!-- SCSS Component -->
-<div class="image-component"><div class="wrapper"><img src="${state.src}" class="main-img" />${state.captionEnabled ? `<div class="caption">${state.captionText}</div>` : ""}</div></div>
-<style lang="scss">
-${scss}
-</style>`;
-    return { content, filename: `${downloadName}.scss` };
-  }
-
-  if (downloadFormat === "css-vars") {
-    const content = `<!DOCTYPE html><style>:root {
-  --img-w: ${widthVal}; --img-h: ${heightVal}; --img-radius: ${borderRadius}; --img-shadow: ${boxShadow}; --img-transform: ${baseTransform}; --img-filter: ${finalFilter};
-}
-${globalCss.replace(widthVal, "var(--img-w)").replace(heightVal, "var(--img-h)")}
-</style><body>${getHtmlStructure(state, "image-container", "image-wrapper", "main-image")}</body>`;
-    return { content, filename: `${downloadName}-vars.html` };
-  }
-
-  if (downloadFormat === "figma-tokens") {
-    const tokens = {
-      name: "Image Component Tokens",
-      values: {
-        dimensions: {
-          width: state.width,
-          height: state.height,
-          unit: state.widthUnit,
-        },
-        borderRadius:
-          state.borderRadiusMode === "uniform"
-            ? { value: state.borderRadiusUniform, unit: "px" }
-            : {
-                tl: state.borderRadiusTL,
-                tr: state.borderRadiusTR,
-                br: state.borderRadiusBR,
-                bl: state.borderRadiusBL,
-              },
-        shadow: state.boxShadowEnabled
-          ? {
-              x: state.boxShadowX,
-              y: state.boxShadowY,
-              blur: state.boxShadowBlur,
-              spread: state.boxShadowSpread,
-              color: state.boxShadowColor,
-            }
-          : {},
-        border:
-          state.borderWidth !== "0"
-            ? {
-                width: state.borderWidth,
-                style: state.borderStyle,
-                color: state.borderColor,
-              }
-            : {},
-      },
-    };
-    return {
-      content: JSON.stringify(tokens, null, 2),
-      filename: `${downloadName}-tokens.json`,
-    };
-  }
-
-  if (downloadFormat === "tailwind-config") {
-    const config = {
-      theme: {
-        extend: {
-          boxShadow: {
-            "image-custom": `${state.boxShadowX}px ${state.boxShadowY}px ${state.boxShadowBlur}px ${state.boxShadowSpread}px ${state.boxShadowColor}`,
-          },
-          borderRadius: { "image-custom": borderRadius },
-        },
-      },
-    };
-    return {
-      content: JSON.stringify(config, null, 2),
-      filename: `tailwind.config.js`,
-    };
-  }
-
-  // Vue (Fallback)
-  const content = `<template><div class="image-container"><div class="image-wrapper"><img src="${state.src}" alt="${state.alt}" class="main-image" />${state.captionEnabled ? `<div class="image-caption-container"><div class="image-caption-text">${state.captionText}</div></div>` : ""}</div></div></template><style scoped>${globalCss}</style>`;
-  return { content, filename: `${downloadName}.vue` };
+  const content = `'use client';
+import React from 'react';
+export default function StyledImage() {
+  const [hasLoaded, setHasLoaded] = React.useState(false);
+  const [hasError, setHasError] = React.useState(false);
+  return (<><style>{\`${globalCss}\`}</style>${getJsxStructure(state, "image-container", "image-wrapper", "main-image")}</>);
+}`;
+  return { content, filename: `${downloadName}.tsx` };
 }
 
 // Helpers
-function getHtmlStructure(state: any, cont: string, wrap: string, img: string) {
-  return `<div class="${cont}"><div class="${wrap}"><img src="${state.src}" alt="${state.alt}" loading="${state.loading}" class="${img}" />
-    ${state.duotoneEnabled ? `<div class="duotone-shadows"></div><div class="duotone-highlights"></div>` : ""}
-    ${state.overlayEnabled ? `<div class="color-overlay"></div>` : ""}
-    ${state.vignetteEnabled && state.maskType === "none" ? `<div class="vignette-overlay"></div>` : ""}
-    ${state.captionEnabled ? `<div class="image-caption-container"><div class="image-caption-text">${state.captionText}</div></div>` : ""}
-  </div></div>`;
-}
-function getJsxStructure(state: any, cont: string, wrap: string, img: string) {
-  return `<div className="${cont}"><div className="${wrap}"><img src="${state.src}" alt="${state.alt}" loading="${state.loading}" className="${img}" />
+function getJsxStructure(state: ImageState, cont: string, wrap: string, img: string) {
+  const roleAttr = state.ariaRole === "none" ? "" : ` role="${state.ariaRole}"`;
+  const ariaHiddenAttr = state.ariaHidden ? " aria-hidden={true}" : "";
+  const ariaLabelAttr = !state.ariaHidden && state.ariaLabel ? ` aria-label="${state.ariaLabel}"` : "";
+  const ariaDescribedByAttr = state.ariaDescribedBy ? ` aria-describedby="${state.ariaDescribedBy}"` : "";
+  const wrapTag = state.linkHref ? "a" : "div";
+  const wrapAttrs = state.linkHref
+    ? ` href="${state.linkHref}" target="${state.linkTarget}" rel="${state.linkRel}" tabIndex={${state.disabled ? -1 : 0}}`
+    : "";
+  return `<div className="${cont}"><${wrapTag} className="${wrap}"${wrapAttrs}>
+    {hasError ? (
+      <div${roleAttr}${ariaLabelAttr}${ariaDescribedByAttr}${ariaHiddenAttr} style={{ width: "100%", height: "100%" }} />
+    ) : (
+      <>
+        {${state.loadingPlaceholder !== "none"} && !hasLoaded ? <div className="image-placeholder" aria-hidden="true" /> : null}
+        <img src="${state.src}" alt="${state.ariaHidden ? "" : state.alt}"${roleAttr}${ariaLabelAttr}${ariaDescribedByAttr}${ariaHiddenAttr} loading="${state.loading}" decoding="${state.decoding}" className="${img}" onLoad={() => setHasLoaded(true)} onError={() => setHasError(true)} />
+      </>
+    )}
     ${state.duotoneEnabled ? `<div className="duotone-shadows" /><div className="duotone-highlights" />` : ""}
     ${state.overlayEnabled ? `<div className="color-overlay" />` : ""}
     ${state.vignetteEnabled && state.maskType === "none" ? `<div className="vignette-overlay" />` : ""}
     ${state.captionEnabled ? `<div className="image-caption-container"><div className="image-caption-text">${state.captionText}</div></div>` : ""}
-  </div></div>`;
-}
-function generateTailwindClasses(
-  state: any,
-  w: string,
-  h: string,
-  ar: string,
-  br: string,
-) {
-  // Using arbitrary values for exact fidelity
-  const shadow = state.boxShadowEnabled
-    ? `shadow-[${state.boxShadowX}px_${state.boxShadowY}px_${state.boxShadowBlur}px_${state.boxShadowSpread}px_${state.boxShadowColor.replace("#", "")}]`
-    : "";
-  const border =
-    state.borderWidth !== "0"
-      ? `border-[${state.borderWidth}px] border-[${state.borderColor}] border-${state.borderStyle}`
-      : "";
-  const capPos =
-    state.captionPosition === "top"
-      ? "top-0"
-      : state.captionPosition === "bottom"
-        ? "bottom-0"
-        : "top-1/2 -translate-y-1/2";
-
-  return {
-    container: `relative inline-block w-[${state.width}${state.widthUnit}] h-[${state.height}${state.heightUnit}] perspective-[${state.perspective}px]`,
-    wrapper: `relative w-full h-full inline-block overflow-hidden rounded-[${br}] ${shadow} ${border} group cursor-${state.hoverEffect !== "none" ? "pointer" : "default"}`,
-    image: `block w-full h-full object-${state.objectFit} aspect-[${ar.replace(" ", "")}] transition-all duration-[${state.hoverDuration}ms] group-hover:scale-[${state.hoverEffect === "zoom-in" ? state.hoverZoomScale : "1"}]`,
-    captionContainer: `absolute left-0 right-0 p-5 flex justify-center pointer-events-none ${capPos}`,
-    captionText: `px-4 py-2 rounded-lg font-medium text-[${state.captionFontSize}px] text-[${state.captionTextColor}] ${state.captionBgStyle === "glass" ? "backdrop-blur-md bg-white/10" : `bg-[${state.captionBgColor}]`}`,
-  };
-}
-function generateScss(
-  state: any,
-  w: string,
-  h: string,
-  br: string,
-  bs: string,
-  cp: string,
-  tr: string,
-  flt: string,
-  msk: string,
-  trans: string,
-  cur: string,
-) {
-  return `.image-component {
-  position: relative; display: inline-block; width: ${w}; height: ${h}; perspective: ${state.perspective}px;
-  .wrapper {
-    position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: ${br}; box-shadow: ${bs}; cursor: ${cur}; clip-path: ${cp};
-    .main-img {
-      display: block; width: 100%; height: 100%; object-fit: ${state.objectFit}; transform: ${tr}; filter: ${flt}; transition: ${trans};
-      mask-image: ${msk};
-    }
-    &:hover .main-img {
-       /* Hover effects */
-       ${state.hoverEffect === "zoom-in" ? `transform: scale(${state.hoverZoomScale});` : ""}
-    }
-    .caption { position: absolute; /* ... */ }
-  }
-}`;
+  </${wrapTag}></div>`;
 }

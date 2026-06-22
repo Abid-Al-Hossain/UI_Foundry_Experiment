@@ -46,7 +46,10 @@ export default function PageTransition({
   return (
     <div
       className="grid h-full w-full overflow-hidden"
-      style={{ perspective: "var(--ui-perspective, 1200px)" }}
+      style={{
+        gridTemplateRows: "minmax(0, 1fr)",
+        gridTemplateColumns: "minmax(0, 1fr)",
+      }}
     >
       <AnimatePresence mode="popLayout" initial={false} custom={direction}>
         <motion.div
@@ -62,11 +65,14 @@ export default function PageTransition({
           }}
           className="grid h-full w-full overflow-hidden bg-[var(--surface)]"
           style={{
-            transformStyle: "preserve-3d",
-            backfaceVisibility: "hidden",
             width: "100%",
             height: "100%",
             gridArea: "1 / 1", // Force overlap in grid
+            // Constrain the single row/column to the container size (not content)
+            // so the scroll container can bound + scroll, and a wide fixed-width
+            // editor panel can't expand the layout past the viewport.
+            gridTemplateRows: "minmax(0, 1fr)",
+            gridTemplateColumns: "minmax(0, 1fr)",
           }}
         >
           <ThreeDWrapper>

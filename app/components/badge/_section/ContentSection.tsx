@@ -4,20 +4,24 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import Select from "@/app/components/controls/input/Select";
 import Switch from "@/app/components/controls/input/Switch";
 import Input from "@/app/components/controls/input/Input";
-import SizeControl from "@/app/components/controls/input/SizeControl";
+import type { BadgeState } from "../types";
+
+type SetField = <K extends keyof BadgeState>(
+  key: K,
+) => (
+  value: BadgeState[K],
+) => void;
 
 export default function ContentSection({
   state,
   setKey,
-  setFloat,
 }: {
-  state: any;
-  setKey: (key: string) => (val: any) => void;
-  setFloat?: (key: string) => (val: any) => void;
+  state: BadgeState;
+  setKey: SetField;
 }) {
   return (
     <SectionCard title="Content" subtitle="Text, numbers, and icons.">
@@ -67,32 +71,16 @@ export default function ContentSection({
             <LabeledField label="Position">
               <Segmented
                 value={state.iconPosition}
-                onChange={setKey("iconPosition")}
+                onChange={(v) =>
+                  setKey("iconPosition")(v as BadgeState["iconPosition"])
+                }
                 items={[
                   { label: "Left", value: "left" },
                   { label: "Right", value: "right" },
+                  { label: "Only", value: "only" },
                 ]}
               />
             </LabeledField>
-
-            <div className="grid grid-cols-2 gap-4">
-              <SizeControl
-                label="Icon Size (%)"
-                value={state.iconSize}
-                onChange={setKey("iconSize")}
-                min={50}
-                max={150}
-                step={5}
-              />
-              <SizeControl
-                label="Icon Gap (px)"
-                value={state.iconGap}
-                onChange={setKey("iconGap")}
-                min={0}
-                max={20}
-                step={1}
-              />
-            </div>
           </>
         )}
       </div>

@@ -1,27 +1,27 @@
 "use client";
 
 import React from "react";
-import { SectionCard, LabeledField } from "../../buttons/action/_section/ui";
+import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import Select from "@/app/components/controls/input/Select";
-import { TextInputState } from "../types";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 export default function BasicsSection({
   state,
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   return (
     <SectionCard
       title="Basics"
-      subtitle="Type, placeholder, value, and constraints."
+      subtitle="Type, content, and core field state."
     >
       <div className="space-y-4">
         <LabeledField label="Input Type">
           <Select
             value={state.inputType}
-            onChange={(v) => setKey("inputType")(v)}
+            onChange={(v) => setKey("inputType")(v as TextInputState["inputType"])}
             options={[
               { value: "text", label: "Text" },
               { value: "password", label: "Password" },
@@ -30,6 +30,13 @@ export default function BasicsSection({
               { value: "tel", label: "Telephone" },
               { value: "url", label: "URL" },
               { value: "search", label: "Search" },
+              { value: "date", label: "Date" },
+              { value: "time", label: "Time" },
+              { value: "datetime-local", label: "Date & Time" },
+              { value: "month", label: "Month" },
+              { value: "week", label: "Week" },
+              { value: "color", label: "Color" },
+              { value: "range", label: "Range" },
             ]}
           />
         </LabeledField>
@@ -52,20 +59,6 @@ export default function BasicsSection({
           <input
             value={state.defaultValue}
             onChange={(e) => setKey("defaultValue")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
-        </LabeledField>
-
-        <LabeledField label="Name Attribute">
-          <input
-            value={state.name}
-            onChange={(e) => setKey("name")(e.target.value)}
             className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
             style={{
               borderColor: "var(--border)",
@@ -124,58 +117,6 @@ export default function BasicsSection({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <LabeledField
-            label="Max Length"
-            hint={state.maxLength === 0 ? "off" : `${state.maxLength}`}
-          >
-            <input
-              type="number"
-              min={0}
-              value={state.maxLength}
-              onChange={(e) => setKey("maxLength")(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
-          </LabeledField>
-          <LabeledField
-            label="Min Length"
-            hint={state.minLength === 0 ? "off" : `${state.minLength}`}
-          >
-            <input
-              type="number"
-              min={0}
-              value={state.minLength}
-              onChange={(e) => setKey("minLength")(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
-          </LabeledField>
-        </div>
-
-        <LabeledField label="Pattern (regex)" hint="e.g. [A-Za-z]+">
-          <input
-            value={state.pattern}
-            onChange={(e) => setKey("pattern")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none font-mono"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
-        </LabeledField>
       </div>
     </SectionCard>
   );

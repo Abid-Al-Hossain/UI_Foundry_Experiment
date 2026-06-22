@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import AppShell from "@/components/layout/AppShell";
+import AppShell from "@/app/components/controls/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
 
 export interface GalleryPageProps {

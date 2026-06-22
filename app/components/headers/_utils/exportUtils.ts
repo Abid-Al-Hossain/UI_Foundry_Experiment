@@ -1,0 +1,67 @@
+import type { HeaderState } from "../types";
+
+export type ExportPayload = { fileName: string; mimeType: "text/plain;charset=utf-8"; content: string };
+
+export function buildExportPayload(state: HeaderState, fileName = "headers") : ExportPayload {
+  return { fileName: `${fileName || "headers"}.jsx`, mimeType: "text/plain;charset=utf-8", content: buildReactCode(state) };
+}
+
+export function buildReactCode(state: HeaderState) {
+  return [
+    "import * as React from \"react\";",
+    "",
+    "const state = " + JSON.stringify(state, null, 2) + ";",
+  "",
+  "function resolveFont(s) { return s.fontBucket === \"google\" ? '\"' + s.googleFontFamily + '\", sans-serif' : \"inherit\"; }",
+  "function buildShadow(s) { if (!s.shadowEnabled) return \"none\"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, \"0\"); return s.shadowX + \"px \" + s.shadowY + \"px \" + s.shadowBlur + \"px \" + s.shadowSpread + \"px \" + s.shadowColor + hex; }",
+    "",
+    "export default function HeaderComponent() {",
+    "  const navItems = Array.from({ length: state.navCount }, (_, index) => `Section ${index + 1}`);",
+    "  const actions = Array.from({ length: state.actionCount }, (_, index) => (index === 0 ? \"Docs\" : index === 1 ? \"Launch\" : `Action ${index + 1}`));",
+    "  const isMobile = state.previewState === \"mobile\";",
+    "  const navHidden = state.mobileMode === \"collapse\" && isMobile;",
+    "  const [isHovered, setIsHovered] = React.useState(false);",
+    "  const hovered = state.hoverEnabled && isHovered;",
+    "  const style = {",
+    "    width: state.width,",
+    "    minHeight: state.height,",
+    "    padding: state.compactOnScroll || state.previewState === \"collapsed\" ? Math.max(12, Math.round(state.padding * 0.62)) : state.padding,",
+    "    margin: state.margin,",
+    "    gap: state.gap,",
+    "    borderRadius: state.radius,",
+    "    border: `${state.borderWidth}px ${state.borderStyle} ${hovered ? state.hoverBorder : state.border}`,",
+    "        boxShadow: hovered ? state.hoverShadow : buildShadow(state),",
+    "    background: hovered ? state.hoverBg : state.background,",
+    "    color: state.foreground,",
+    "    fontFamily: resolveFont(state),",
+    "    position: state.sticky ? \"sticky\" : \"relative\",",
+    "    top: state.sticky ? 0 : undefined,",
+    "    transition: state.motion ? \"all 180ms ease\" : undefined,",
+    "  };",
+    "",
+    "  return (",
+    "    <header id={state.id} aria-label={state.landmarkLabel} tabIndex={state.tabIndex} style={style} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>",
+    "      <div style={{ display: \"flex\", flexWrap: \"wrap\", alignItems: \"center\", justifyContent: \"space-between\", gap: state.gap }}>",
+    "        <a href=\"#\" style={{ color: state.foreground, fontSize: state.titleSize, fontWeight: state.fontWeight, textDecoration: \"none\" }}>{state.title}</a>",
+    "        <nav aria-label={`${state.landmarkLabel} links`} style={{ display: navHidden ? \"none\" : \"flex\", flexWrap: \"wrap\", alignItems: \"center\", gap: Math.max(8, state.gap / 2) }}>",
+    "          {navItems.map((item, index) => (",
+    "            <a key={item} href=\"#\" style={{ borderRadius: 999, padding: \"8px 12px\", color: index === 0 || state.previewState === \"hover\" ? state.foreground : state.muted, background: state.previewState === \"active\" && index === 0 ? state.accent : \"transparent\", outline: state.previewState === \"focus\" && index === 0 ? `2px solid ${state.accent}` : undefined, outlineOffset: 3, textDecoration: \"none\" }}>{item}</a>",
+    "          ))}",
+    "        </nav>",
+    "        <div style={{ display: \"flex\", flexWrap: \"wrap\", alignItems: \"center\", gap: Math.max(8, state.gap / 2) }}>",
+    "          {actions.map((action, index) => (",
+    "            <a key={action} href=\"#\" style={{ borderRadius: 999, padding: \"8px 16px\", background: index === actions.length - 1 ? state.accent : \"transparent\", border: `1px solid ${state.border}`, color: index === actions.length - 1 ? state.background : state.foreground, fontWeight: 700, textDecoration: \"none\" }}>{action}</a>",
+    "          ))}",
+    "        </div>",
+    "      </div>",
+    "      <section aria-labelledby={`${state.id}-title`} style={{ display: \"grid\", gap: Math.max(10, state.gap), marginTop: state.gap }}>",
+    "        <p style={{ color: state.accent, textTransform: \"uppercase\", letterSpacing: \".2em\", fontSize: 12 }}>Hero slot</p>",
+    "        <h1 id={`${state.id}-title`} style={{ fontSize: Math.max(state.titleSize + 12, state.titleSize * 1.45), lineHeight: 1.05, fontWeight: state.fontWeight, maxWidth: 680 }}>{state.title}</h1>",
+    "        <p style={{ color: state.muted, fontSize: state.bodySize, maxWidth: 620 }}>{state.description}</p>",
+    "      </section>",
+    "    </header>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+}

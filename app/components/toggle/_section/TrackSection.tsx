@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import { ToggleState } from "../types";
+import { type ToggleState, type ToggleKeyUpdater } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -23,7 +23,7 @@ export default function TrackSection({
   setKey,
 }: {
   state: ToggleState;
-  setKey: (key: keyof ToggleState) => (val: any) => void;
+  setKey: ToggleKeyUpdater;
 }) {
   return (
     <SectionCard title="Track" subtitle="Track dimensions and colors.">

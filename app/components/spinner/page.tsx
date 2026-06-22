@@ -3,45 +3,25 @@
 import GalleryPageTemplate from "@/app/components/controls/templates/GalleryPageTemplate";
 import { useMemo } from "react";
 
-function buildMiniSpinnerPreview() {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: sans-serif; background: #fff; }
-  .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .label { margin-top: 10px; font-size: 12px; color: #64748b; font-weight: 600; text-align: center; }
-</style>
-</head>
-<body>
-  <div>
-    <div class="spinner"></div>
-    <div class="label">Loading...</div>
-  </div>
-</body>
-</html>`;
+function buildMiniPreview() {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" />
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#fff;color:#0f172a}
+.card{padding:18px 24px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:18px;box-shadow:0 10px 30px rgba(99,102,241,.35)}</style>
+</head><body><div class="card">Spinner</div></body></html>`;
 }
 
-export default function SpinnerGalleryPage() {
-  const srcDoc = useMemo(() => buildMiniSpinnerPreview(), []);
-
+export default function spinnerGalleryPage() {
+  const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate
-      title="Spinner & Loaders"
-      description="Next-gen loading indicators featuring 3D cubes, quantum particles, liquid morphing, and cyberpunk glitch effects."
+      title="Spinner"
+      description="Loading indicators for async states."
       playgroundLink="/components/spinner/playground"
       playgroundTitle="Spinner Studio"
-      playgroundDescription="Interactive playground with 10+ variants and physics controls."
+      playgroundDescription="Full editor with live preview, presets, and code export."
       playgroundButtonLabel="Open Studio"
       previewSrcDoc={srcDoc}
-      featureTags={[
-        "3D Cubes & Spheres",
-        "True Liquid / Gooey",
-        "Quantum Orbit",
-        "Glitch Mode",
-      ]}
+      featureTags={["Presets", "Live Preview", "Export"]}
     />
   );
 }

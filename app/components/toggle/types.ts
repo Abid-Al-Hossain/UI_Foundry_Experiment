@@ -1,5 +1,3 @@
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-
 // ── Types ──
 export type TransitionEasing =
   | "ease"
@@ -18,6 +16,7 @@ export type ToggleState = {
   disabled: boolean;
   labelText: string;
   labelPosition: LabelPosition;
+  id: string;
   name: string;
   value: string;
 
@@ -49,8 +48,10 @@ export type ToggleState = {
   transitionEasing: TransitionEasing;
 
   // ── Focus ──
+  focusRingEnabled: boolean;
   focusRingColor: string;
   focusRingWidth: number;
+  focusRingOffset: number;
 
   // ── Hover ──
   hoverTrackOffBg: string;
@@ -60,6 +61,14 @@ export type ToggleState = {
   // ── Disabled ──
   disabledOpacity: number;
   disabledCursor: "not-allowed" | "default";
+  disabledUseCustomColors: boolean;
+  disabledTrackBg: string;
+  disabledThumbBg: string;
+  disabledTextColor: string;
+
+  // ── Loading ──
+  loadingEnabled: boolean;
+  loadingAnimation: "spin" | "pulse" | "none";
 
   // ── Label Typography ──
   fontBucket: "system" | "google";
@@ -89,12 +98,33 @@ export type ToggleState = {
 
   // ── Accessibility ──
   ariaLabel: string;
+  ariaDescribedBy: string;
+  ariaRequired: boolean;
+  tabIndex: number;
+  dir: "ltr" | "rtl";
+  lang: string;
+  title: string;
   role: string;
+  descriptionText: string;
+  descriptionColor: string;
+  helperText: string;
+  helperColor: string;
+  errorText: string;
+  errorColor: string;
+  errorTrackBg: string;
+  errorThumbBg: string;
+  successText: string;
+  successColor: string;
 
   // ── Download ──
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
+
+export type ToggleKeyUpdater = <K extends keyof ToggleState>(
+  key: K,
+) => (
+  val: ToggleState[K] | ((prev: ToggleState[K]) => ToggleState[K]),
+) => void;
 
 // ── Initial State ──
 export const INITIAL_STATE: ToggleState = {
@@ -102,6 +132,7 @@ export const INITIAL_STATE: ToggleState = {
   disabled: false,
   labelText: "Enable notifications",
   labelPosition: "right",
+  id: "toggle-switch",
   name: "toggle",
   value: "on",
 
@@ -130,8 +161,10 @@ export const INITIAL_STATE: ToggleState = {
   transitionDuration: 200,
   transitionEasing: "ease",
 
+  focusRingEnabled: true,
   focusRingColor: "#3b82f6",
   focusRingWidth: 3,
+  focusRingOffset: 2,
 
   hoverTrackOffBg: "#b0bec5",
   hoverTrackOnBg: "#2563eb",
@@ -139,6 +172,13 @@ export const INITIAL_STATE: ToggleState = {
 
   disabledOpacity: 0.5,
   disabledCursor: "not-allowed",
+  disabledUseCustomColors: false,
+  disabledTrackBg: "#e2e8f0",
+  disabledThumbBg: "#f8fafc",
+  disabledTextColor: "#94a3b8",
+
+  loadingEnabled: false,
+  loadingAnimation: "spin",
 
   // ── Label Typography ──
   fontBucket: "system",
@@ -167,8 +207,23 @@ export const INITIAL_STATE: ToggleState = {
   shadowColor: "#000000",
 
   ariaLabel: "",
+  ariaDescribedBy: "",
+  ariaRequired: false,
+  tabIndex: 0,
+  dir: "ltr",
+  lang: "en",
+  title: "",
   role: "switch",
+  descriptionText: "",
+  descriptionColor: "#475569",
+  helperText: "",
+  helperColor: "#64748b",
+  errorText: "",
+  errorColor: "#ef4444",
+  errorTrackBg: "#fecaca",
+  errorThumbBg: "#ffffff",
+  successText: "",
+  successColor: "#10b981",
 
-  downloadFormat: "html",
   downloadName: "toggle-switch",
 };

@@ -59,23 +59,39 @@ To add a new component to the Foundry:
 ---
 
 ## 🗂️ Premium Component Gallery
-The Foundry currently houses **15+ high-fidelity components**:
+The Foundry currently houses **65 high-fidelity components**, each with a full Studio (live preview, presets, undo/redo, and multi-format export):
 
-### ⚛️ Atomic Components
-- **Button Pro**: Magnetic hover, 3D embossed states, and loading transitions.
-- **Avatar Pro**: Status presence, 3D orbit effects, and automatic grouping.
-- **Icon Studio**: Real-time SVG manipulation and scaling engine.
-- **Badge**: Dynamic status labels with 3D depth and shimmer effects.
+### ⚛️ Basic / Atomic
 
-### 🎛️ Input Controls
-- **Toggle / Switch**: Precision thumb tracking and custom track animations.
-- **Checkbox/Radio**: Path-animated checkmarks and custom grouped layouts.
-- **Typography Engine**: Integrated Google Font loader and scale generator.
+Avatar · Badge / Tag · Button · Divider · Icon · Image · Progress Bar · Spinner · Text / Typography · Tooltip
 
-### 🌊 Layout & Feedback
-- **Progress Bar**: Glitch effects, liquid fills, and 3D cuboid modes.
-- **Spinner**: 12+ optimized SVG-based loading indicators.
-- **Tooltip**: Physics-based positioning and arrow customization.
+### 🎛️ Input & Form
+
+Checkbox · Date Picker · File Upload · OTP / PIN Input · Radio Button · Range Slider · Search Input · Select / Dropdown · Text Input · Textarea · Time Picker · Toggle / Switch
+
+### 🧱 Layout
+
+Container · Divider (Layout) · Flex Wrapper · Footer · Grid · Header · Navbar · Section · Sidebar · Spacer
+
+### 📊 Data Display
+
+Accordion · Card · List · Pagination · Statistic · Table · Tabs · Timeline · Tree View
+
+### 🔔 Feedback & Status
+
+Alert · Drawer · Empty State · Modal / Dialog · Popover · Skeleton · Toast
+
+### 🧭 Navigation
+
+Breadcrumb · Dropdown Menu · Mega Menu · Menu · Stepper
+
+### 🎬 Media & Interactive
+
+Audio Player · Carousel · Chart · Gallery · Lightbox · Video Player
+
+### 🧪 Advanced
+
+Auth Form · Command Palette · Drag & Drop · Filter Panel · Rich Text Editor · Settings Panel
 
 ---
 

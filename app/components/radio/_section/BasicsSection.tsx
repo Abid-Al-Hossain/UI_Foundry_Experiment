@@ -5,9 +5,9 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import { RadioState, RadioOption } from "../types";
+import { RadioState, RadioOption, RadioSetter } from "../types";
 
 export default function BasicsSection({
   state,
@@ -15,7 +15,7 @@ export default function BasicsSection({
   updateState,
 }: {
   state: RadioState;
-  setKey: (key: keyof RadioState) => (val: any) => void;
+  setKey: RadioSetter;
   updateState?: (fn: (prev: RadioState) => RadioState) => void;
 }) {
   const addOption = () => {
@@ -36,38 +36,50 @@ export default function BasicsSection({
     updateState((prev) => ({
       ...prev,
       options: prev.options.filter((_, i) => i !== idx),
+      selectedValue: (() => {
+        const removedValue = prev.options[idx]?.value;
+        if (prev.selectedValue !== removedValue) return prev.selectedValue;
+
+        const fallback =
+          prev.options[idx + 1]?.value ??
+          prev.options[idx - 1]?.value ??
+          prev.options.filter((_, i) => i !== idx)[0]?.value ??
+          "";
+        return fallback;
+      })(),
     }));
   };
-  const updateOption = (idx: number, key: keyof RadioOption, val: any) => {
+  const updateOption = <K extends keyof RadioOption>(
+    idx: number,
+    key: K,
+    val: RadioOption[K],
+  ) => {
     if (!updateState) return;
-    updateState((prev) => ({
-      ...prev,
-      options: prev.options.map((o, i) =>
+    updateState((prev) => {
+      const options = prev.options.map((o, i) =>
         i === idx ? { ...o, [key]: val } : o,
-      ),
-    }));
+      );
+      let selectedValue = prev.selectedValue;
+      if (key === "value" && prev.selectedValue === prev.options[idx]?.value) {
+        selectedValue = String(val);
+      }
+      return {
+        ...prev,
+        options,
+        selectedValue,
+      };
+    });
   };
 
   return (
     <SectionCard title="Basics" subtitle="Group configuration and options.">
       <div className="space-y-4">
-        <LabeledField label="Group Name">
-          <input
-            value={state.name}
-            onChange={(e) => setKey("name")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
-        </LabeledField>
         <LabeledField label="Orientation">
           <Segmented
             value={state.orientation}
-            onChange={(v) => setKey("orientation")(v)}
+            onChange={(v) =>
+              setKey("orientation")(v as RadioState["orientation"])
+            }
             items={[
               { value: "vertical", label: "Vertical" },
               { value: "horizontal", label: "Horizontal" },
@@ -85,7 +97,9 @@ export default function BasicsSection({
         <LabeledField label="Label Position">
           <Segmented
             value={state.labelPosition}
-            onChange={(v) => setKey("labelPosition")(v)}
+            onChange={(v) =>
+              setKey("labelPosition")(v as RadioState["labelPosition"])
+            }
             items={[
               { value: "right", label: "Right" },
               { value: "left", label: "Left" },

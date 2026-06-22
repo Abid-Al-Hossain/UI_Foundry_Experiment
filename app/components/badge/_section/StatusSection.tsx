@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 
 const PRESET_STATUS_COLORS = ["#ef4444", "#10b981", "#f59e0b", "#64748b"];

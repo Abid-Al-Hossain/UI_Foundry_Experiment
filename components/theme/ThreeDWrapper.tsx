@@ -59,17 +59,21 @@ export default function ThreeDWrapper({
     return <div className="h-full w-full">{children}</div>;
   }
 
+  // Scroll-safe tilt: apply a self-contained flat perspective transform
+  // (transformPerspective on the element itself) instead of establishing a
+  // shared preserve-3d 3D context. A flat transformed ancestor does NOT break
+  // descendant overflow scrolling, whereas transform-style: preserve-3d does.
   return (
     <motion.div
       ref={ref}
       style={{
         rotateX,
         rotateY,
-        transformStyle: "preserve-3d",
+        transformPerspective: settings3d.perspective || 1200,
         width: "100%",
         height: "100%",
       }}
-      className="origin-center"
+      className="origin-center h-full w-full"
     >
       {children}
     </motion.div>

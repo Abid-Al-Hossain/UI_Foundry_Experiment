@@ -9,40 +9,47 @@ import React, {
 } from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 // Fix IDE staleness
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // --- Sections (we will create these next) ---
+import PresetsSection from "../_section/PresetsSection";
 import ContentSection from "../_section/ContentSection";
-import AppearanceSection from "../_section/AppearanceSection";
+import BadgeStyleSection from "../_section/BadgeStyleSection";
+import BadgeColorsSection from "../_section/BadgeColorsSection";
+import BadgeSizingSection from "../_section/BadgeSizingSection";
+import BadgeTypographySection from "../_section/BadgeTypographySection";
+import BadgeMetadataSection from "../_section/BadgeMetadataSection";
+import BadgeInteractionSection from "../_section/BadgeInteractionSection";
+import BadgeStatesSection from "../_section/BadgeStatesSection";
+import BadgeMotionSection from "../_section/BadgeMotionSection";
 import StatusSection from "../_section/StatusSection";
 import EffectsSection from "../_section/EffectsSection";
 import ThreeBadgeSection from "../_section/ThreeBadgeSection";
-import BadgeAccessibilitySection from "./_section/BadgeAccessibilitySection";
+import BadgeAccessibilitySection from "../_section/BadgeAccessibilitySection";
 import { buildBadgeExportPayload } from "../_utils/exportUtils";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 
 // --- Types ---
 // --- Types ---
 import {
-  type BadgeVariant,
-  type BadgeShape,
-  type BadgeSize,
-  type BadgeIconPosition,
   type BadgeState,
   INITIAL_BADGE_STATE,
 } from "../types";
 
 export default function BadgePage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
 
   // Unified History State
   const {
@@ -54,6 +61,19 @@ export default function BadgePage() {
     canUndo,
     canRedo,
   } = useHistoryState<BadgeState>(INITIAL_BADGE_STATE);
+
+  type SetterValue<T> = T | ((prev: T) => T);
+  const makeSetter =
+    <K extends keyof BadgeState>(key: K) =>
+    (value: SetterValue<BadgeState[K]>) => {
+      updateState((current) => ({
+        ...current,
+        [key]:
+          typeof value === "function"
+            ? (value as (prev: BadgeState[K]) => BadgeState[K])(current[key])
+            : value,
+      }));
+    };
 
   // Destructure for easier passing
   const {
@@ -96,260 +116,155 @@ export default function BadgePage() {
     interactive,
     hoverScale,
     clickRipple,
+    borderStyle,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+    transitionDuration,
+    transitionEasing,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingColor,
+    hoverBgColor,
+    hoverTextColor,
+    letterSpacing,
+    textTransform,
     ariaLabel,
     ariaRole,
     ariaLive,
   } = state;
 
-  // -- Setters (Boilerplate Proxies) --
-  const setKey = (key: string) => (v: any) => {
-    updateState((s) => ({
-      ...s,
-      [key]: typeof v === "function" ? v(s[key as keyof BadgeState]) : v,
-    }));
-  };
-
-  // I'll create a helper or just define them inline in sections for brevity if possible,
-  // but sticking to your pattern:
-  const setLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      label: typeof v === "function" ? v(s.label) : v,
-    }));
-  const setCount = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      count: typeof v === "function" ? v(s.count) : v,
-    }));
-  const setShowIcon = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      showIcon: typeof v === "function" ? v(s.showIcon) : v,
-    }));
-  const setIconName = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconName: typeof v === "function" ? v(s.iconName) : v,
-    }));
-  const setIconPosition = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconPosition: typeof v === "function" ? v(s.iconPosition) : v,
-    }));
-  const setIconGap = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconGap: typeof v === "function" ? v(s.iconGap) : v,
-    }));
-  const setIconSize = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconSize: typeof v === "function" ? v(s.iconSize) : v,
-    }));
-
-  const setVariant = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      variant: typeof v === "function" ? v(s.variant) : v,
-    }));
-  const setShape = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shape: typeof v === "function" ? v(s.shape) : v,
-    }));
-  const setSize = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      size: typeof v === "function" ? v(s.size) : v,
-    }));
-  const setColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      color: typeof v === "function" ? v(s.color) : v,
-    }));
-  const setTextColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      textColor: typeof v === "function" ? v(s.textColor) : v,
-    }));
-
-  const setPaddingX = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      paddingX: typeof v === "function" ? v(s.paddingX) : v,
-    }));
-  const setPaddingY = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      paddingY: typeof v === "function" ? v(s.paddingY) : v,
-    }));
-  const setFontSize = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontSize: typeof v === "function" ? v(s.fontSize) : v,
-    }));
-  const setBorderRadius = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderRadius: typeof v === "function" ? v(s.borderRadius) : v,
-    }));
-  const setBorderWidth = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderWidth: typeof v === "function" ? v(s.borderWidth) : v,
-    }));
-
-  const setShowDot = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      showDot: typeof v === "function" ? v(s.showDot) : v,
-    }));
-  const setDotColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      dotColor: typeof v === "function" ? v(s.dotColor) : v,
-    }));
-  const setDotPulse = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      dotPulse: typeof v === "function" ? v(s.dotPulse) : v,
-    }));
-
-  const setGradientEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradientEnabled: typeof v === "function" ? v(s.gradientEnabled) : v,
-    }));
-  const setGradientStart = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradientStart: typeof v === "function" ? v(s.gradientStart) : v,
-    }));
-  const setGradientEnd = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradientEnd: typeof v === "function" ? v(s.gradientEnd) : v,
-    }));
-  const setGradientAngle = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradientAngle: typeof v === "function" ? v(s.gradientAngle) : v,
-    }));
-  const setDropShadow = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      dropShadow: typeof v === "function" ? v(s.dropShadow) : v,
-    }));
-  const setShadowColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shadowColor: typeof v === "function" ? v(s.shadowColor) : v,
-    }));
-  const setShadowBlur = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shadowBlur: typeof v === "function" ? v(s.shadowBlur) : v,
-    }));
-
-  const setUse3D = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      use3D: typeof v === "function" ? v(s.use3D) : v,
-    }));
-  const setDepth = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      depth: typeof v === "function" ? v(s.depth) : v,
-    }));
-  const setTiltEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tiltEnabled: typeof v === "function" ? v(s.tiltEnabled) : v,
-    }));
-  const setTiltMax = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tiltMax: typeof v === "function" ? v(s.tiltMax) : v,
-    }));
-  const setGlareOpacity = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      glareOpacity: typeof v === "function" ? v(s.glareOpacity) : v,
-    }));
-
-  const setIcon3DEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DEnabled: typeof v === "function" ? v(s.icon3DEnabled) : v,
-    }));
-  const setIcon3DGeometry = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DGeometry: typeof v === "function" ? v(s.icon3DGeometry) : v,
-    }));
-  const setIcon3DSpinSpeed = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DSpinSpeed: typeof v === "function" ? v(s.icon3DSpinSpeed) : v,
-    }));
-
-  const setDismissible = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      dismissible: typeof v === "function" ? v(s.dismissible) : v,
-    }));
-  const setInteractive = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      interactive: typeof v === "function" ? v(s.interactive) : v,
-    }));
-  const setHoverScale = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverScale: typeof v === "function" ? v(s.hoverScale) : v,
-    }));
-  const setClickRipple = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      clickRipple: typeof v === "function" ? v(s.clickRipple) : v,
-    }));
-  const setAriaLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaLabel: typeof v === "function" ? v(s.ariaLabel) : v,
-    }));
-  const setAriaRole = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaRole: typeof v === "function" ? v(s.ariaRole) : v,
-    }));
-  const setAriaLive = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaLive: typeof v === "function" ? v(s.ariaLive) : v,
-    }));
+  // -- Setters (typed proxies) --
+  const setKey = makeSetter;
 
   // --- Export Logic ---
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("badge-component");
-
-  const previewPayload = { ...state };
 
   useEffect(() => {
     if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(previewPayload, "*");
+      iframeRef.current.contentWindow.postMessage(state, "*");
     }
-  }, [previewPayload]);
+  }, [state]);
 
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
     return {
-      downloadFormat,
       downloadName: downloadName || "badge-component",
-      ...state,
+      label,
+      count,
+      showIcon,
+      iconName,
+      iconPosition,
+      iconGap,
+      iconSize,
+      variant,
+      shape,
+      size,
+      color,
+      textColor,
+      paddingX,
+      paddingY,
+      fontSize,
+      borderRadius,
+      borderWidth,
+      showDot,
+      dotColor,
+      dotPulse,
+      gradientEnabled,
+      gradientStart,
+      gradientEnd,
+      gradientAngle,
+      dropShadow,
+      shadowColor,
+      shadowBlur,
+      use3D,
+      depth,
+      tiltEnabled,
+      tiltMax,
+      glareOpacity,
+      icon3DEnabled,
+      icon3DGeometry,
+      icon3DSpinSpeed,
+      dismissible,
+      interactive,
+      hoverScale,
+      clickRipple,
+      borderStyle,
+      disabled,
+      disabledOpacity,
+      disabledCursor,
+      transitionDuration,
+      transitionEasing,
+      focusRingEnabled,
+      focusRingWidth,
+      focusRingColor,
+      hoverBgColor,
+      hoverTextColor,
+      letterSpacing,
+      textTransform,
+      ariaLabel,
+      ariaRole,
+      ariaLive,
     };
-  }, [downloadFormat, downloadName, state]);
+  }, [
+    downloadName,
+    label,
+    count,
+    showIcon,
+    iconName,
+    iconPosition,
+    iconGap,
+    iconSize,
+    variant,
+    shape,
+    size,
+    color,
+    textColor,
+    paddingX,
+    paddingY,
+    fontSize,
+    borderRadius,
+    borderWidth,
+    showDot,
+    dotColor,
+    dotPulse,
+    gradientEnabled,
+    gradientStart,
+    gradientEnd,
+    gradientAngle,
+    dropShadow,
+    shadowColor,
+    shadowBlur,
+    use3D,
+    depth,
+    tiltEnabled,
+    tiltMax,
+    glareOpacity,
+    icon3DEnabled,
+    icon3DGeometry,
+    icon3DSpinSpeed,
+    dismissible,
+    interactive,
+    hoverScale,
+    clickRipple,
+    borderStyle,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+    transitionDuration,
+    transitionEasing,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingColor,
+    hoverBgColor,
+    hoverTextColor,
+    letterSpacing,
+    textTransform,
+    ariaLabel,
+    ariaRole,
+    ariaLive,
+  ]);
 
   const deferredExportPayload = useDeferredValue(exportPayload);
 
@@ -374,49 +289,106 @@ export default function BadgePage() {
 
   const sectionItems = [
     {
+      id: "presets",
+      label: "Presets",
+      content: (
+        <PresetsSection
+          state={state}
+          applyPreset={(preset) => {
+            updateState((current) => ({ ...current, ...preset.state }));
+            setPreviewResetKey((value) => value + 1);
+          }}
+        />
+      ),
+    },
+    {
+      id: "metadata",
+      label: "Metadata",
+      content: (
+        <BadgeMetadataSection
+          ariaLabel={ariaLabel}
+          setAriaLabel={makeSetter("ariaLabel")}
+          ariaRole={ariaRole}
+          setAriaRole={makeSetter("ariaRole")}
+          ariaLive={ariaLive}
+          setAriaLive={makeSetter("ariaLive")}
+        />
+      ),
+    },
+    {
       id: "content",
       label: "Content",
       content: <ContentSection state={state} setKey={setKey} />,
     },
     {
-      id: "appearance",
-      label: "Appearance",
+      id: "styling",
+      label: "Styling",
       content: (
-        <AppearanceSection
+        <BadgeStyleSection
           variant={variant}
-          setVariant={setVariant}
+          setVariant={makeSetter("variant")}
           shape={shape}
-          setShape={setShape}
+          setShape={makeSetter("shape")}
           size={size}
-          setSize={setSize}
+          setSize={makeSetter("size")}
+        />
+      ),
+    },
+    {
+      id: "colors",
+      label: "Colors",
+      content: (
+        <BadgeColorsSection
           color={color}
-          setColor={setColor}
+          setColor={makeSetter("color")}
           textColor={textColor}
-          setTextColor={setTextColor}
+          setTextColor={makeSetter("textColor")}
+        />
+      ),
+    },
+    {
+      id: "sizing",
+      label: "Sizing",
+      content: (
+        <BadgeSizingSection
+          shape={shape}
           paddingX={paddingX}
-          setPaddingX={setPaddingX}
+          setPaddingX={makeSetter("paddingX")}
           paddingY={paddingY}
-          setPaddingY={setPaddingY}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
+          setPaddingY={makeSetter("paddingY")}
           borderRadius={borderRadius}
-          setBorderRadius={setBorderRadius}
+          setBorderRadius={makeSetter("borderRadius")}
           borderWidth={borderWidth}
-          setBorderWidth={setBorderWidth}
+          setBorderWidth={makeSetter("borderWidth")}
+        />
+      ),
+    },
+    {
+      id: "typography",
+      label: "Typography",
+      content: (
+        <BadgeTypographySection
+          showIcon={showIcon}
+          fontSize={fontSize}
+          setFontSize={makeSetter("fontSize")}
+          iconSize={iconSize}
+          setIconSize={makeSetter("iconSize")}
+          iconGap={iconGap}
+          setIconGap={makeSetter("iconGap")}
         />
       ),
     },
     {
       id: "status",
-      label: "Status & Dot",
+      label: "Status",
       content: (
         <StatusSection
           showDot={showDot}
-          setShowDot={setShowDot}
+          setShowDot={makeSetter("showDot")}
           dotColor={dotColor}
-          setDotColor={setDotColor}
+          setDotColor={makeSetter("dotColor")}
           dotPulse={dotPulse}
-          setDotPulse={setDotPulse}
+          setDotPulse={makeSetter("dotPulse")}
         />
       ),
     },
@@ -426,63 +398,85 @@ export default function BadgePage() {
       content: (
         <EffectsSection
           gradientEnabled={gradientEnabled}
-          setGradientEnabled={setGradientEnabled}
+          setGradientEnabled={makeSetter("gradientEnabled")}
           gradientStart={gradientStart}
-          setGradientStart={setGradientStart}
+          setGradientStart={makeSetter("gradientStart")}
           gradientEnd={gradientEnd}
-          setGradientEnd={setGradientEnd}
+          setGradientEnd={makeSetter("gradientEnd")}
           gradientAngle={gradientAngle}
-          setGradientAngle={setGradientAngle}
+          setGradientAngle={makeSetter("gradientAngle")}
           dropShadow={dropShadow}
-          setDropShadow={setDropShadow}
+          setDropShadow={makeSetter("dropShadow")}
           shadowColor={shadowColor}
-          setShadowColor={setShadowColor}
+          setShadowColor={makeSetter("shadowColor")}
           shadowBlur={shadowBlur}
-          setShadowBlur={setShadowBlur}
-          interactive={interactive}
-          setInteractive={setInteractive}
-          hoverScale={hoverScale}
-          setHoverScale={setHoverScale}
-          clickRipple={clickRipple}
-          setClickRipple={setClickRipple}
+          setShadowBlur={makeSetter("shadowBlur")}
         />
       ),
     },
     {
-      id: "3d",
-      label: "3D Engine",
+      id: "interaction",
+      label: "Interaction",
+      content: (
+        <BadgeInteractionSection
+          interactive={interactive}
+          setInteractive={makeSetter("interactive")}
+          dismissible={dismissible}
+          setDismissible={makeSetter("dismissible")}
+        />
+      ),
+    },
+    {
+      id: "states",
+      label: "States",
+      content: <BadgeStatesSection state={state} makeSetter={makeSetter} />,
+    },
+    {
+      id: "motion",
+      label: "Motion",
+      content: (
+        <BadgeMotionSection
+          interactive={interactive}
+          hoverScale={hoverScale}
+          setHoverScale={makeSetter("hoverScale")}
+          clickRipple={clickRipple}
+          setClickRipple={makeSetter("clickRipple")}
+          icon3DEnabled={icon3DEnabled}
+          icon3DSpinSpeed={icon3DSpinSpeed}
+          setIcon3DSpinSpeed={makeSetter("icon3DSpinSpeed")}
+        />
+      ),
+    },
+    {
+      id: "depth",
+      label: "Depth",
       content: (
         <ThreeBadgeSection
           use3D={use3D}
-          setUse3D={setUse3D}
+          setUse3D={makeSetter("use3D")}
           depth={depth}
-          setDepth={setDepth}
+          setDepth={makeSetter("depth")}
           tiltEnabled={tiltEnabled}
-          setTiltEnabled={setTiltEnabled}
+          setTiltEnabled={makeSetter("tiltEnabled")}
           tiltMax={tiltMax}
-          setTiltMax={setTiltMax}
+          setTiltMax={makeSetter("tiltMax")}
           glareOpacity={glareOpacity}
-          setGlareOpacity={setGlareOpacity}
+          setGlareOpacity={makeSetter("glareOpacity")}
           icon3DEnabled={icon3DEnabled}
-          setIcon3DEnabled={setIcon3DEnabled}
+          setIcon3DEnabled={makeSetter("icon3DEnabled")}
           icon3DGeometry={icon3DGeometry}
-          setIcon3DGeometry={setIcon3DGeometry}
-          icon3DSpinSpeed={icon3DSpinSpeed}
-          setIcon3DSpinSpeed={setIcon3DSpinSpeed}
+          setIcon3DGeometry={makeSetter("icon3DGeometry")}
         />
       ),
     },
     {
-      id: "a11y",
-      label: "A11y",
+      id: "accessibility",
+      label: "Accessibility",
       content: (
         <BadgeAccessibilitySection
-          ariaLabel={ariaLabel}
-          setAriaLabel={setAriaLabel}
           ariaRole={ariaRole}
-          setAriaRole={setAriaRole}
           ariaLive={ariaLive}
-          setAriaLive={setAriaLive}
+          ariaLabel={ariaLabel}
           label={label}
           count={count}
         />
@@ -498,7 +492,10 @@ export default function BadgePage() {
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={() => {
+        reset();
+        setPreviewResetKey((value) => value + 1);
+      }}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -522,16 +519,19 @@ export default function BadgePage() {
       iframeSrcDoc=""
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -540,6 +540,7 @@ export default function BadgePage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

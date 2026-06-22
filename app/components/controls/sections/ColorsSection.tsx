@@ -4,7 +4,6 @@ import React from "react";
 import { SectionCard } from "../layout/SectionCard";
 import ColorControl from "../color/ColorControl";
 import GradientControl from "../effects/GradientControl";
-import Switch from "../input/Switch";
 
 export interface GradientConfig {
   enabled: boolean;

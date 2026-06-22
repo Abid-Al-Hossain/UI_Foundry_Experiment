@@ -5,11 +5,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
-import { TextInputState } from "../types";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 const PRESET_COLORS = [
   "#334155",
@@ -26,12 +26,12 @@ export default function LabelsSection({
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   return (
     <SectionCard
       title="Labels & Messages"
-      subtitle="Label, helper, and error text."
+      subtitle="Label composition, supporting copy, and validation messages."
     >
       <div className="space-y-4">
         <LabeledField label="Label Text">
@@ -50,7 +50,9 @@ export default function LabelsSection({
         <LabeledField label="Position">
           <Segmented
             value={state.labelPosition}
-            onChange={(v) => setKey("labelPosition")(v)}
+            onChange={(v) =>
+              setKey("labelPosition")(v as TextInputState["labelPosition"])
+            }
             items={[
               { value: "top", label: "Top" },
               { value: "left", label: "Left" },
@@ -76,7 +78,11 @@ export default function LabelsSection({
         <LabeledField label="Font Weight">
           <Select
             value={String(state.labelFontWeight)}
-            onChange={(v) => setKey("labelFontWeight")(Number(v))}
+            onChange={(v) =>
+              setKey("labelFontWeight")(
+                Number(v) as TextInputState["labelFontWeight"],
+              )
+            }
             options={[
               { value: "400", label: "Regular" },
               { value: "500", label: "Medium" },
@@ -143,6 +149,25 @@ export default function LabelsSection({
             value={state.helperColor}
             onChange={setKey("helperColor")}
           />
+          <LabeledField label="Description Text">
+            <input
+              value={state.descriptionText}
+              onChange={(e) => setKey("descriptionText")(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  "color-mix(in oklab, var(--surface) 70%, transparent)",
+                color: "var(--text)",
+              }}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Description Color"
+            palette={PRESET_COLORS}
+            value={state.descriptionColor}
+            onChange={setKey("descriptionColor")}
+          />
           <LabeledField label="Error Text">
             <input
               value={state.errorText}
@@ -161,6 +186,25 @@ export default function LabelsSection({
             palette={PRESET_COLORS}
             value={state.errorColor}
             onChange={setKey("errorColor")}
+          />
+          <LabeledField label="Success Text">
+            <input
+              value={state.successText}
+              onChange={(e) => setKey("successText")(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
+              style={{
+                borderColor: "var(--border)",
+                background:
+                  "color-mix(in oklab, var(--surface) 70%, transparent)",
+                color: "var(--text)",
+              }}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Success Color"
+            palette={PRESET_COLORS}
+            value={state.successColor}
+            onChange={setKey("successColor")}
           />
         </div>
       </div>

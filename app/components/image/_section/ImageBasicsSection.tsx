@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import type { ImageState } from "../types";
-import Slider from "@/app/components/controls/input/Slider";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import Input from "@/app/components/controls/input/Input";
@@ -47,10 +47,13 @@ export default function ImageBasicsSection({
                 }}
                 title={preset.label}
               >
-                <img
+                <Image
                   src={preset.url}
                   alt={preset.label}
-                  className="w-full h-full object-cover"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 33vw, 120px"
+                  className="object-cover"
                 />
               </button>
             ))}
@@ -63,14 +66,6 @@ export default function ImageBasicsSection({
         </div>
       </LabeledField>
 
-      <LabeledField label="Alt Text" hint="">
-        <Input
-          value={state.alt}
-          onChange={(e) => setKey("alt")(e.target.value)}
-          placeholder="Describe the image..."
-        />
-      </LabeledField>
-
       <div className="grid grid-cols-2 gap-4">
         <LabeledField label="Width" hint="">
           <div className="flex gap-2">
@@ -80,10 +75,12 @@ export default function ImageBasicsSection({
               className="flex-1"
             />
             <div className="w-20">
-              <SegmentedControl
-                value={state.widthUnit}
-                onChange={(v) => setKey("widthUnit")(v as any)}
-                items={[
+            <SegmentedControl
+              value={state.widthUnit}
+              onChange={(v) =>
+                setKey("widthUnit")(v as ImageState["widthUnit"])
+              }
+              items={[
                   { value: "px", label: "px" },
                   { value: "%", label: "%" },
                   { value: "auto", label: "A" },
@@ -101,10 +98,12 @@ export default function ImageBasicsSection({
               className="flex-1"
             />
             <div className="w-20">
-              <SegmentedControl
-                value={state.heightUnit}
-                onChange={(v) => setKey("heightUnit")(v as any)}
-                items={[
+            <SegmentedControl
+              value={state.heightUnit}
+              onChange={(v) =>
+                setKey("heightUnit")(v as ImageState["heightUnit"])
+              }
+              items={[
                   { value: "px", label: "px" },
                   { value: "%", label: "%" },
                   { value: "auto", label: "A" },
@@ -117,12 +116,14 @@ export default function ImageBasicsSection({
 
       <LabeledField label="Aspect Ratio" hint="">
         <div className="grid grid-cols-4 gap-2">
-          {["1/1", "16/9", "4/3", "3/2", "21/9", "2/3", "9/16", "none"].map(
+          {["1/1", "16/9", "4/3", "3/2", "21/9", "2/3", "9/16", "none", "custom"].map(
             (ratio) => (
               <button
                 key={ratio}
                 type="button"
-                onClick={() => setKey("aspectRatio")(ratio as any)}
+                onClick={() =>
+                  setKey("aspectRatio")(ratio as ImageState["aspectRatio"])
+                }
                 className="px-2 py-2 rounded-lg border text-xs font-medium transition-all"
                 style={{
                   borderColor:
@@ -141,12 +142,18 @@ export default function ImageBasicsSection({
             ),
           )}
         </div>
+        {state.aspectRatio === "custom" && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <Input label="Width" value={state.customAspectWidth} onChange={(v) => setKey("customAspectWidth")(v)} />
+            <Input label="Height" value={state.customAspectHeight} onChange={(v) => setKey("customAspectHeight")(v)} />
+          </div>
+        )}
       </LabeledField>
 
       <LabeledField label="Object Fit" hint="">
         <SegmentedControl
           value={state.objectFit}
-          onChange={(v) => setKey("objectFit")(v as any)}
+          onChange={(v) => setKey("objectFit")(v as ImageState["objectFit"])}
           items={[
             { value: "cover", label: "Cover" },
             { value: "contain", label: "Contain" },
@@ -156,38 +163,6 @@ export default function ImageBasicsSection({
         />
       </LabeledField>
 
-      <LabeledField
-        label="Object Position"
-        hint={`${state.objectPositionX}% ${state.objectPositionY}%`}
-      >
-        <div className="space-y-3">
-          <Slider
-            min={0}
-            max={100}
-            step={1}
-            value={state.objectPositionX}
-            onChange={setKey("objectPositionX")}
-          />
-          <Slider
-            min={0}
-            max={100}
-            step={1}
-            value={state.objectPositionY}
-            onChange={setKey("objectPositionY")}
-          />
-        </div>
-      </LabeledField>
-
-      <LabeledField label="Loading Mode" hint="">
-        <SegmentedControl
-          value={state.loading}
-          onChange={(v) => setKey("loading")(v as any)}
-          items={[
-            { value: "lazy", label: "Lazy" },
-            { value: "eager", label: "Eager" },
-          ]}
-        />
-      </LabeledField>
     </div>
   );
 }

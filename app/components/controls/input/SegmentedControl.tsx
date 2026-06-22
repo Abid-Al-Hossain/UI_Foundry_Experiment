@@ -3,24 +3,27 @@
 import React from "react";
 
 export function SegmentedControl(props: {
+  label?: string;
   value: string;
-  onChange: (v: string) => void;
-  items: { value: string; label: string }[];
+  onChange: (v: any) => void;
+  items?: { value: string; label: string }[];
+  options?: { value: string; label: string }[];
 }) {
-  return (
+  const items = props.items ?? props.options ?? [];
+  const control = (
     <div
-      className="inline-flex w-full rounded-xl border p-1"
+      className="flex flex-wrap w-full gap-1.5 rounded-xl border p-1"
       style={{
         borderColor: "var(--border)",
         background: "color-mix(in oklab, var(--surface) 65%, transparent)",
       }}
     >
-      {props.items.map((it) => (
+      {items.map((it) => (
         <button
           key={it.value}
           type="button"
           onClick={() => props.onChange(it.value)}
-          className="w-full rounded-lg px-3 py-2 text-sm font-semibold uf-clickable transition-all"
+          className="flex-1 min-w-[64px] rounded-lg px-2.5 py-2 text-sm font-semibold uf-clickable transition-all whitespace-normal break-words text-center leading-tight"
           style={{
             background:
               props.value === it.value ? "var(--primary)" : "transparent",
@@ -32,6 +35,17 @@ export function SegmentedControl(props: {
           {it.label}
         </button>
       ))}
+    </div>
+  );
+
+  if (!props.label) return control;
+
+  return (
+    <div className="grid gap-2">
+      <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+        {props.label}
+      </div>
+      {control}
     </div>
   );
 }

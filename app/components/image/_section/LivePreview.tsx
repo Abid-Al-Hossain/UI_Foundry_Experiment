@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import Image from "next/image";
 import type { ImageState } from "../types";
 
 interface LivePreviewProps {
@@ -9,6 +10,9 @@ interface LivePreviewProps {
 
 export default function LivePreview({ state }: LivePreviewProps) {
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
+  const [hasError, setHasError] = React.useState(false);
+  const [hasLoaded, setHasLoaded] = React.useState(false);
 
   // Build filter string
   const filterString = useMemo(() => {
@@ -55,12 +59,10 @@ export default function LivePreview({ state }: LivePreviewProps) {
   const transformString = useMemo(() => {
     const transforms: string[] = [];
 
-    const scaleXVal = state.flipHorizontal
-      ? -parseFloat(state.scaleX)
-      : parseFloat(state.scaleX);
-    const scaleYVal = state.flipVertical
-      ? -parseFloat(state.scaleY)
-      : parseFloat(state.scaleY);
+    const rawScaleX = parseFloat(state.scaleX);
+    const rawScaleY = state.scaleUnified ? rawScaleX : parseFloat(state.scaleY);
+    const scaleXVal = state.flipHorizontal ? -rawScaleX : rawScaleX;
+    const scaleYVal = state.flipVertical ? -rawScaleY : rawScaleY;
 
     // Hover Scale logic
     let hoverScale = 1;
@@ -162,6 +164,8 @@ export default function LivePreview({ state }: LivePreviewProps) {
     return "none";
   }, [state.clipPathShape]);
 
+  const imageRole = state.ariaRole === "none" ? undefined : state.ariaRole;
+
   // Build box shadow
   const boxShadow = useMemo(() => {
     if (!state.boxShadowEnabled) return "none";
@@ -218,14 +222,18 @@ export default function LivePreview({ state }: LivePreviewProps) {
   const wrapperStyle: React.CSSProperties = {
     position: "relative",
     display: "inline-block",
-    cursor: state.hoverEffect !== "none" ? "pointer" : "default",
-  };
-
-  // Main image styles
-  const imageStyle: React.CSSProperties = {
     width: widthValue,
     height: heightValue,
     aspectRatio: aspectRatioValue,
+    cursor: state.disabled ? "not-allowed" : state.hoverEffect !== "none" || state.linkHref ? "pointer" : "default",
+    outline: isFocused && state.focusRingEnabled && state.linkHref ? `${state.focusRingWidth}px solid ${state.focusRingColor}` : undefined,
+    outlineOffset: isFocused && state.focusRingEnabled && state.linkHref ? state.focusRingOffset : undefined,
+  };
+  const Wrapper = (state.linkHref ? "a" : "div") as unknown as React.ComponentType<Record<string, unknown>>;
+
+  // Main image styles. width/height/aspectRatio live on wrapperStyle instead,
+  // since the <Image fill> below cannot have its own width/height in style.
+  const imageStyle: React.CSSProperties = {
     objectFit: state.objectFit,
     objectPosition: `${state.objectPositionX}% ${state.objectPositionY}%`,
     filter: filterString,
@@ -238,13 +246,17 @@ export default function LivePreview({ state }: LivePreviewProps) {
         ? `${state.borderWidth}px ${state.borderStyle} ${state.borderColor}`
         : "none",
     boxShadow,
-    mixBlendMode: state.mixBlendMode as any,
+    mixBlendMode: state.mixBlendMode as React.CSSProperties["mixBlendMode"],
     maskImage: maskImage !== "none" ? maskImage : undefined,
     WebkitMaskImage: maskImage !== "none" ? maskImage : undefined,
     transition:
       state.hoverEffect !== "none"
         ? `all ${state.hoverDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`
-        : undefined,
+        : state.transitionDuration > 0
+          ? `opacity ${state.transitionDuration}ms ${state.transitionEasing}`
+          : undefined,
+    opacity: state.disabled ? state.disabledOpacity : hasLoaded || state.loadingPlaceholder === "none" ? 1 : 0,
+    pointerEvents: state.disabled ? "none" : undefined,
   };
 
   // Overlay styles
@@ -257,7 +269,8 @@ export default function LivePreview({ state }: LivePreviewProps) {
         height: "100%",
         backgroundColor: state.overlayColor,
         opacity: parseInt(state.overlayOpacity) / 100,
-        mixBlendMode: state.overlayBlendMode as any,
+        mixBlendMode:
+          state.overlayBlendMode as React.CSSProperties["mixBlendMode"],
         pointerEvents: "none",
         borderRadius,
         clipPath,
@@ -288,17 +301,17 @@ export default function LivePreview({ state }: LivePreviewProps) {
       filter: "grayscale(100%)",
       shadows: {
         backgroundColor: state.duotoneColor1,
-        mixBlendMode: "multiply" as any,
+        mixBlendMode: "multiply" as React.CSSProperties["mixBlendMode"],
       },
       highlights: {
         backgroundColor: state.duotoneColor2,
-        mixBlendMode: "screen" as any,
+        mixBlendMode: "screen" as React.CSSProperties["mixBlendMode"],
       },
     };
   }, [state.duotoneEnabled, state.duotoneColor1, state.duotoneColor2]);
 
   // Entrance Animation Styles
-  const animationStyle = useMemo(() => {
+  const animationStyle = useMemo<React.CSSProperties | undefined>(() => {
     if (state.entranceAnimation === "none") return undefined;
 
     const duration = `${state.entranceDuration}ms`;
@@ -376,7 +389,7 @@ export default function LivePreview({ state }: LivePreviewProps) {
     filter: duotoneStyles
       ? `${imageStyle.filter} grayscale(100%)`
       : imageStyle.filter,
-    ...(animationStyle as any),
+    ...(animationStyle ?? {}),
   };
 
   return (
@@ -388,18 +401,65 @@ export default function LivePreview({ state }: LivePreviewProps) {
         @keyframes image-entrance-blur-in { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
       `}</style>
 
-      <div
+      <Wrapper
+        {...(state.linkHref
+          ? { href: state.linkHref, target: state.linkTarget, rel: state.linkRel, tabIndex: state.disabled ? -1 : 0 }
+          : {})}
         style={wrapperStyle}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       >
-        <img
-          src={state.src}
-          alt={state.alt}
-          loading={state.loading}
-          style={finalImageStyle}
-          className="image-preview"
-        />
+        {hasError ? (
+          <div
+            role={imageRole}
+            aria-label={state.ariaHidden ? undefined : state.ariaLabel || state.alt}
+            aria-describedby={state.ariaDescribedBy || undefined}
+            aria-hidden={state.ariaHidden || undefined}
+            style={{
+              width: widthValue,
+              height: heightValue,
+              aspectRatio: aspectRatioValue,
+              borderRadius,
+              background: state.objectFitFallbackBg,
+            }}
+          />
+        ) : (
+          <>
+            {state.loadingPlaceholder !== "none" && !hasLoaded && (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius,
+                  background:
+                    state.loadingPlaceholder === "skeleton"
+                      ? `linear-gradient(90deg, ${state.loadingPlaceholderColor}, color-mix(in oklab, ${state.loadingPlaceholderColor} 60%, white), ${state.loadingPlaceholderColor})`
+                      : state.loadingPlaceholderColor,
+                  filter: state.loadingPlaceholder === "blur" ? "blur(12px)" : undefined,
+                }}
+              />
+            )}
+            <Image
+              src={state.src}
+              alt={state.alt}
+              role={imageRole}
+              aria-label={state.ariaHidden ? undefined : state.ariaLabel || undefined}
+              aria-describedby={state.ariaDescribedBy || undefined}
+              aria-hidden={state.ariaHidden || undefined}
+              decoding={state.decoding}
+              fill
+              unoptimized
+              sizes={widthValue}
+              style={finalImageStyle}
+              className="image-preview"
+              onLoad={() => setHasLoaded(true)}
+              onError={() => setHasError(true)}
+            />
+          </>
+        )}
 
         {/* Duotone Layers */}
         {duotoneStyles && (
@@ -441,7 +501,7 @@ export default function LivePreview({ state }: LivePreviewProps) {
             <div style={captionTextStyle}>{state.captionText}</div>
           </div>
         )}
-      </div>
+      </Wrapper>
     </div>
   );
 }

@@ -5,11 +5,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
-import { TextareaState } from "../types";
+import { type TextareaSetter, type TextareaState } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -28,7 +28,7 @@ export default function StatesSection({
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   return (
     <SectionCard title="States" subtitle="Focus, hover, and disabled states.">
@@ -71,7 +71,9 @@ export default function StatesSection({
           <LabeledField label="Outline Style">
             <Select
               value={state.focusOutlineStyle}
-              onChange={(v) => setKey("focusOutlineStyle")(v)}
+              onChange={(v) =>
+                setKey("focusOutlineStyle")(v as TextareaState["focusOutlineStyle"])
+              }
               options={[
                 { value: "none", label: "None" },
                 { value: "solid", label: "Solid" },
@@ -159,7 +161,9 @@ export default function StatesSection({
           <LabeledField label="Cursor">
             <Segmented
               value={state.disabledCursor}
-              onChange={(v) => setKey("disabledCursor")(v)}
+              onChange={(v) =>
+                setKey("disabledCursor")(v as TextareaState["disabledCursor"])
+              }
               items={[
                 { value: "not-allowed", label: "Not Allowed" },
                 { value: "default", label: "Default" },

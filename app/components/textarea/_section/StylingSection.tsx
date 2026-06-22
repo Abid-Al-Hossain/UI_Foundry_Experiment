@@ -2,12 +2,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import Select from "@/app/components/controls/input/Select";
 import BorderControl from "@/app/components/controls/layout/BorderControl";
-import { TextareaState } from "../types";
+import { type TextareaSetter, type TextareaState } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -26,7 +25,7 @@ export default function StylingSection({
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   return (
     <SectionCard title="Appearance" subtitle="Sizing, borders, and colors.">
@@ -183,7 +182,7 @@ export default function StylingSection({
           {state.useGradient && (
             <>
               <SizeControl
-                label="Angle (°)"
+                label="Angle (deg)"
                 value={state.gradientAngle}
                 onChange={(v) => setKey("gradientAngle")(v)}
                 min={0}
@@ -235,7 +234,9 @@ export default function StylingSection({
           <LabeledField label="Width">
             <Segmented
               value={state.scrollbarWidth}
-              onChange={(v) => setKey("scrollbarWidth")(v)}
+              onChange={(v) =>
+                setKey("scrollbarWidth")(v as TextareaState["scrollbarWidth"])
+              }
               items={[
                 { value: "auto", label: "Auto" },
                 { value: "thin", label: "Thin" },
@@ -282,7 +283,9 @@ export default function StylingSection({
           <LabeledField label="Font Style">
             <Segmented
               value={state.placeholderFontStyle}
-              onChange={(v) => setKey("placeholderFontStyle")(v)}
+              onChange={(v) =>
+                setKey("placeholderFontStyle")(v as TextareaState["placeholderFontStyle"])
+              }
               items={[
                 { value: "normal", label: "Normal" },
                 { value: "italic", label: "Italic" },

@@ -28,6 +28,23 @@ export function PlaygroundLayout({
   const [leftPanelWidth, setLeftPanelWidth] = useState(defaultLeftDataW);
   const splitRef = useRef<HTMLDivElement>(null);
 
+  // Layout overhead the left panel must leave room for when sizing against the
+  // container: the resizer handle (w-2 = 8px) + the two `gap-6` column gaps
+  // (24px each). Reserve at least this much PLUS the right panel minimum so the
+  // Output panel can never be pushed off-screen / clipped by overflow-hidden.
+  const RESIZER_W = 8;
+  const COLUMN_GAP = 24;
+  const RIGHT_MIN_W = 360;
+  const LAYOUT_OVERHEAD = RESIZER_W + COLUMN_GAP * 2;
+
+  // Clamp the left panel width so it never exceeds maxLeftW and always leaves
+  // the right panel its minimum width within the current container.
+  const clampLeftWidth = (width: number, containerWidth: number) => {
+    const hardMax = containerWidth - RIGHT_MIN_W - LAYOUT_OVERHEAD;
+    const max = Math.max(minLeftW, Math.min(maxLeftW, hardMax));
+    return Math.min(Math.max(width, minLeftW), max);
+  };
+
   // Responsive & Resize Logic
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -36,25 +53,29 @@ export function PlaygroundLayout({
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Ensure robust width on mode switch
+  // Re-clamp the left width whenever the container can shrink (window resize or
+  // entering desktop), so the right panel stays fully visible at all times.
   useEffect(() => {
-    if (isDesktop) {
-      setLeftPanelWidth((prev) => (prev >= minLeftW ? prev : defaultLeftDataW));
-    }
-  }, [isDesktop, minLeftW, defaultLeftDataW]);
+    if (!isDesktop) return;
+    const reclamp = () => {
+      const containerWidth = splitRef.current?.getBoundingClientRect().width ?? 0;
+      if (!containerWidth) return;
+      setLeftPanelWidth((prev) =>
+        clampLeftWidth(prev >= minLeftW ? prev : defaultLeftDataW, containerWidth),
+      );
+    };
+    reclamp();
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDesktop, minLeftW, maxLeftW, defaultLeftDataW]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !splitRef.current) return;
       const splitRect = splitRef.current.getBoundingClientRect();
       const newWidth = e.clientX - splitRect.left;
-
-      const safeMax = splitRect.width - 360; // Ensure 360px for right panel
-      const actualMax = Math.min(maxLeftW, safeMax);
-
-      if (newWidth > minLeftW && newWidth < actualMax) {
-        setLeftPanelWidth(newWidth);
-      }
+      setLeftPanelWidth(clampLeftWidth(newWidth, splitRect.width));
     };
 
     const handleMouseUp = () => {
@@ -73,6 +94,7 @@ export function PlaygroundLayout({
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.userSelect = "";
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizing, minLeftW, maxLeftW]);
 
   return (

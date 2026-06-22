@@ -48,7 +48,9 @@ export default function ImageEffectsSection({
       <LabeledField label="Global Blend Mode">
         <Select
           value={state.mixBlendMode}
-          onChange={(v) => setKey("mixBlendMode")(v as any)}
+          onChange={(v) =>
+            setKey("mixBlendMode")(v as ImageState["mixBlendMode"])
+          }
           options={blendModeOptions}
         />
       </LabeledField>
@@ -92,7 +94,11 @@ export default function ImageEffectsSection({
             <LabeledField label="Blend Mode">
               <Select
                 value={state.overlayBlendMode}
-                onChange={(v) => setKey("overlayBlendMode")(v as any)}
+                onChange={(v) =>
+                  setKey("overlayBlendMode")(
+                    v as ImageState["overlayBlendMode"],
+                  )
+                }
                 options={blendModeOptions}
               />
             </LabeledField>
@@ -222,7 +228,9 @@ export default function ImageEffectsSection({
             <LabeledField label="Position">
               <Select
                 value={state.captionPosition}
-                onChange={(v) => setKey("captionPosition")(v as any)}
+                onChange={(v) =>
+                  setKey("captionPosition")(v as ImageState["captionPosition"])
+                }
                 options={[
                   { value: "top", label: "Top" },
                   { value: "center", label: "Center" },
@@ -234,7 +242,9 @@ export default function ImageEffectsSection({
             <LabeledField label="Background Style">
               <Select
                 value={state.captionBgStyle}
-                onChange={(v) => setKey("captionBgStyle")(v as any)}
+                onChange={(v) =>
+                  setKey("captionBgStyle")(v as ImageState["captionBgStyle"])
+                }
                 options={[
                   { value: "solid", label: "Solid Color" },
                   { value: "gradient", label: "Gradient Fade" },
@@ -243,12 +253,6 @@ export default function ImageEffectsSection({
               />
             </LabeledField>
 
-            <ColorControl
-              label="Text Color"
-              value={state.captionTextColor}
-              onChange={setKey("captionTextColor")}
-            />
-
             {state.captionBgStyle === "solid" && (
               <ColorControl
                 label="Background Color"
@@ -256,16 +260,6 @@ export default function ImageEffectsSection({
                 onChange={setKey("captionBgColor")}
               />
             )}
-
-            <LabeledField label="Font Size" hint={`${state.captionFontSize}px`}>
-              <Slider
-                min={12}
-                max={48}
-                step={1}
-                value={state.captionFontSize}
-                onChange={setKey("captionFontSize")}
-              />
-            </LabeledField>
           </div>
         )}
       </div>

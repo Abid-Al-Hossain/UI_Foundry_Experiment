@@ -1,0 +1,61 @@
+"use client";
+
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import { LabeledField } from "@/app/components/controls/layout/LabeledField";
+import Slider from "@/app/components/controls/input/Slider";
+import Switch from "@/app/components/controls/input/Switch";
+import type { AuthFormState } from "../types";
+
+type Props = { state: AuthFormState; update: <K extends keyof AuthFormState>(key: K, value: AuthFormState[K]) => void };
+
+export default function RadiusSection({ state, update }: Props) {
+  const setLinked = (linked: boolean) => {
+    update("radiusLinked", linked);
+    if (linked) {
+      update("radiusTL", state.radius);
+      update("radiusTR", state.radius);
+      update("radiusBR", state.radius);
+      update("radiusBL", state.radius);
+    }
+  };
+
+  const setUniform = (v: number) => {
+    update("radius", v);
+    update("radiusTL", v);
+    update("radiusTR", v);
+    update("radiusBR", v);
+    update("radiusBL", v);
+  };
+
+  return (
+    <SectionCard title="Corner Radius" subtitle="Uniform or per-corner rounding.">
+      <div className="space-y-4">
+        <Switch
+          label={`Link corners: ${state.radiusLinked ? "On" : "Off"}`}
+          checked={state.radiusLinked}
+          onChange={setLinked}
+        />
+        {state.radiusLinked ? (
+          <LabeledField label={`Radius: ${state.radius}px`}>
+            <Slider value={state.radius} min={0} max={56} step={1} onChange={setUniform} />
+          </LabeledField>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <LabeledField label={`Top-left: ${state.radiusTL}px`}>
+              <Slider value={state.radiusTL} min={0} max={56} step={1} onChange={(v) => update("radiusTL", v)} />
+            </LabeledField>
+            <LabeledField label={`Top-right: ${state.radiusTR}px`}>
+              <Slider value={state.radiusTR} min={0} max={56} step={1} onChange={(v) => update("radiusTR", v)} />
+            </LabeledField>
+            <LabeledField label={`Bottom-right: ${state.radiusBR}px`}>
+              <Slider value={state.radiusBR} min={0} max={56} step={1} onChange={(v) => update("radiusBR", v)} />
+            </LabeledField>
+            <LabeledField label={`Bottom-left: ${state.radiusBL}px`}>
+              <Slider value={state.radiusBL} min={0} max={56} step={1} onChange={(v) => update("radiusBL", v)} />
+            </LabeledField>
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  );
+}

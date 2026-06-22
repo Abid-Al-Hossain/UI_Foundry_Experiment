@@ -1,0 +1,33 @@
+"use client";
+
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import Select from "@/app/components/controls/input/Select";
+import Switch from "@/app/components/controls/input/Switch";
+import type { CardStudioState } from "../types";
+
+type Props = {
+  state: CardStudioState;
+  update: <K extends keyof CardStudioState>(key: K, value: CardStudioState[K]) => void;
+};
+
+export default function StatesSection({ state, update }: Props) {
+  return (
+    <SectionCard title="State Preview" subtitle="Forced preview states for QA.">
+      <div className="space-y-4">
+      <Select label="Preview state" value={state.previewState} options={[
+  "default",
+  "hover",
+  "focus",
+  "active",
+  "disabled",
+  "invalid",
+  "loading",
+  "empty"
+]} onChange={(value) => update("previewState", value)} />
+      <Switch label="Disabled" checked={state.disabled} onChange={(value) => update("disabled", value)} />
+      <Switch label="Show badge" checked={state.showBadge} onChange={(value) => update("showBadge", value)} />
+      <Switch label="Show footer" checked={state.showFooter} onChange={(value) => update("showFooter", value)} />
+    </div>
+    </SectionCard>
+  );
+}

@@ -1,30 +1,40 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import React, { useState, useRef, useMemo } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 import BasicsSection from "../_section/BasicsSection";
+import MetadataSection from "../_section/MetadataSection";
 import StylingSection from "../_section/StylingSection";
 import StatesSection from "../_section/StatesSection";
+import FocusSection from "../_section/FocusSection";
+import ShadowSection from "../_section/ShadowSection";
+import MessagesSection from "../_section/MessagesSection";
 import EffectsSection from "../_section/EffectsSection";
 import TypographySection from "../_section/TypographySection";
 import AccessibilitySection from "../_section/AccessibilitySection";
+import PresetsSection from "../_section/PresetsSection";
+import { CHECKBOX_PRESETS } from "../_data/presets";
 import { buildCheckboxExportPayload } from "../_utils/exportUtils";
 
-import { type CheckboxState, INITIAL_STATE } from "../types";
+import { type CheckboxState, type CheckboxSetter, INITIAL_STATE } from "../types";
 
 export default function CheckboxPlaygroundPage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
 
   const {
     state,
@@ -37,22 +47,19 @@ export default function CheckboxPlaygroundPage() {
   } = useHistoryState<CheckboxState>(INITIAL_STATE);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("checkbox");
 
   const exportPayload = useMemo(
     () => ({
       ...state,
-      downloadFormat,
       downloadName: downloadName || "checkbox",
     }),
-    [downloadFormat, downloadName, state],
+    [downloadName, state],
   );
 
-  const deferredExportPayload = useDeferredValue(exportPayload);
   const exportCode = useMemo(
-    () => buildCheckboxExportPayload(deferredExportPayload),
-    [deferredExportPayload],
+    () => buildCheckboxExportPayload(exportPayload),
+    [exportPayload],
   );
 
   const handleDownload = () => {
@@ -68,30 +75,51 @@ export default function CheckboxPlaygroundPage() {
     URL.revokeObjectURL(url);
   };
 
-  const sections = [
-    { id: "basics", label: "Basics", component: BasicsSection },
-    { id: "styling", label: "Appearance", component: StylingSection },
-    { id: "states", label: "States", component: StatesSection },
-    { id: "effects", label: "Animation", component: EffectsSection },
-    { id: "typography", label: "Typography", component: TypographySection },
-    { id: "a11y", label: "A11y", component: AccessibilitySection },
-  ];
-
-  const setKey = (key: keyof CheckboxState) => (val: any) => {
+  const applyPreset = (presetState: CheckboxState) => {
     updateState((prev) => ({
       ...prev,
-      [key]: typeof val === "function" ? val(prev[key]) : val,
+      ...presetState,
+    }));
+    setPreviewResetKey((key) => key + 1);
+  };
+
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((key) => key + 1);
+  };
+
+  const editorSections = [
+    { id: "basics", label: "Basics", component: BasicsSection },
+    { id: "metadata", label: "Metadata", component: MetadataSection },
+    { id: "styling", label: "Styling", component: StylingSection },
+    { id: "focus", label: "Focus", component: FocusSection },
+    { id: "states", label: "States", component: StatesSection },
+    { id: "messages", label: "Description & Messages", component: MessagesSection },
+    { id: "motion", label: "Motion", component: EffectsSection },
+    { id: "shadow", label: "Shadow", component: ShadowSection },
+    { id: "typography", label: "Typography", component: TypographySection },
+    { id: "accessibility", label: "Accessibility", component: AccessibilitySection },
+  ];
+  const sections = [
+    { id: "presets", label: "Presets" },
+    ...editorSections,
+  ];
+
+  const setKey: CheckboxSetter = (key) => (val) => {
+    updateState((prev) => ({
+      ...prev,
+      [key]: val,
     }));
   };
 
-  const activeComp = sections.find((s) => s.id === activeSection);
+  const activeComp = editorSections.find((s) => s.id === activeSection);
   const ActiveComponent = activeComp?.component || BasicsSection;
 
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -104,7 +132,15 @@ export default function CheckboxPlaygroundPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      <ActiveComponent state={state} setKey={setKey} />
+      {activeSection === "presets" ? (
+        <PresetsSection
+          state={state}
+          presets={CHECKBOX_PRESETS}
+          onApply={(preset) => applyPreset(preset.state)}
+        />
+      ) : (
+        <ActiveComponent state={state} setKey={setKey} />
+      )}
     </>
   );
 
@@ -114,16 +150,19 @@ export default function CheckboxPlaygroundPage() {
       iframeSrcDoc=""
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview state={state} resetKey={previewResetKey} canvasBg={previewBgInput} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -132,6 +171,7 @@ export default function CheckboxPlaygroundPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

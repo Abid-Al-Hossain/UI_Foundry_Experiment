@@ -1,211 +1,282 @@
 "use client";
-
-import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { type TextareaState } from "../types";
+import {
+  resolveTextareaBackground,
+  resolveTextareaFontFamily,
+  resolveTextareaPadding,
+  resolveTextareaRadius,
+  resolveTextareaShadow,
+} from "./textareaVisuals";
 
 export type TextareaExportInput = TextareaState & {
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
 
+const toJs = (value: string): string => JSON.stringify(value);
+
 export function buildTextareaExportPayload(params: TextareaExportInput) {
-  const { downloadFormat, downloadName } = params;
-  const ext =
-    downloadFormat === "react"
-      ? "jsx"
-      : downloadFormat === "tailwind-config"
-        ? "js"
-        : downloadFormat === "figma-tokens"
-          ? "json"
-          : downloadFormat === "css-vars"
-            ? "css"
-            : downloadFormat === "scss"
-              ? "scss"
-              : "html";
-  const filename = `${downloadName}.${ext}`;
+  const { downloadName } = params;
+  const filename = `${downloadName || "textarea"}.tsx`;
 
-  const radius = params.linkRadius
-    ? `${params.borderRadius}px`
-    : `${params.borderRadiusTL}px ${params.borderRadiusTR}px ${params.borderRadiusBR}px ${params.borderRadiusBL}px`;
-  const bg = params.useGradient
-    ? `linear-gradient(${params.gradientAngle}deg, ${params.gradientStart}, ${params.gradientEnd})`
-    : params.backgroundColor;
-  const shadow = params.shadowEnabled
-    ? `${params.shadowX}px ${params.shadowY}px ${params.shadowBlur}px ${params.shadowSpread}px rgba(${hexToRgb(params.shadowColor)}, ${params.shadowOpacity})`
-    : "none";
+  const radius = resolveTextareaRadius(params);
+  const background = resolveTextareaBackground(params);
+  const fontFamily = resolveTextareaFontFamily(params);
+  const shadow = resolveTextareaShadow(params);
   const transition = `${params.transitionProperty} ${params.transitionDuration}ms ${params.transitionEasing}`;
+  const basePadding = resolveTextareaPadding(params, false);
+  const floatingPadding = resolveTextareaPadding(params, true);
+  const isFloating = params.labelPosition === "floating";
+  const isTop = params.labelPosition === "top";
+  const isLeft = params.labelPosition === "left";
 
-  const labelHtml =
-    params.labelPosition !== "hidden"
-      ? `<label style="display:block;margin-bottom:${params.labelGap}px;color:${params.labelColor};font-size:${params.labelFontSize}px;font-weight:${params.labelFontWeight};">${params.labelText}${params.showRequired ? `<span style="color:${params.requiredColor};"> *</span>` : ""}</label>`
-      : "";
-  const helperHtml = params.helperText
-    ? `<p style="margin-top:4px;font-size:12px;color:${params.helperColor};">${params.helperText}</p>`
-    : "";
-  const errorHtml = params.errorText
-    ? `<p style="margin-top:4px;font-size:12px;color:${params.errorColor};">${params.errorText}</p>`
-    : "";
+  const descriptionMessage = params.descriptionText
+    ? {
+        id: "textarea-preview-description",
+        text: params.descriptionText,
+        color: params.descriptionColor,
+      }
+    : params.helperText
+      ? {
+          id: "textarea-preview-helper",
+          text: params.helperText,
+          color: params.helperColor,
+        }
+      : null;
 
-  const attrs = [
-    params.placeholder ? `placeholder="${params.placeholder}"` : "",
-    params.name ? `name="${params.name}"` : "",
-    `rows="${params.rows}"`,
-    params.cols !== 40 ? `cols="${params.cols}"` : "",
-    params.wrap !== "soft" ? `wrap="${params.wrap}"` : "",
-    params.required ? "required" : "",
-    params.disabled ? "disabled" : "",
-    params.readOnly ? "readonly" : "",
-    params.maxLength > 0 ? `maxlength="${params.maxLength}"` : "",
-    params.minLength > 0 ? `minlength="${params.minLength}"` : "",
-    !params.spellcheck ? `spellcheck="false"` : "",
-    params.ariaLabel ? `aria-label="${params.ariaLabel}"` : "",
-    params.ariaDescribedBy
-      ? `aria-describedby="${params.ariaDescribedBy}"`
+  const feedbackMessage = params.errorText
+    ? {
+        id: "textarea-preview-error",
+        text: params.errorText,
+        color: params.errorColor,
+      }
+    : params.successText
+      ? {
+          id: "textarea-preview-success",
+          text: params.successText,
+          color: params.successColor,
+        }
+      : null;
+
+  const helperId = descriptionMessage?.id ?? "";
+  const feedbackId = feedbackMessage?.id ?? "";
+  const ariaDescribedByExpr = `[${helperId ? toJs(helperId) : "undefined"}, ${feedbackId ? toJs(feedbackId) : "undefined"}, ${params.ariaDescribedBy ? toJs(params.ariaDescribedBy) : "undefined"}].filter(Boolean).join(" ") || undefined`;
+  const ariaInvalidExpr =
+    params.ariaInvalid || Boolean(params.errorText) ? "true" : "undefined";
+  const ariaLabel = params.ariaLabel ? toJs(params.ariaLabel) : "undefined";
+  const role = params.role ? toJs(params.role) : "undefined";
+  const autoComplete =
+    params.autocomplete !== "off" ? toJs(params.autocomplete) : "undefined";
+  const inputMode =
+    params.inputMode !== "text" ? toJs(params.inputMode) : "undefined";
+  const direction = params.dir !== "auto" ? toJs(params.dir) : "undefined";
+  const language = params.lang ? toJs(params.lang) : "undefined";
+  const title = params.title ? toJs(params.title) : "undefined";
+  const placeholderColorExpr = isFloating
+    ? `floatingActive ? ${toJs(params.placeholderColor)} : "transparent"`
+    : toJs(params.placeholderColor);
+
+  const labelChildrenLines = [
+    `          {${toJs(params.labelText)}}`,
+    params.showRequired
+      ? `          <span style={{ color: ${toJs(params.requiredColor)} }}> *</span>`
       : "",
-    params.ariaInvalid ? `aria-invalid="true"` : "",
-    params.role ? `role="${params.role}"` : "",
+  ].filter(Boolean);
+
+  const charCountText = `{value.length}${params.maxLength > 0 ? ` / ${params.maxLength}` : " chars"}`;
+  const charCountBlock = (style: string) =>
+    `      <p style={${style}}>\n        ${charCountText}\n      </p>`;
+  const charCountAbove = params.charCount && params.characterCountPosition === "above"
+    ? charCountBlock('{ marginBottom: 4, fontSize: 11, color: "#94a3b8", textAlign: "right" }')
+    : "";
+  const charCountInsideOrFloating = params.charCount && (params.characterCountPosition === "inside" || params.characterCountPosition === "floating")
+    ? charCountBlock(
+        params.characterCountPosition === "inside"
+          ? '{ position: "absolute", right: 8, bottom: 6, margin: 0, fontSize: 11, color: "#94a3b8", pointerEvents: "none" }'
+          : '{ position: "absolute", right: 0, top: "100%", marginTop: 2, fontSize: 11, color: "#94a3b8" }',
+      )
+    : "";
+  const charCountBelow = params.charCount && params.characterCountPosition === "below"
+    ? charCountBlock('{ marginTop: 4, fontSize: 11, color: "#94a3b8", textAlign: "right" }')
+    : "";
+
+  const content = [
+    'import React, { useEffect, useState } from "react";',
+    "",
+    "export default function CustomTextarea() {",
+    `  const [value, setValue] = useState(${toJs(params.defaultValue)});`,
+    "  const [focused, setFocused] = useState(false);",
+    "",
+    "  useEffect(() => {",
+    `    setValue(${toJs(params.defaultValue)});`,
+    `  }, [${toJs(params.defaultValue)}]);`,
+    "",
+    `  const floatingActive = ${isFloating} && (focused || value.length > 0);`,
+    `  const describedBy = ${ariaDescribedByExpr};`,
+    `  const ariaInvalid = ${ariaInvalidExpr};`,
+    "",
+    "  return (",
+    '    <div style={{ width: "100%" }}>',
+    isLeft
+      ? `      <div style={{ display: "flex", alignItems: "flex-start", gap: ${params.labelGap} }}>`
+      : isTop
+        ? `      <div style={{ display: "flex", flexDirection: "column", gap: ${params.labelGap} }}>`
+        : `      <div style={{ position: "relative", width: "100%" }}>`,
+    !isFloating
+      ? `        <label style={{ display: "block", color: ${toJs(params.labelColor)}, fontSize: ${params.labelFontSize}, fontWeight: ${params.labelFontWeight}, flexShrink: 0 }}>
+${labelChildrenLines.join("\n")}
+        </label>`
+      : "",
+    '        <div style={{ position: "relative", width: "100%" }}>',
+    isFloating
+      ? `          <label
+            htmlFor={${toJs(params.id || "textarea-preview")}}
+            style={{
+              position: "absolute",
+              left: ${params.paddingX},
+              top: floatingActive ? 12 : ${Math.max(params.paddingY + 6, 14)},
+              transform: floatingActive ? "scale(0.84)" : "scale(1)",
+              transformOrigin: "left top",
+              transition: "transform 160ms ease, top 160ms ease, color 160ms ease, opacity 160ms ease",
+              color: ${toJs(params.labelColor)},
+              fontSize: ${params.labelFontSize},
+              fontWeight: ${params.labelFontWeight},
+              lineHeight: 1,
+              pointerEvents: "none",
+              background: "transparent",
+              zIndex: 1,
+            }}
+          >
+${labelChildrenLines.join("\n")}
+          </label>`
+      : "",
+    charCountAbove,
+    `          <textarea
+            id={${toJs(params.id || "textarea-preview")}}
+            value={value}
+            onChange={(event) => {
+              if (!${params.disabled} && !${params.readOnly}) {
+                setValue(event.target.value);
+              }
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={${toJs(params.placeholder)}}
+            title={${title}}
+            name={${toJs(params.name)}}
+            rows={${Math.min(params.maxRows, Math.max(params.minRows, params.rows))}}
+            cols={${params.cols}}
+            wrap={${toJs(params.wrap)}}
+            required={${params.required}}
+            disabled={${params.disabled}}
+            readOnly={${params.readOnly}}
+            maxLength={${params.maxLength > 0 ? params.maxLength : "undefined"}}
+            minLength={${params.minLength > 0 ? params.minLength : "undefined"}}
+            spellCheck={${params.spellcheck}}
+            aria-label={${ariaLabel}}
+            aria-describedby={describedBy}
+            aria-invalid={ariaInvalid}
+            aria-required={${params.required || "undefined"}}
+            autoComplete={${autoComplete}}
+            inputMode={${inputMode}}
+            enterKeyHint={${toJs(params.enterKeyHint)}}
+            autoCapitalize={${toJs(params.autoCapitalize)}}
+            autoCorrect={${toJs(params.autoCorrect)}}
+            dir={${direction}}
+            lang={${language}}
+            tabIndex={${params.tabIndex}}
+            role={${role}}
+            className="uif-textarea"
+            style={{
+              width: "100%",
+              minHeight: ${params.minHeight},
+              maxHeight: ${params.maxHeight},
+              padding: floatingActive ? ${toJs(floatingPadding)} : ${toJs(basePadding)},
+              fontFamily: ${toJs(fontFamily)},
+              fontSize: ${toJs(`${params.fontSize}${params.fontSizeUnit || "px"}`)},
+              fontWeight: ${params.fontWeight},
+              fontStyle: ${toJs(params.fontStyle)},
+              color: ${toJs(params.textColor)},
+              letterSpacing: ${toJs(`${params.letterSpacing}${params.letterSpacingUnit || "px"}`)},
+              textAlign: ${toJs(params.textAlign)},
+              textTransform: ${toJs(params.textTransform)},
+              lineHeight: ${params.lineHeight},
+              whiteSpace: ${toJs(params.whiteSpace)},
+              overflowWrap: ${toJs(params.overflowWrap)},
+              wordBreak: ${toJs(params.wordBreak)},
+              tabSize: ${params.tabSize},
+              background: ${toJs(background)},
+              border: ${toJs(`${params.borderWidth}px ${params.borderStyle} ${params.borderColor}`)},
+              borderRadius: ${toJs(radius)},
+              caretColor: ${toJs(params.caretColor)},
+              boxShadow: ${toJs(shadow)},
+              transition: ${toJs(transition)},
+              resize: ${toJs(params.resize)},
+              outline: "none",
+              boxSizing: "border-box",
+              scrollbarWidth: ${toJs(params.scrollbarWidth)},
+              scrollbarColor: ${toJs(`${params.scrollbarColor} ${params.scrollbarTrackColor}`)},
+            }}
+          />`,
+    charCountInsideOrFloating,
+    "        </div>",
+    "      </div>",
+    descriptionMessage
+      ? `      <p id=${toJs(descriptionMessage.id)} style={{ marginTop: 4, fontSize: 12, color: ${toJs(descriptionMessage.color)} }}>
+        {${toJs(descriptionMessage.text)}}
+      </p>`
+      : "",
+    feedbackMessage
+      ? `      <p id=${toJs(feedbackMessage.id)} style={{ marginTop: 4, fontSize: 12, color: ${toJs(feedbackMessage.color)} }}>
+        {${toJs(feedbackMessage.text)}}
+      </p>`
+      : "",
+    charCountBelow,
+    "      <style>{`",
+    "        .uif-textarea:hover:not(:disabled) {",
+    `          border-color: ${params.hoverBorderColor};`,
+    `          border-width: ${params.hoverBorderWidth}px;`,
+    `          background: ${params.hoverBackgroundColor};`,
+    "        }",
+    "",
+    "        .uif-textarea:focus {",
+    `          border-color: ${params.focusBorderColor};`,
+    `          border-width: ${params.focusBorderWidth}px;`,
+    `          background: ${params.focusBackgroundColor};`,
+    `          box-shadow: 0 0 0 ${params.focusBoxShadowSpread}px ${params.focusBoxShadowColor};`,
+    params.focusOutlineStyle !== "none"
+      ? `          outline: ${params.focusOutlineWidth}px ${params.focusOutlineStyle} ${params.focusOutlineColor};
+          outline-offset: ${params.focusOutlineOffset}px;`
+      : "          outline: none;",
+    "        }",
+    "",
+    "        .uif-textarea:disabled {",
+    `          opacity: ${params.disabledOpacity};`,
+    `          cursor: ${params.disabledCursor};`,
+    params.disabledUseCustomColors
+      ? `          background: ${params.disabledBackgroundColor};
+          color: ${params.disabledTextColor};
+          border-color: ${params.disabledBorderColor};`
+      : "",
+    "        }",
+    "",
+    "        .uif-textarea::placeholder {",
+    `          color: ${placeholderColorExpr};`,
+    `          opacity: ${params.placeholderOpacity};`,
+    `          font-style: ${params.placeholderFontStyle};`,
+    "        }",
+    "",
+    "        .uif-textarea::selection {",
+    `          background: ${params.selectionBg};`,
+    `          color: ${params.selectionColor};`,
+    "        }",
+    "      `}</style>",
+    "    </div>",
+    "  );",
+    "}",
+    "",
   ]
     .filter(Boolean)
-    .join(" ");
-
-  const css = `
-  width: 100%;
-  min-height: ${params.minHeight}px;
-  max-height: ${params.maxHeight}px;
-  padding: ${params.paddingY}px ${params.paddingX}px;
-  font-family: ${params.fontFamily};
-  font-size: ${params.fontSize}px;
-  font-weight: ${params.fontWeight};
-  font-style: ${params.fontStyle};
-  color: ${params.textColor};
-  letter-spacing: ${params.letterSpacing}px;
-  text-align: ${params.textAlign};
-  line-height: ${params.lineHeight};
-  white-space: ${params.whiteSpace};
-  overflow-wrap: ${params.overflowWrap};
-  tab-size: ${params.tabSize};
-  background: ${bg};
-  border: ${params.borderWidth}px ${params.borderStyle} ${params.borderColor};
-  border-radius: ${radius};
-  caret-color: ${params.caretColor};
-  box-shadow: ${shadow};
-  transition: ${transition};
-  resize: ${params.resize};
-  outline: none;
-  box-sizing: border-box;
-  scrollbar-width: ${params.scrollbarWidth};
-  scrollbar-color: ${params.scrollbarColor} ${params.scrollbarTrackColor};`.trim();
-
-  let content = "";
-
-  if (downloadFormat === "html") {
-    content = `<div class="textarea-wrapper">
-${labelHtml ? `  ${labelHtml}\n` : ""}  <textarea ${attrs} class="custom-textarea">${params.defaultValue}</textarea>
-${helperHtml ? `  ${helperHtml}\n` : ""}${errorHtml ? `  ${errorHtml}\n` : ""}</div>
-
-<style>
-.custom-textarea {
-  ${css}
-}
-.custom-textarea:focus {
-  border-color: ${params.focusBorderColor};
-  border-width: ${params.focusBorderWidth}px;
-  background: ${params.focusBackgroundColor};
-  box-shadow: 0 0 0 ${params.focusBoxShadowSpread}px ${params.focusBoxShadowColor};
-}
-.custom-textarea:hover:not(:disabled) {
-  border-color: ${params.hoverBorderColor};
-  background: ${params.hoverBackgroundColor};
-}
-.custom-textarea:disabled {
-  opacity: ${params.disabledOpacity};
-  cursor: ${params.disabledCursor};
-}
-.custom-textarea::placeholder {
-  color: ${params.placeholderColor};
-  opacity: ${params.placeholderOpacity};
-  font-style: ${params.placeholderFontStyle};
-}
-.custom-textarea::selection {
-  background: ${params.selectionBg};
-  color: ${params.selectionColor};
-}
-</style>`;
-  } else if (downloadFormat === "react") {
-    content = `import React, { useState } from 'react';
-
-export default function CustomTextarea() {
-  const [value, setValue] = useState('${params.defaultValue}');
-  return (
-    <div>
-${params.labelPosition !== "hidden" ? `      <label style={{ display: 'block', marginBottom: ${params.labelGap}, color: '${params.labelColor}', fontSize: ${params.labelFontSize}, fontWeight: ${params.labelFontWeight} }}>${params.labelText}${params.showRequired ? `<span style={{ color: '${params.requiredColor}' }}> *</span>` : ""}</label>\n` : ""}      <textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        ${attrs.replace(/"/g, "'")}
-        className="custom-textarea"
-      />
-${params.charCount ? `      <div style={{ textAlign: 'right', fontSize: 12, color: '${params.helperColor}', marginTop: 4 }}>{value.length}${params.maxLength > 0 ? `/${params.maxLength}` : " chars"}</div>\n` : ""}${params.helperText ? `      <p style={{ marginTop: 4, fontSize: 12, color: '${params.helperColor}' }}>${params.helperText}</p>\n` : ""}${params.errorText ? `      <p style={{ marginTop: 4, fontSize: 12, color: '${params.errorColor}' }}>${params.errorText}</p>\n` : ""}    </div>
-  );
-}`;
-  } else if (downloadFormat === "scss") {
-    content = `.textarea-wrapper {\n  .custom-textarea {\n    ${css}\n    &:focus { border-color: ${params.focusBorderColor}; box-shadow: 0 0 0 ${params.focusBoxShadowSpread}px ${params.focusBoxShadowColor}; }\n    &:hover:not(:disabled) { border-color: ${params.hoverBorderColor}; }\n    &:disabled { opacity: ${params.disabledOpacity}; cursor: ${params.disabledCursor}; }\n    &::placeholder { color: ${params.placeholderColor}; }\n  }\n}`;
-  } else if (downloadFormat === "css-vars") {
-    content = `:root {\n  --textarea-min-h: ${params.minHeight}px;\n  --textarea-max-h: ${params.maxHeight}px;\n  --textarea-font-size: ${params.fontSize}px;\n  --textarea-color: ${params.textColor};\n  --textarea-bg: ${params.backgroundColor};\n  --textarea-border: ${params.borderColor};\n  --textarea-radius: ${radius};\n  --textarea-focus: ${params.focusBorderColor};\n  --textarea-placeholder: ${params.placeholderColor};\n}`;
-  } else if (downloadFormat === "figma-tokens") {
-    content = JSON.stringify(
-      {
-        textarea: {
-          sizing: {
-            minHeight: { value: `${params.minHeight}px` },
-            maxHeight: { value: `${params.maxHeight}px` },
-          },
-          border: {
-            width: { value: `${params.borderWidth}px` },
-            color: { value: params.borderColor },
-            radius: { value: radius },
-          },
-          colors: {
-            background: { value: params.backgroundColor },
-            text: { value: params.textColor },
-            placeholder: { value: params.placeholderColor },
-          },
-          typography: {
-            fontFamily: { value: params.fontFamily },
-            fontSize: { value: `${params.fontSize}px` },
-            lineHeight: { value: params.lineHeight },
-          },
-        },
-      },
-      null,
-      2,
-    );
-  } else if (downloadFormat === "tailwind-config") {
-    content = JSON.stringify(
-      {
-        theme: {
-          extend: {
-            colors: {
-              textarea: {
-                bg: params.backgroundColor,
-                text: params.textColor,
-                border: params.borderColor,
-                focus: params.focusBorderColor,
-              },
-            },
-          },
-        },
-      },
-      null,
-      2,
-    );
-  } else {
-    content = `<!-- Tailwind textarea -->\n<textarea ${attrs} class="w-full min-h-[100px] px-4 py-3 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none resize-y disabled:opacity-50 disabled:cursor-not-allowed">${params.defaultValue}</textarea>`;
-  }
+    .join("\n");
 
   return { content, filename };
-}
-
-function hexToRgb(hex: string): string {
-  const h = hex.replace("#", "");
-  return `${parseInt(h.substring(0, 2), 16)}, ${parseInt(h.substring(2, 4), 16)}, ${parseInt(h.substring(4, 6), 16)}`;
 }

@@ -1,32 +1,47 @@
 "use client";
 
 import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
-import LivePreview from "./_section/LivePreview";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
+import LivePreview from "../_section/LivePreview";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // Sections
-import IconSelectionSection from "./_section/IconSelectionSection";
-import IconBasicsSection from "./_section/IconBasicsSection";
-import IconContainerSection from "./_section/IconContainerSection";
-import IconEffectsSection from "./_section/IconEffectsSection";
-import IconTransformSection from "./_section/IconTransformSection";
-import IconAnimationSection from "./_section/IconAnimationSection";
-import IconAccessibilitySection from "./_section/IconAccessibilitySection";
-import { buildIconExportPayload } from "./_utils/exportUtils";
+import IconBasicsSection from "../_section/IconBasicsSection";
+import IconMetadataSection from "../_section/IconMetadataSection";
+import IconSelectionSection from "../_section/IconSelectionSection";
+import IconColorsSection from "../_section/IconColorsSection";
+import IconSizingSection from "../_section/IconSizingSection";
+import IconContainerSection from "../_section/IconContainerSection";
+import IconFrameSection from "../_section/IconFrameSection";
+import IconEffectsSection from "../_section/IconEffectsSection";
+import IconTransformSection from "../_section/IconTransformSection";
+import IconAnimationSection from "../_section/IconAnimationSection";
+import IconAccessibilitySection from "../_section/IconAccessibilitySection";
+import IconStatesSection from "../_section/IconStatesSection";
+import IconPresetsSection from "../_section/IconPresetsSection";
+import { buildIconExportPayload } from "../_utils/exportUtils";
 
-import { type IconState, INITIAL_ICON_STATE } from "./types";
+import {
+  type IconFloatSetter,
+  type IconSetter,
+  type IconState,
+  INITIAL_ICON_STATE,
+} from "../types";
 
 export default function IconPlaygroundPage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
 
   // History State
   const {
@@ -41,17 +56,16 @@ export default function IconPlaygroundPage() {
 
   // Download Props
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("react");
   const [downloadName, setDownloadName] = useState("icon-component");
+  const downloadFormat = "react" as const;
 
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
     return {
-      downloadFormat,
       downloadName: downloadName || "icon-component",
       ...state,
     };
-  }, [downloadFormat, downloadName, state]);
+  }, [downloadName, state]);
 
   const deferredExportPayload = useDeferredValue(exportPayload);
 
@@ -76,26 +90,42 @@ export default function IconPlaygroundPage() {
 
   // Section Mapping
   const sections = [
+    { id: "presets", label: "Presets" },
     { id: "basics", label: "Basics", component: IconBasicsSection },
-    { id: "container", label: "Container", component: IconContainerSection },
-    { id: "icon", label: "Icon Lib", component: IconSelectionSection },
+    { id: "metadata", label: "Metadata", component: IconMetadataSection },
+    { id: "sizing", label: "Sizing", component: IconSizingSection },
+    { id: "colors", label: "Colors", component: IconColorsSection },
+    { id: "surface", label: "Surface", component: IconContainerSection },
+    { id: "frame", label: "Frame", component: IconFrameSection },
+    { id: "icon", label: "Library", component: IconSelectionSection },
     { id: "transform", label: "Transform", component: IconTransformSection },
     { id: "effects", label: "Effects", component: IconEffectsSection },
-    { id: "animation", label: "Animation", component: IconAnimationSection },
-    { id: "a11y", label: "A11y", component: IconAccessibilitySection },
+    { id: "motion", label: "Motion", component: IconAnimationSection },
+    { id: "states", label: "States", component: IconStatesSection },
+    { id: "accessibility", label: "Accessibility", component: IconAccessibilitySection },
   ];
 
   // Generic Setter Helper
-  const setKey = (key: keyof IconState) => (val: any) => {
+  const setKey: IconSetter = (key) => (val) => {
     updateState((prev) => ({
       ...prev,
       [key]: typeof val === "function" ? val(prev[key]) : val,
     }));
   };
   // Helper for float values
-  const setFloat = (key: keyof IconState) => (val: any) => {
-    const num = parseFloat(val);
+  const setFloat: IconFloatSetter = (key) => (val) => {
+    const num = typeof val === "number" ? val : parseFloat(String(val));
     updateState((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
+  };
+
+  const applyPreset = (presetState: Partial<IconState>) => {
+    updateState(() => ({ ...INITIAL_ICON_STATE, ...presetState }));
+    setPreviewResetKey((value) => value + 1);
+  };
+
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((value) => value + 1);
   };
 
   const activeComp = sections.find((s) => s.id === activeSection);
@@ -106,7 +136,7 @@ export default function IconPlaygroundPage() {
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -120,7 +150,13 @@ export default function IconPlaygroundPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      <ActiveComponent state={state} setKey={setKey} setFloat={setFloat} />
+      {activeSection === "presets" ? (
+        <IconPresetsSection state={state} applyPreset={applyPreset} />
+      ) : activeSection === "accessibility" ? (
+        <IconAccessibilitySection state={state} />
+      ) : (
+        <ActiveComponent state={state} setKey={setKey} setFloat={setFloat} />
+      )}
     </>
   );
 
@@ -132,11 +168,15 @@ export default function IconPlaygroundPage() {
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
       downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );
@@ -149,6 +189,7 @@ export default function IconPlaygroundPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

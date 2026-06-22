@@ -37,7 +37,9 @@ export default function ImageShapeSection({
           <div className="w-32">
             <SegmentedControl
               value={state.borderRadiusMode}
-              onChange={(v) => setKey("borderRadiusMode")(v as any)}
+              onChange={(v) =>
+                setKey("borderRadiusMode")(v as ImageState["borderRadiusMode"])
+              }
               items={[
                 { value: "uniform", label: "Uniform" },
                 { value: "individual", label: "Individual" },
@@ -117,7 +119,9 @@ export default function ImageShapeSection({
         </h3>
         <SegmentedControl
           value={state.clipPathShape}
-          onChange={(v) => setKey("clipPathShape")(v as any)}
+          onChange={(v) =>
+            setKey("clipPathShape")(v as ImageState["clipPathShape"])
+          }
           items={[
             { value: "none", label: "None" },
             { value: "circle", label: "Circle" },
@@ -127,7 +131,9 @@ export default function ImageShapeSection({
         <div className="mt-2">
           <SegmentedControl
             value={state.clipPathShape}
-            onChange={(v) => setKey("clipPathShape")(v as any)}
+            onChange={(v) =>
+              setKey("clipPathShape")(v as ImageState["clipPathShape"])
+            }
             items={[
               { value: "polygon", label: "Polygon" },
               { value: "inset", label: "Inset" },
@@ -159,7 +165,9 @@ export default function ImageShapeSection({
             <LabeledField label="Style">
               <SegmentedControl
                 value={state.borderStyle}
-                onChange={(v) => setKey("borderStyle")(v as any)}
+                onChange={(v) =>
+                  setKey("borderStyle")(v as ImageState["borderStyle"])
+                }
                 items={[
                   { value: "solid", label: "Solid" },
                   { value: "dashed", label: "Dashed" },
@@ -227,6 +235,22 @@ export default function ImageShapeSection({
                 onChange={setKey("boxShadowBlur")}
               />
             </LabeledField>
+
+            <LabeledField label="Spread">
+              <Slider
+                min={-20}
+                max={50}
+                step={1}
+                value={state.boxShadowSpread}
+                onChange={setKey("boxShadowSpread")}
+              />
+            </LabeledField>
+
+            <Switch
+              label="Inset shadow"
+              checked={state.boxShadowInset}
+              onChange={setKey("boxShadowInset")}
+            />
 
             <ColorControl
               label="Shadow Color"

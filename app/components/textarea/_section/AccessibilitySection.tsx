@@ -1,19 +1,21 @@
 "use client";
 
 import React from "react";
-import { SectionCard, LabeledField } from "../../buttons/action/_section/ui";
-import Select from "@/app/components/controls/input/Select";
-import { TextareaState } from "../types";
+import { SectionCard, LabeledField } from "@/app/components/controls/ui";
+import { type TextareaSetter, type TextareaState } from "../types";
 
 export default function AccessibilitySection({
   state,
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   return (
-    <SectionCard title="Accessibility" subtitle="ARIA attributes.">
+    <SectionCard
+      title="Accessibility"
+      subtitle="ARIA wiring and semantic overrides."
+    >
       <div className="space-y-4">
         <LabeledField label="aria-label">
           <input
@@ -57,16 +59,6 @@ export default function AccessibilitySection({
             aria-invalid
           </label>
         </div>
-        <LabeledField label="Autocomplete">
-          <Select
-            value={state.autocomplete}
-            onChange={(v) => setKey("autocomplete")(v)}
-            options={[
-              { value: "off", label: "Off" },
-              { value: "on", label: "On" },
-            ]}
-          />
-        </LabeledField>
         <LabeledField label="Role">
           <input
             value={state.role}

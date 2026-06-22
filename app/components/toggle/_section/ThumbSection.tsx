@@ -5,10 +5,10 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import { ToggleState } from "../types";
+import { type ToggleState, type ToggleKeyUpdater } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -27,7 +27,7 @@ export default function ThumbSection({
   setKey,
 }: {
   state: ToggleState;
-  setKey: (key: keyof ToggleState) => (val: any) => void;
+  setKey: ToggleKeyUpdater;
 }) {
   return (
     <SectionCard title="Thumb" subtitle="Thumb knob styling.">
@@ -109,11 +109,11 @@ export default function ThumbSection({
           <LabeledField label="Icon">
             <Segmented
               value={state.thumbIcon}
-              onChange={(v) => setKey("thumbIcon")(v)}
+              onChange={(v) => setKey("thumbIcon")(v as ToggleState["thumbIcon"])}
               items={[
                 { value: "none", label: "None" },
-                { value: "check", label: "✓" },
-                { value: "cross", label: "✕" },
+                { value: "check", label: "Check" },
+                { value: "cross", label: "Cross" },
                 { value: "both", label: "Both" },
               ]}
             />

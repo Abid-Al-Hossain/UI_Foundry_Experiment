@@ -5,10 +5,10 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import { RadioState } from "../types";
+import { RadioState, RadioSetter } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -27,37 +27,12 @@ export default function StatesSection({
   setKey,
 }: {
   state: RadioState;
-  setKey: (key: keyof RadioState) => (val: any) => void;
+  setKey: RadioSetter;
 }) {
   return (
-    <SectionCard title="States" subtitle="Focus, hover, and disabled.">
+    <SectionCard title="States" subtitle="Hover and disabled behavior.">
       <div className="space-y-5">
-        {/* Focus */}
         <div className="space-y-3">
-          <div
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: "var(--muted)" }}
-          >
-            Focus Ring
-          </div>
-          <ColorControl
-            label="Color"
-            palette={PRESET_COLORS}
-            value={state.focusRingColor}
-            onChange={setKey("focusRingColor")}
-          />
-          <SizeControl
-            label="Width (px)"
-            value={state.focusRingWidth}
-            onChange={(v) => setKey("focusRingWidth")(v)}
-            min={0}
-            max={8}
-            step={1}
-          />
-        </div>
-
-        {/* Hover */}
-        <div className="pt-4 border-t border-slate-700/50 space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
             style={{ color: "var(--muted)" }}
@@ -75,6 +50,12 @@ export default function StatesSection({
             palette={PRESET_COLORS}
             value={state.hoverBgColor}
             onChange={setKey("hoverBgColor")}
+          />
+          <ColorControl
+            label="Dot Preview Color"
+            palette={PRESET_COLORS}
+            value={state.hoverDotColor}
+            onChange={setKey("hoverDotColor")}
           />
         </div>
 
@@ -95,15 +76,73 @@ export default function StatesSection({
             step={0.05}
           />
           <LabeledField label="Cursor">
-            <Segmented
-              value={state.disabledCursor}
-              onChange={(v) => setKey("disabledCursor")(v)}
-              items={[
-                { value: "not-allowed", label: "Not Allowed" },
-                { value: "default", label: "Default" },
+          <Segmented
+            value={state.disabledCursor}
+            onChange={(v) =>
+              setKey("disabledCursor")(v as RadioState["disabledCursor"])
+            }
+            items={[
+              { value: "not-allowed", label: "Not Allowed" },
+              { value: "default", label: "Default" },
               ]}
             />
           </LabeledField>
+          <LabeledField label="Use Custom Colors">
+            <Segmented
+              value={state.disabledUseCustomColors ? "true" : "false"}
+              onChange={(v) => setKey("disabledUseCustomColors")(v === "true")}
+              items={[
+                { value: "false", label: "Off" },
+                { value: "true", label: "On" },
+              ]}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Disabled Background"
+            palette={PRESET_COLORS}
+            value={state.disabledBgColor}
+            onChange={setKey("disabledBgColor")}
+          />
+          <ColorControl
+            label="Disabled Text"
+            palette={PRESET_COLORS}
+            value={state.disabledTextColor}
+            onChange={setKey("disabledTextColor")}
+          />
+          <ColorControl
+            label="Disabled Border"
+            palette={PRESET_COLORS}
+            value={state.disabledBorderColor}
+            onChange={setKey("disabledBorderColor")}
+          />
+          <ColorControl
+            label="Disabled Dot"
+            palette={PRESET_COLORS}
+            value={state.disabledDotColor}
+            onChange={setKey("disabledDotColor")}
+          />
+        </div>
+
+        {/* Error */}
+        <div className="pt-4 border-t border-slate-700/50 space-y-3">
+          <div
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: "var(--muted)" }}
+          >
+            Validation
+          </div>
+          <ColorControl
+            label="Error Border"
+            palette={PRESET_COLORS}
+            value={state.errorBorderColor}
+            onChange={setKey("errorBorderColor")}
+          />
+          <ColorControl
+            label="Error Background"
+            palette={PRESET_COLORS}
+            value={state.errorBgColor}
+            onChange={setKey("errorBgColor")}
+          />
         </div>
       </div>
     </SectionCard>

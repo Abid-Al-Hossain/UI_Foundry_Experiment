@@ -1,5 +1,3 @@
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-
 // ── Types ──
 export type TransitionEasing =
   | "ease"
@@ -20,6 +18,7 @@ export type RadioOption = {
 // ── State ──
 export type RadioState = {
   // ── Group ──
+  id: string;
   name: string;
   selectedValue: string;
   orientation: Orientation;
@@ -29,7 +28,7 @@ export type RadioState = {
   // ── Outer Circle (numeric) ──
   outerSize: number;
   outerBorderWidth: number;
-  outerBorderStyle: "solid" | "dashed" | "dotted" | "none";
+  outerBorderStyle: "solid" | "dashed" | "dotted" | "double" | "none";
   outerBorderColor: string;
   outerBgColor: string;
 
@@ -45,16 +44,24 @@ export type RadioState = {
   transitionEasing: TransitionEasing;
 
   // ── Focus ──
+  focusRingEnabled: boolean;
   focusRingColor: string;
   focusRingWidth: number;
+  focusRingOffset: number;
 
   // ── Hover ──
   hoverBorderColor: string;
   hoverBgColor: string;
+  hoverDotColor: string;
 
   // ── Disabled ──
   disabledOpacity: number;
   disabledCursor: "not-allowed" | "default";
+  disabledUseCustomColors: boolean;
+  disabledBgColor: string;
+  disabledTextColor: string;
+  disabledBorderColor: string;
+  disabledDotColor: string;
 
   // ── Label Typography ──
   fontBucket: "system" | "google";
@@ -85,15 +92,37 @@ export type RadioState = {
 
   // ── Accessibility ──
   ariaLabel: string;
+  ariaDescribedBy: string;
+  ariaRequired: boolean;
+  tabIndex: number;
+  dir: "ltr" | "rtl";
+  lang: string;
+  title: string;
   role: string;
+  descriptionText: string;
+  descriptionColor: string;
+  helperText: string;
+  helperColor: string;
+  errorText: string;
+  errorColor: string;
+  errorBorderColor: string;
+  errorBgColor: string;
+  successText: string;
+  successColor: string;
 
   // ── Download ──
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
 
+export type RadioSetter = <K extends keyof RadioState>(
+  key: K,
+) => (
+  val: RadioState[K] | ((prev: RadioState[K]) => RadioState[K]),
+) => void;
+
 // ── Initial State ──
 export const INITIAL_STATE: RadioState = {
+  id: "radio-group",
   name: "radio-group",
   selectedValue: "option-1",
   orientation: "vertical",
@@ -120,14 +149,22 @@ export const INITIAL_STATE: RadioState = {
   transitionDuration: 200,
   transitionEasing: "ease",
 
+  focusRingEnabled: true,
   focusRingColor: "#3b82f6",
   focusRingWidth: 3,
+  focusRingOffset: 2,
 
   hoverBorderColor: "#3b82f6",
   hoverBgColor: "#eff6ff",
+  hoverDotColor: "#60a5fa",
 
   disabledOpacity: 0.5,
   disabledCursor: "not-allowed",
+  disabledUseCustomColors: false,
+  disabledBgColor: "#e2e8f0",
+  disabledTextColor: "#94a3b8",
+  disabledBorderColor: "#cbd5e1",
+  disabledDotColor: "#cbd5e1",
 
   // ── Label Typography ──
   fontBucket: "system",
@@ -157,8 +194,23 @@ export const INITIAL_STATE: RadioState = {
   shadowColor: "#000000",
 
   ariaLabel: "",
+  ariaDescribedBy: "",
+  ariaRequired: false,
+  tabIndex: 0,
+  dir: "ltr",
+  lang: "en",
+  title: "",
   role: "",
+  descriptionText: "",
+  descriptionColor: "#475569",
+  helperText: "",
+  helperColor: "#64748b",
+  errorText: "",
+  errorColor: "#ef4444",
+  errorBorderColor: "#ef4444",
+  errorBgColor: "#fef2f2",
+  successText: "",
+  successColor: "#10b981",
 
-  downloadFormat: "html",
   downloadName: "radio-group",
 };

@@ -36,7 +36,7 @@ export default function ImageMaskingSection({
       <LabeledField label="Mask Type">
         <Select
           value={state.maskType}
-          onChange={(v) => setKey("maskType")(v as any)}
+          onChange={(v) => setKey("maskType")(v as ImageState["maskType"])}
           options={maskTypeOptions}
         />
       </LabeledField>

@@ -49,11 +49,33 @@ export interface SpinnerState {
   // Accessibility
   label: string;
   labels?: SpinnerLabelConfig[];
+  ariaLive: "polite" | "assertive" | "off";
+  ariaHidden: boolean;
+  role: "status" | "progressbar" | "presentation";
+  ariaValueText: string;
+
+  // Focus Ring
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+
+  // Transitions
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+
+  // Disabled state
+  disabled: boolean;
+  disabledOpacity: number;
 
   // Export
-  downloadFormat: "react" | "html" | "tailwind";
   downloadName: string;
 }
+
+export type SpinnerUpdate = <K extends keyof SpinnerState>(
+  key: K,
+  value: SpinnerState[K],
+) => void;
 
 export type SpinnerLabelConfig = {
   id: string;
@@ -110,7 +132,21 @@ export const DEFAULT_SPINNER_STATE: SpinnerState = {
   easing: "linear",
 
   label: "Loading...",
-  downloadFormat: "react",
   downloadName: "spinner",
   labels: [],
+  ariaLive: "polite",
+  ariaHidden: false,
+  role: "status",
+  ariaValueText: "",
+
+  focusRingEnabled: false,
+  focusRingWidth: 2,
+  focusRingOffset: 2,
+  focusRingColor: "#38bdf8",
+
+  transitionDuration: 200,
+  transitionEasing: "ease",
+
+  disabled: false,
+  disabledOpacity: 0.5,
 };

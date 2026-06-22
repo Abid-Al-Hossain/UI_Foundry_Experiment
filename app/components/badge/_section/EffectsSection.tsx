@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 
@@ -32,17 +32,11 @@ export default function EffectsSection(props: {
   setShadowColor: (v: string) => void;
   shadowBlur: number;
   setShadowBlur: (v: number) => void;
-  interactive: boolean;
-  setInteractive: (v: boolean) => void;
-  hoverScale: number;
-  setHoverScale: (v: number) => void;
-  clickRipple: boolean;
-  setClickRipple: (v: boolean) => void;
 }) {
   return (
     <SectionCard
-      title="Visual Effects"
-      subtitle="Gradients, Shadows, and Micro-interactions."
+      title="Effects"
+      subtitle="Gradients and badge-native surface effects."
     >
       <div className="space-y-6">
         {/* Gradient */}
@@ -121,44 +115,6 @@ export default function EffectsSection(props: {
           )}
         </div>
 
-        {/* Interactive */}
-        <div className="pt-4 border-t border-slate-700/50 space-y-3">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Interactivity
-          </h3>
-
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-slate-300">Hover Scale</label>
-            <input
-              type="checkbox"
-              checked={props.interactive}
-              onChange={(e) => props.setInteractive(e.target.checked)}
-              className="accent-blue-500"
-            />
-          </div>
-          {props.interactive && (
-            <div className="pl-4">
-              <SizeControl
-                label="Scale Factor"
-                value={props.hoverScale}
-                onChange={props.setHoverScale}
-                min={0.8}
-                max={1.5}
-                step={0.05}
-              />
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-slate-300">Click Ripple</label>
-            <input
-              type="checkbox"
-              checked={props.clickRipple}
-              onChange={(e) => props.setClickRipple(e.target.checked)}
-              className="accent-blue-500"
-            />
-          </div>
-        </div>
       </div>
     </SectionCard>
   );

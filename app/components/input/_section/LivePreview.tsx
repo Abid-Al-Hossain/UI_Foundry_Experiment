@@ -1,185 +1,409 @@
-import React, { useState, useEffect } from "react";
-import { TextInputState } from "../types";
-import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
+"use client";
 
-// Helper to convert hex to rgba
-const hexToRgba = (hex: string, alpha: number) => {
-  let r = 0,
-    g = 0,
-    b = 0;
-  if (hex.startsWith("#")) {
-    hex = hex.slice(1);
-  }
-  if (hex.length === 3) {
-    r = parseInt(hex[0] + hex[0], 16);
-    g = parseInt(hex[1] + hex[1], 16);
-    b = parseInt(hex[2] + hex[2], 16);
-  } else if (hex.length === 6) {
-    r = parseInt(hex.substring(0, 2), 16);
-    g = parseInt(hex.substring(2, 4), 16);
-    b = parseInt(hex.substring(4, 6), 16);
-  }
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+import React, { useEffect, useState } from "react";
+import { TextInputState } from "../types";
+import {
+  resolveInputAriaInvalid,
+  resolveInputBackground,
+  resolveInputDescribedBy,
+  resolveInputFontFamily,
+  resolveInputFloatingLabelStyle,
+  resolveInputPadding,
+  resolveInputRadius,
+  resolveInputShadow,
+} from "../_utils/inputVisuals";
+
+type SupportingMessage = {
+  id: string;
+  text: string;
+  color: string;
 };
 
+const getAdornmentWidth = (text: string) =>
+  text ? Math.max(30, text.length * 8 + 18) : 0;
+
+const RANGE_ATTRIBUTE_TYPES = new Set([
+  "number",
+  "range",
+  "date",
+  "time",
+  "datetime-local",
+  "month",
+  "week",
+]);
+
 export default function LivePreview({ state }: { state: TextInputState }) {
-  const radius = state.linkRadius
-    ? `${state.borderRadius}px`
-    : `${state.borderRadiusTL}px ${state.borderRadiusTR}px ${state.borderRadiusBR}px ${state.borderRadiusBL}px`;
+  const [value, setValue] = useState(state.defaultValue);
+  const [focused, setFocused] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
-  const bg = state.useGradient
-    ? `linear-gradient(${state.gradientAngle}deg, ${state.gradientStart}, ${state.gradientEnd})`
-    : state.backgroundColor;
+  useEffect(() => {
+    setValue(state.defaultValue);
+  }, [state.defaultValue]);
 
-  // Construct Shadow
-  const shadowColorRgba = hexToRgba(state.shadowColor, state.shadowOpacity);
-  const shadow = state.shadowEnabled
-    ? `${state.shadowX}px ${state.shadowY}px ${state.shadowBlur}px ${state.shadowSpread}px ${shadowColorRgba}`
-    : "none";
+  useEffect(() => {
+    if (state.inputType !== "password") {
+      setRevealed(false);
+    }
+  }, [state.inputType]);
 
-  // Construct Font Family
-  const fontFamily =
-    state.fontBucket === "google"
-      ? state.googleFontFamily
-      : SYSTEM_FONTS[state.systemFontIdx]?.css || "inherit";
+  const floatingActive =
+    state.labelPosition === "floating" && (focused || value.length > 0);
+
+  const radius = resolveInputRadius(state);
+  const background = resolveInputBackground(state);
+  const shadow = resolveInputShadow(state);
+  const fontFamily = resolveInputFontFamily(state);
+
+  const secondaryMessage: SupportingMessage | null = state.descriptionText
+    ? {
+        id: "text-input-preview-description",
+        text: state.descriptionText,
+        color: state.descriptionColor,
+      }
+    : state.helperText
+      ? {
+          id: "text-input-preview-helper",
+          text: state.helperText,
+          color: state.helperColor,
+        }
+      : null;
+
+  const feedbackMessage: SupportingMessage | null = state.errorText
+    ? {
+        id: "text-input-preview-error",
+        text: state.errorText,
+        color: state.errorColor,
+      }
+    : state.successText
+      ? {
+          id: "text-input-preview-success",
+          text: state.successText,
+          color: state.successColor,
+        }
+      : null;
+
+  const describedBy = resolveInputDescribedBy(
+    state,
+    secondaryMessage?.id,
+    feedbackMessage?.id,
+  );
+  const supportsRangeAttributes = RANGE_ATTRIBUTE_TYPES.has(state.inputType);
+  const ariaInvalid = resolveInputAriaInvalid(state);
+  const placeholderColor =
+    state.labelPosition === "floating" && !floatingActive
+      ? "transparent"
+      : state.placeholderColor;
+
+  const prefixWidth = getAdornmentWidth(state.prefixText);
+  const suffixWidth = getAdornmentWidth(state.suffixText);
+  const iconInset = state.iconEnabled ? state.iconSize + 8 : 0;
+  const clearActionWidth =
+    state.showClearButton && value.length > 0 && !state.disabled && !state.readOnly
+      ? 30
+      : 0;
+  const revealActionWidth =
+    state.showPasswordToggle && state.inputType === "password" ? 34 : 0;
+
+  const leftInset =
+    state.paddingX +
+    (state.iconEnabled && state.iconPosition === "left" ? iconInset : 0) +
+    prefixWidth;
+  const rightInset =
+    state.paddingX +
+    (state.iconEnabled && state.iconPosition === "right" ? iconInset : 0) +
+    suffixWidth +
+    clearActionWidth +
+    revealActionWidth;
+
+  const actualType =
+    state.inputType === "password" && state.showPasswordToggle && revealed
+      ? "text"
+      : state.inputType;
+
+  const basePadding = resolveInputPadding(state, floatingActive);
+  const dynamicPadding = `${basePadding}`.replace(
+    /^(\d+px)\s+(\d+px)\s+(\d+px)\s+(\d+px)$/,
+    `$1 ${rightInset}px $3 ${leftInset}px`,
+  );
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
     height: state.height,
-    padding: `${state.paddingY}px ${state.paddingX}px`,
-    fontFamily: fontFamily,
+    padding: dynamicPadding,
+    fontFamily,
     fontSize: `${state.fontSize}${state.fontSizeUnit}`,
     fontWeight: state.fontWeight,
     fontStyle: state.fontStyle,
     color: state.textColor,
     letterSpacing: `${state.letterSpacing}${state.letterSpacingUnit}`,
-    textAlign: state.textAlign as any,
-    textTransform: state.textTransform as any,
+    textAlign: state.textAlign,
+    textTransform: state.textTransform,
     lineHeight: state.lineHeight,
-    background: bg,
+    background,
     border: `${state.borderWidth}px ${state.borderStyle} ${state.borderColor}`,
     borderRadius: radius,
     caretColor: state.caretColor,
     boxShadow: shadow,
     transition: `${state.transitionProperty} ${state.transitionDuration}ms ${state.transitionEasing}`,
     outline: "none",
-    boxSizing: "border-box" as const,
+    boxSizing: "border-box",
   };
 
-  const containerStyle: React.CSSProperties =
-    state.labelPosition === "left"
-      ? { display: "flex", alignItems: "center", gap: state.labelGap }
-      : { display: "flex", flexDirection: "column", gap: state.labelGap };
+  const fieldWrapperStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+  };
 
-  const pseudoId = "text-input-preview";
+  const topLabelStyle: React.CSSProperties = {
+    display: "block",
+    color: state.labelColor,
+    fontSize: state.labelFontSize,
+    fontWeight: state.labelFontWeight,
+    flexShrink: 0,
+  };
+
+  const floatingLabelStyle = resolveInputFloatingLabelStyle(
+    {
+      ...state,
+      paddingX: leftInset,
+    },
+    floatingActive,
+  );
+
   const cssString = `
-    #${pseudoId}:focus {
+    #text-input-preview:focus {
       border-color: ${state.focusBorderColor} !important;
       border-width: ${state.focusBorderWidth}px !important;
       background: ${state.focusBackgroundColor} !important;
       box-shadow: 0 0 0 ${state.focusBoxShadowSpread}px ${state.focusBoxShadowColor} !important;
       ${state.focusOutlineStyle !== "none" ? `outline: ${state.focusOutlineWidth}px ${state.focusOutlineStyle} ${state.focusOutlineColor} !important; outline-offset: ${state.focusOutlineOffset}px !important;` : "outline: none !important;"}
     }
-    #${pseudoId}:hover:not(:disabled) {
+    #text-input-preview:hover:not(:disabled) {
       border-color: ${state.hoverBorderColor} !important;
       border-width: ${state.hoverBorderWidth}px !important;
       background: ${state.hoverBackgroundColor} !important;
     }
-    #${pseudoId}:disabled {
+    #text-input-preview:disabled {
       opacity: ${state.disabledOpacity} !important;
       cursor: ${state.disabledCursor} !important;
       ${state.disabledUseCustomColors ? `background: ${state.disabledBackgroundColor} !important; color: ${state.disabledTextColor} !important; border-color: ${state.disabledBorderColor} !important;` : ""}
     }
-    #${pseudoId}::placeholder {
-      color: ${state.placeholderColor} !important;
+    #text-input-preview::placeholder {
+      color: ${placeholderColor} !important;
       opacity: ${state.placeholderOpacity} !important;
       font-style: ${state.placeholderFontStyle} !important;
     }
-    #${pseudoId}::selection {
+    #text-input-preview::selection {
       background: ${state.selectionBg} !important;
       color: ${state.selectionColor} !important;
     }
   `;
 
+  const inputNode = (
+    <div style={fieldWrapperStyle}>
+      {state.labelPosition === "floating" && (
+        <label htmlFor={state.id || "text-input-preview"} style={floatingLabelStyle}>
+          {state.labelText}
+          {state.showRequired && (
+            <span style={{ color: state.requiredColor }}> *</span>
+          )}
+        </label>
+      )}
+      {state.iconEnabled && (
+        <span
+          style={{
+            position: "absolute",
+            [state.iconPosition]: state.paddingX,
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: state.iconColor,
+            width: state.iconSize,
+            height: state.iconSize,
+            display: "flex",
+            alignItems: "center",
+            pointerEvents: "none",
+          }}
+          dangerouslySetInnerHTML={{ __html: state.iconSvg }}
+        />
+      )}
+      {state.prefixText && (
+        <span
+          style={{
+            position: "absolute",
+            left:
+              state.paddingX +
+              (state.iconEnabled && state.iconPosition === "left"
+                ? state.iconSize + 8
+                : 0),
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: state.prefixColor,
+            fontSize: 12,
+            fontWeight: 600,
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {state.prefixText}
+        </span>
+      )}
+      {state.suffixText && (
+        <span
+          style={{
+            position: "absolute",
+            right:
+              state.paddingX +
+              (state.iconEnabled && state.iconPosition === "right"
+                ? state.iconSize + 8
+                : 0) +
+              clearActionWidth +
+              revealActionWidth,
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: state.suffixColor,
+            fontSize: 12,
+            fontWeight: 600,
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {state.suffixText}
+        </span>
+      )}
+      {state.showClearButton &&
+        value.length > 0 &&
+        !state.disabled &&
+        !state.readOnly && (
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => setValue("")}
+            style={{
+              position: "absolute",
+              right:
+                state.paddingX +
+                (state.showPasswordToggle && state.inputType === "password"
+                  ? revealActionWidth
+                  : 0),
+              top: "50%",
+              transform: "translateY(-50%)",
+              border: "none",
+              background: "transparent",
+              color: "var(--muted)",
+              fontSize: 16,
+              lineHeight: 1,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        )}
+      {state.showPasswordToggle && state.inputType === "password" && (
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => setRevealed((current) => !current)}
+          style={{
+            position: "absolute",
+            right: state.paddingX,
+            top: "50%",
+            transform: "translateY(-50%)",
+            border: "none",
+            background: "transparent",
+            color: "var(--muted)",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            cursor: "pointer",
+          }}
+        >
+          {revealed ? "HIDE" : "SHOW"}
+        </button>
+      )}
+      <input
+        id={state.id || "text-input-preview"}
+        type={actualType}
+        placeholder={state.placeholder}
+        value={value}
+        onChange={(e) => {
+          if (!state.disabled && !state.readOnly) {
+            setValue(e.target.value);
+          }
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        title={state.title || undefined}
+        name={state.name}
+        required={state.required}
+        disabled={state.disabled}
+        readOnly={state.readOnly}
+        maxLength={state.maxLength > 0 ? state.maxLength : undefined}
+        minLength={state.minLength > 0 ? state.minLength : undefined}
+        pattern={state.pattern || undefined}
+        min={supportsRangeAttributes && state.minValue ? state.minValue : undefined}
+        max={supportsRangeAttributes && state.maxValue ? state.maxValue : undefined}
+        step={supportsRangeAttributes && state.stepValue ? state.stepValue : undefined}
+        aria-label={state.ariaLabel || undefined}
+        aria-describedby={describedBy}
+        aria-invalid={ariaInvalid}
+        aria-required={state.required || undefined}
+        autoComplete={state.autocomplete}
+        inputMode={state.inputmode}
+        enterKeyHint={state.enterKeyHint}
+        autoCapitalize={state.autoCapitalize}
+        autoCorrect={state.autoCorrect}
+        dir={state.dir}
+        lang={state.lang || undefined}
+        tabIndex={state.tabIndex}
+        spellCheck={state.spellCheck}
+        role={state.role || undefined}
+        style={inputStyle}
+      />
+    </div>
+  );
+
   return (
-    <div
-      className="flex items-center justify-center p-8"
-      style={{ minHeight: 300 }}
-    >
+    <div className="flex items-center justify-center p-8" style={{ minHeight: 300 }}>
       <style dangerouslySetInnerHTML={{ __html: cssString }} />
-      <div style={{ width: "100%", maxWidth: 400 }}>
-        <div style={containerStyle}>
-          {state.labelPosition !== "hidden" && (
-            <label
-              style={{
-                display: "block",
-                color: state.labelColor,
-                fontSize: state.labelFontSize,
-                fontWeight: state.labelFontWeight,
-                flexShrink: 0,
-              }}
-            >
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        {state.labelPosition === "left" ? (
+          <div style={{ display: "flex", alignItems: "center", gap: state.labelGap }}>
+            <label style={topLabelStyle}>
               {state.labelText}
               {state.showRequired && (
                 <span style={{ color: state.requiredColor }}> *</span>
               )}
             </label>
-          )}
-          <div style={{ position: "relative", width: "100%" }}>
-            {state.iconEnabled && (
-              <span
-                style={{
-                  position: "absolute",
-                  [state.iconPosition]: state.paddingX,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: state.iconColor,
-                  width: state.iconSize,
-                  height: state.iconSize,
-                  display: "flex",
-                  alignItems: "center",
-                  pointerEvents: "none",
-                }}
-                dangerouslySetInnerHTML={{ __html: state.iconSvg }}
-              />
-            )}
-            <input
-              id={pseudoId}
-              type={state.inputType}
-              placeholder={state.placeholder}
-              defaultValue={state.defaultValue}
-              name={state.name}
-              required={state.required}
-              disabled={state.disabled}
-              readOnly={state.readOnly}
-              maxLength={state.maxLength > 0 ? state.maxLength : undefined}
-              minLength={state.minLength > 0 ? state.minLength : undefined}
-              pattern={state.pattern || undefined}
-              aria-label={state.ariaLabel || undefined}
-              aria-describedby={state.ariaDescribedBy || undefined}
-              aria-invalid={state.ariaInvalid || undefined}
-              autoComplete={state.autocomplete}
-              inputMode={state.inputmode as any}
-              role={state.role || undefined}
-              style={{
-                ...inputStyle,
-                ...(state.iconEnabled
-                  ? {
-                      [`padding${state.iconPosition === "left" ? "Left" : "Right"}`]: `calc(${state.paddingX}px + ${state.iconSize}px + 8px)`,
-                    }
-                  : {}),
-              }}
-            />
+            {inputNode}
           </div>
-        </div>
-        {state.helperText && (
-          <p style={{ marginTop: 4, fontSize: 12, color: state.helperColor }}>
-            {state.helperText}
+        ) : state.labelPosition === "top" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: state.labelGap }}>
+            <label style={topLabelStyle}>
+              {state.labelText}
+              {state.showRequired && (
+                <span style={{ color: state.requiredColor }}> *</span>
+              )}
+            </label>
+            {inputNode}
+          </div>
+        ) : (
+          <div style={{ position: "relative", width: "100%" }}>{inputNode}</div>
+        )}
+        {secondaryMessage && (
+          <p
+            id={secondaryMessage.id}
+            style={{ marginTop: 4, fontSize: 12, color: secondaryMessage.color }}
+          >
+            {secondaryMessage.text}
           </p>
         )}
-        {state.errorText && (
-          <p style={{ marginTop: 4, fontSize: 12, color: state.errorColor }}>
-            {state.errorText}
+        {feedbackMessage && (
+          <p
+            id={feedbackMessage.id}
+            style={{ marginTop: 4, fontSize: 12, color: feedbackMessage.color }}
+          >
+            {feedbackMessage.text}
           </p>
         )}
       </div>

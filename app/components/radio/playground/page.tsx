@@ -1,28 +1,38 @@
 "use client";
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import React, { useState, useRef, useMemo } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 import BasicsSection from "../_section/BasicsSection";
+import MetadataSection from "../_section/MetadataSection";
 import StylingSection from "../_section/StylingSection";
 import StatesSection from "../_section/StatesSection";
+import FocusSection from "../_section/FocusSection";
+import ShadowSection from "../_section/ShadowSection";
+import MessagesSection from "../_section/MessagesSection";
 import TypographySection from "../_section/TypographySection";
 import AccessibilitySection from "../_section/AccessibilitySection";
 import EffectsSection from "../_section/EffectsSection";
 import { buildRadioExportPayload } from "../_utils/exportUtils";
-import { type RadioState, INITIAL_STATE } from "../types";
+import { type RadioState, type RadioSetter, INITIAL_STATE } from "../types";
+import PresetsSection from "../_section/PresetsSection";
+import { RADIO_PRESETS } from "../_data/presets";
 
 export default function RadioPlaygroundPage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const {
     state,
     set: updateState,
@@ -33,21 +43,18 @@ export default function RadioPlaygroundPage() {
     canRedo,
   } = useHistoryState<RadioState>(INITIAL_STATE);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("radio-group");
 
   const exportPayload = useMemo(
     () => ({
       ...state,
-      downloadFormat,
       downloadName: downloadName || "radio-group",
     }),
-    [downloadFormat, downloadName, state],
+    [downloadName, state],
   );
-  const deferredExportPayload = useDeferredValue(exportPayload);
   const exportCode = useMemo(
-    () => buildRadioExportPayload(deferredExportPayload),
-    [deferredExportPayload],
+    () => buildRadioExportPayload(exportPayload),
+    [exportPayload],
   );
 
   const handleDownload = () => {
@@ -63,29 +70,50 @@ export default function RadioPlaygroundPage() {
     URL.revokeObjectURL(url);
   };
 
-  const sections = [
+  const applyPreset = (presetState: RadioState) => {
+    updateState((prev) => ({
+      ...prev,
+      ...presetState,
+    }));
+    setPreviewResetKey((key) => key + 1);
+  };
+
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((key) => key + 1);
+  };
+
+  const editorSections = [
     { id: "basics", label: "Basics", component: BasicsSection },
-    { id: "styling", label: "Appearance", component: StylingSection },
+    { id: "metadata", label: "Metadata", component: MetadataSection },
+    { id: "styling", label: "Styling", component: StylingSection },
+    { id: "focus", label: "Focus", component: FocusSection },
     { id: "states", label: "States", component: StatesSection },
+    { id: "messages", label: "Description & Messages", component: MessagesSection },
     { id: "typography", label: "Typography", component: TypographySection },
-    { id: "effects", label: "Effects", component: EffectsSection },
-    { id: "a11y", label: "A11y", component: AccessibilitySection },
+    { id: "motion", label: "Motion", component: EffectsSection },
+    { id: "shadow", label: "Shadow", component: ShadowSection },
+    { id: "accessibility", label: "Accessibility", component: AccessibilitySection },
+  ];
+  const sections = [
+    { id: "presets", label: "Presets" },
+    ...editorSections,
   ];
 
-  const setKey = (key: keyof RadioState) => (val: any) => {
+  const setKey: RadioSetter = (key) => (val) => {
     updateState((prev) => ({
       ...prev,
       [key]: typeof val === "function" ? val(prev[key]) : val,
     }));
   };
 
-  const activeComp = sections.find((s) => s.id === activeSection);
+  const activeComp = editorSections.find((s) => s.id === activeSection);
   const ActiveComponent = activeComp?.component || BasicsSection;
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -98,11 +126,19 @@ export default function RadioPlaygroundPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      <ActiveComponent
-        state={state}
-        setKey={setKey}
-        updateState={updateState}
-      />
+      {activeSection === "presets" ? (
+        <PresetsSection
+          state={state}
+          presets={RADIO_PRESETS}
+          onApply={(preset) => applyPreset(preset.state)}
+        />
+      ) : (
+        <ActiveComponent
+          state={state}
+          setKey={setKey}
+          updateState={updateState}
+        />
+      )}
     </>
   );
 
@@ -112,16 +148,19 @@ export default function RadioPlaygroundPage() {
       iframeSrcDoc=""
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview state={state} resetKey={previewResetKey} canvasBg={previewBgInput} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -130,6 +169,7 @@ export default function RadioPlaygroundPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

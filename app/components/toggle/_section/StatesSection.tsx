@@ -5,10 +5,10 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import { ToggleState } from "../types";
+import { type ToggleState, type ToggleKeyUpdater } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -27,40 +27,15 @@ export default function StatesSection({
   setKey,
 }: {
   state: ToggleState;
-  setKey: (key: keyof ToggleState) => (val: any) => void;
+  setKey: ToggleKeyUpdater;
 }) {
   return (
     <SectionCard
-      title="States & Animation"
-      subtitle="Focus, hover, disabled, and transitions."
+      title="States"
+      subtitle="Hover and disabled behavior."
     >
       <div className="space-y-5">
-        {/* Focus */}
-        <div className="pt-4 border-t border-slate-700/50 space-y-3">
-          <div
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: "var(--muted)" }}
-          >
-            Focus Ring
-          </div>
-          <ColorControl
-            label="Color"
-            palette={PRESET_COLORS}
-            value={state.focusRingColor}
-            onChange={setKey("focusRingColor")}
-          />
-          <SizeControl
-            label="Width (px)"
-            value={state.focusRingWidth}
-            onChange={(v) => setKey("focusRingWidth")(v)}
-            min={0}
-            max={8}
-            step={1}
-          />
-        </div>
-
-        {/* Hover */}
-        <div className="pt-4 border-t border-slate-700/50 space-y-3">
+        <div className="space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
             style={{ color: "var(--muted)" }}
@@ -108,10 +83,93 @@ export default function StatesSection({
           <LabeledField label="Cursor">
             <Segmented
               value={state.disabledCursor}
-              onChange={(v) => setKey("disabledCursor")(v)}
+              onChange={(v) =>
+                setKey("disabledCursor")(v as ToggleState["disabledCursor"])
+              }
               items={[
                 { value: "not-allowed", label: "Not Allowed" },
                 { value: "default", label: "Default" },
+              ]}
+            />
+          </LabeledField>
+          <LabeledField label="Use Custom Colors">
+            <Segmented
+              value={state.disabledUseCustomColors ? "true" : "false"}
+              onChange={(v) => setKey("disabledUseCustomColors")(v === "true")}
+              items={[
+                { value: "false", label: "Off" },
+                { value: "true", label: "On" },
+              ]}
+            />
+          </LabeledField>
+          <ColorControl
+            label="Disabled Track"
+            palette={PRESET_COLORS}
+            value={state.disabledTrackBg}
+            onChange={setKey("disabledTrackBg")}
+          />
+          <ColorControl
+            label="Disabled Thumb"
+            palette={PRESET_COLORS}
+            value={state.disabledThumbBg}
+            onChange={setKey("disabledThumbBg")}
+          />
+          <ColorControl
+            label="Disabled Text"
+            palette={PRESET_COLORS}
+            value={state.disabledTextColor}
+            onChange={setKey("disabledTextColor")}
+          />
+        </div>
+
+        {/* Error */}
+        <div className="pt-4 border-t border-slate-700/50 space-y-3">
+          <div
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: "var(--muted)" }}
+          >
+            Validation
+          </div>
+          <ColorControl
+            label="Error Track"
+            palette={PRESET_COLORS}
+            value={state.errorTrackBg}
+            onChange={setKey("errorTrackBg")}
+          />
+          <ColorControl
+            label="Error Thumb"
+            palette={PRESET_COLORS}
+            value={state.errorThumbBg}
+            onChange={setKey("errorThumbBg")}
+          />
+        </div>
+
+        {/* Loading */}
+        <div className="pt-4 border-t border-slate-700/50 space-y-3">
+          <div
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: "var(--muted)" }}
+          >
+            Loading
+          </div>
+          <LabeledField label="Enabled">
+            <Segmented
+              value={state.loadingEnabled ? "true" : "false"}
+              onChange={(v) => setKey("loadingEnabled")(v === "true")}
+              items={[
+                { value: "false", label: "Off" },
+                { value: "true", label: "On" },
+              ]}
+            />
+          </LabeledField>
+          <LabeledField label="Animation">
+            <Segmented
+              value={state.loadingAnimation}
+              onChange={(v) => setKey("loadingAnimation")(v as ToggleState["loadingAnimation"])}
+              items={[
+                { value: "spin", label: "Spin" },
+                { value: "pulse", label: "Pulse" },
+                { value: "none", label: "None" },
               ]}
             />
           </LabeledField>

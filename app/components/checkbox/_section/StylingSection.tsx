@@ -5,11 +5,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import BorderControl from "@/app/components/controls/layout/BorderControl";
-import { CheckboxState } from "../types";
+import { type CheckboxState, type CheckboxSetter } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -28,12 +28,11 @@ export default function StylingSection({
   setKey,
 }: {
   state: CheckboxState;
-  setKey: (key: keyof CheckboxState) => (val: any) => void;
+  setKey: CheckboxSetter;
 }) {
   return (
     <SectionCard title="Appearance" subtitle="Box styling and checkmark.">
       <div className="space-y-5">
-        {/* Box */}
         <div className="space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
@@ -57,17 +56,15 @@ export default function StylingSection({
             max={24}
             step={1}
           />
-
           <BorderControl
             width={state.boxBorderWidth}
             setWidth={(v) => setKey("boxBorderWidth")(v)}
             style={state.boxBorderStyle}
-            setStyle={(v) => setKey("boxBorderStyle")(v)}
+            setStyle={(v) => setKey("boxBorderStyle")(v as CheckboxState["boxBorderStyle"])}
             color={state.boxBorderColor}
             setColor={setKey("boxBorderColor")}
             palette={PRESET_COLORS}
           />
-
           <ColorControl
             label="Background"
             palette={PRESET_COLORS}
@@ -76,7 +73,6 @@ export default function StylingSection({
           />
         </div>
 
-        {/* Checked */}
         <div className="pt-4 border-t border-slate-700/50 space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
@@ -105,11 +101,11 @@ export default function StylingSection({
           <LabeledField label="Checkmark Style">
             <Segmented
               value={state.checkmarkStyle}
-              onChange={(v) => setKey("checkmarkStyle")(v)}
+              onChange={(v) => setKey("checkmarkStyle")(v as CheckboxState["checkmarkStyle"])}
               items={[
-                { value: "check", label: "✓" },
-                { value: "cross", label: "✕" },
-                { value: "dash", label: "—" },
+                { value: "check", label: "Check" },
+                { value: "cross", label: "Cross" },
+                { value: "dash", label: "Dash" },
                 { value: "custom", label: "SVG" },
               ]}
             />
@@ -129,6 +125,53 @@ export default function StylingSection({
             min={1}
             max={6}
             step={0.5}
+          />
+          {state.checkmarkStyle === "custom" ? (
+            <LabeledField
+              label="Custom SVG"
+              hint="Inline SVG markup for the checkmark"
+            >
+              <textarea
+                value={state.customCheckmarkSvg}
+                onChange={(e) => setKey("customCheckmarkSvg")(e.target.value)}
+                rows={5}
+                className="w-full rounded-xl border px-3 py-2 font-mono text-xs outline-none"
+                placeholder="<svg viewBox=&quot;0 0 16 16&quot;>...</svg>"
+                style={{
+                  borderColor: "var(--border)",
+                  background:
+                    "color-mix(in oklab, var(--surface) 70%, transparent)",
+                  color: "var(--text)",
+                }}
+              />
+            </LabeledField>
+          ) : null}
+        </div>
+
+        <div className="pt-4 border-t border-slate-700/50 space-y-3">
+          <div
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: "var(--muted)" }}
+          >
+            Indeterminate State
+          </div>
+          <ColorControl
+            label="Background"
+            palette={PRESET_COLORS}
+            value={state.indeterminateBgColor}
+            onChange={setKey("indeterminateBgColor")}
+          />
+          <ColorControl
+            label="Border Color"
+            palette={PRESET_COLORS}
+            value={state.indeterminateBorderColor}
+            onChange={setKey("indeterminateBorderColor")}
+          />
+          <ColorControl
+            label="Indicator Color"
+            palette={PRESET_COLORS}
+            value={state.indeterminateIndicatorColor}
+            onChange={setKey("indeterminateIndicatorColor")}
           />
         </div>
       </div>

@@ -1,0 +1,22 @@
+"use client";
+
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import Slider from "@/app/components/controls/input/Slider";
+import Switch from "@/app/components/controls/input/Switch";
+import type { CardStudioState } from "../types";
+
+type Props = {
+  state: CardStudioState;
+  update: <K extends keyof CardStudioState>(key: K, value: CardStudioState[K]) => void;
+};
+
+export default function HoverSection({ state, update }: Props) {
+  return (
+    <SectionCard title="Hover" subtitle="Hover behavior that remains native.">
+      <div className="space-y-4">
+      <Switch label="Interactive card" checked={state.interactive} onChange={(value) => update("interactive", value)} />
+      <Slider label="Hover lift" value={state.hoverLift} min={0} max={24} step={1} onChange={(value) => update("hoverLift", value)} />
+    </div>
+    </SectionCard>
+  );
+}

@@ -4,10 +4,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import Select from "@/app/components/controls/input/Select";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import type { BadgeState } from "../types";
 
 const PRESET_COLORS = [
   "#3b82f6",
@@ -22,12 +23,12 @@ const PRESET_COLORS = [
 ];
 
 export default function AppearanceSection(props: {
-  variant: string;
-  setVariant: (v: string) => void;
-  shape: string;
-  setShape: (v: string) => void;
-  size: string;
-  setSize: (v: string) => void;
+  variant: BadgeState["variant"];
+  setVariant: (v: BadgeState["variant"]) => void;
+  shape: BadgeState["shape"];
+  setShape: (v: BadgeState["shape"]) => void;
+  size: BadgeState["size"];
+  setSize: (v: BadgeState["size"]) => void;
   color: string;
   setColor: (v: string) => void;
   textColor: string;
@@ -49,7 +50,7 @@ export default function AppearanceSection(props: {
         <LabeledField label="Variant">
           <Select
             value={props.variant}
-            onChange={props.setVariant}
+            onChange={(v) => props.setVariant(v as BadgeState["variant"])}
             options={[
               { value: "solid", label: "Solid" },
               { value: "outline", label: "Outline" },
@@ -64,7 +65,7 @@ export default function AppearanceSection(props: {
         <LabeledField label="Shape">
           <Segmented
             value={props.shape}
-            onChange={props.setShape}
+            onChange={(v) => props.setShape(v as BadgeState["shape"])}
             items={[
               { label: "Pill", value: "pill" },
               { label: "Rounded", value: "rounded" },

@@ -5,12 +5,11 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import Select from "@/app/components/controls/input/Select";
 import BorderControl from "@/app/components/controls/layout/BorderControl";
-import { TextInputState } from "../types";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -29,7 +28,7 @@ export default function StylingSection({
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   return (
     <SectionCard title="Appearance" subtitle="Sizing, borders, and colors.">
@@ -177,7 +176,7 @@ export default function StylingSection({
           {state.useGradient && (
             <>
               <SizeControl
-                label="Angle (°)"
+                label="Angle (deg)"
                 value={state.gradientAngle}
                 onChange={(v) => setKey("gradientAngle")(v)}
                 min={0}
@@ -218,23 +217,6 @@ export default function StylingSection({
           />
         </div>
 
-        {/* Placeholder styling moved to Typography or kept Separate? Input types had Placeholder Styling in Typography section, BUT types.ts has separate block.
-             Wait, StylingSection had "Placeholder" block at the end (lines 346-378).
-             I removed Typography block (lines 247-344).
-             I kept Sizing, Border, Colors.
-             Should I keep Placeholder block?
-             The prompt said "remove Typography block".
-             Placeholder block has Color, Opacity, Font Style.
-             I can keep it here or move to Typography.
-             Given TypographySection handles input text, maybe placeholder style belongs there too?
-             But TypographySection is mainly TypographyControl.
-             I'll keep Placeholder here for now, or just remove it if I assume it moved...
-             Wait, I didn't verify where Placeholder went.
-             If I remove it from here, where does it go?
-             It's not in TypographySection I created.
-             I should probably ADD it to TypographySection or keep it here.
-             I'll keep it here for now to avoid losing controls.
-        */}
         <div className="pt-4 border-t border-slate-700/50 space-y-3">
           <div
             className="text-xs font-semibold uppercase tracking-wider"
@@ -259,7 +241,11 @@ export default function StylingSection({
           <LabeledField label="Font Style">
             <Segmented
               value={state.placeholderFontStyle}
-              onChange={(v) => setKey("placeholderFontStyle")(v)}
+              onChange={(v) =>
+                setKey("placeholderFontStyle")(
+                  v as TextInputState["placeholderFontStyle"],
+                )
+              }
               items={[
                 { value: "normal", label: "Normal" },
                 { value: "italic", label: "Italic" },

@@ -1,5 +1,3 @@
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-
 // ── Basic Types ──────────────────────────────────────────
 export type InputType =
   | "text"
@@ -8,7 +6,14 @@ export type InputType =
   | "number"
   | "tel"
   | "url"
-  | "search";
+  | "search"
+  | "date"
+  | "time"
+  | "datetime-local"
+  | "month"
+  | "week"
+  | "color"
+  | "range";
 
 export type LabelPosition = "top" | "left" | "floating" | "hidden";
 
@@ -48,12 +53,31 @@ export type InputMode =
   | "email"
   | "url";
 
+export type EnterKeyHint =
+  | "enter"
+  | "done"
+  | "go"
+  | "next"
+  | "previous"
+  | "search"
+  | "send";
+
+export type AutoCapitalizeMode =
+  | "none"
+  | "off"
+  | "sentences"
+  | "words"
+  | "characters";
+
+export type AutoCorrectMode = "on" | "off";
+
 // ── State ────────────────────────────────────────────────
 export type TextInputState = {
   // ── Basics ──
   inputType: InputType;
   placeholder: string;
   defaultValue: string;
+  id: string;
   name: string;
   required: boolean;
   disabled: boolean;
@@ -61,6 +85,9 @@ export type TextInputState = {
   maxLength: number;
   minLength: number;
   pattern: string;
+  minValue: string;
+  maxValue: string;
+  stepValue: string;
 
   // ── Sizing (numeric) ──
   height: number;
@@ -158,6 +185,8 @@ export type TextInputState = {
   requiredColor: string;
   helperText: string;
   helperColor: string;
+  descriptionText: string;
+  descriptionColor: string;
   errorText: string;
   errorColor: string;
 
@@ -167,19 +196,43 @@ export type TextInputState = {
   iconSvg: string;
   iconColor: string;
   iconSize: number;
+  prefixText: string;
+  prefixColor: string;
+  suffixText: string;
+  suffixColor: string;
+  successText: string;
+  successColor: string;
+  showClearButton: boolean;
+  showPasswordToggle: boolean;
 
   // ── Accessibility ──
   ariaLabel: string;
   ariaDescribedBy: string;
   ariaInvalid: boolean;
+  ariaRequired: boolean;
   autocomplete: AutocompleteMode;
   inputmode: InputMode;
+  enterKeyHint: EnterKeyHint;
+  autoCapitalize: AutoCapitalizeMode;
+  autoCorrect: AutoCorrectMode;
+  dir: "ltr" | "rtl" | "auto";
+  lang: string;
+  title: string;
+  tabIndex: number;
+  spellCheck: boolean;
   role: string;
 
   // ── Download ──
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
+
+export type TextInputSetterValue<K extends keyof TextInputState> =
+  | TextInputState[K]
+  | ((prev: TextInputState[K]) => TextInputState[K]);
+
+export type TextInputSetter = <K extends keyof TextInputState>(
+  key: K,
+) => (val: TextInputSetterValue<K>) => void;
 
 // ── Initial State ────────────────────────────────────────
 export const INITIAL_STATE: TextInputState = {
@@ -187,6 +240,7 @@ export const INITIAL_STATE: TextInputState = {
   inputType: "text",
   placeholder: "Enter text...",
   defaultValue: "",
+  id: "text-input",
   name: "text-input",
   required: false,
   disabled: false,
@@ -194,6 +248,9 @@ export const INITIAL_STATE: TextInputState = {
   maxLength: 0,
   minLength: 0,
   pattern: "",
+  minValue: "",
+  maxValue: "",
+  stepValue: "",
 
   // ── Sizing ──
   height: 44,
@@ -291,6 +348,8 @@ export const INITIAL_STATE: TextInputState = {
   requiredColor: "#ef4444",
   helperText: "",
   helperColor: "#64748b",
+  descriptionText: "",
+  descriptionColor: "#94a3b8",
   errorText: "",
   errorColor: "#ef4444",
 
@@ -301,16 +360,32 @@ export const INITIAL_STATE: TextInputState = {
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
   iconColor: "#94a3b8",
   iconSize: 16,
+  prefixText: "",
+  prefixColor: "#64748b",
+  suffixText: "",
+  suffixColor: "#64748b",
+  successText: "",
+  successColor: "#10b981",
+  showClearButton: false,
+  showPasswordToggle: false,
 
   // ── Accessibility ──
   ariaLabel: "",
   ariaDescribedBy: "",
   ariaInvalid: false,
+  ariaRequired: false,
   autocomplete: "off",
   inputmode: "text",
+  enterKeyHint: "enter",
+  autoCapitalize: "sentences",
+  autoCorrect: "off",
+  dir: "auto",
+  lang: "",
+  title: "",
+  tabIndex: 0,
+  spellCheck: true,
   role: "",
 
   // ── Download ──
-  downloadFormat: "html",
   downloadName: "text-input",
 };

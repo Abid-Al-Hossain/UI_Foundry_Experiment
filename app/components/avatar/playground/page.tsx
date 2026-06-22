@@ -9,21 +9,21 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import PreviewDownloadPanel, {
-  DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 
-import { buildAvatarExport } from "./_utils/exportUtils";
-import { PREVIEW_SRC_DOC } from "./_utils/avatarPreviewDoc";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { buildAvatarExport } from "../_utils/exportUtils";
+import { PREVIEW_SRC_DOC } from "../_utils/avatarPreviewDoc";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // New Sections
 const ThreeAvatarSection = dynamic(
-  () => import("./_section/ThreeAvatarSection"),
+  () => import("../_section/ThreeAvatarSection"),
   {
     ssr: false,
     loading: () => (
@@ -31,160 +31,49 @@ const ThreeAvatarSection = dynamic(
     ),
   },
 );
-const MotionSection = dynamic(() => import("./_section/MotionSection"), {
+const MotionSection = dynamic(() => import("../_section/MotionSection"), {
   ssr: false,
   loading: () => (
     <div className="h-64 w-full animate-pulse rounded-xl bg-slate-900/50" />
   ),
 });
 
+import AvatarLivePreview from "../_section/AvatarLivePreview";
 import {
-  type ThreeDBadgeMode,
-  type ThreeDStatusMode,
-} from "./_section/ThreeAvatarSection";
-
+  resolveAvatarBoxShadow,
+  resolveAvatarFilterString,
+  resolveAvatarImageStyle,
+  resolveAvatarRadiusStyle,
+  resolveAvatarRootStyle,
+  resolveAvatarTransform,
+} from "../_utils/avatarRenderUtils";
 import {
-  type MotionEntrance,
-  type MotionHover,
-} from "./_section/MotionSection";
-import AvatarLivePreview from "./_section/AvatarLivePreview";
-
-// --- Types & Initial State ---
-type AvatarState = {
-  // Basics
-  src: string;
-  srcSet: string;
-  alt: string;
-  initials: string;
-  objectFit: "cover" | "contain" | "fill" | "none" | "scale-down";
-  objectPosition: string;
-  loadingState: "default" | "loading" | "error";
-  // Sizing
-  size: string;
-  aspectRatio: string;
-  radiusMode: "circle" | "rounded" | "square" | "custom";
-  radiusValue: number;
-  // Style
-  borderWidth: number;
-  borderColor: string;
-  borderStyle: "solid" | "dashed" | "dotted";
-  borderOffset: number;
-  initialsBg: string;
-  initialsColor: string;
-  fontFamily: string;
-  // Effects
-  opacity: number;
-  filterGrayscale: number;
-  filterBlur: number;
-  filterSepia: number;
-  filterBrightness: number;
-  filterContrast: number;
-  // Status
-  status: "none" | "online" | "offline" | "busy" | "away";
-  statusPosition: "top-right" | "bottom-right" | "bottom-left" | "top-left";
-  statusAnimation: "none" | "pulse";
-  badgeCount: string;
-  // Group
-  showGroup: boolean;
-  groupSpacing: number;
-  groupLimit: number;
-  groupDirection: "row" | "column";
-  // Interactions
-  hoverZoom: boolean;
-  hoverGrayscale: boolean;
-  // Transformations & 3D
-  imageRotation: number;
-  imageScale: number;
-  effect3D: "none" | "tilt" | "glitch" | "pulse";
-  // New 3D & Motion
-  // "Presence" Engine
-  use3DBadge: ThreeDBadgeMode;
-  badgeAnimate: boolean;
-  use3DStatus: ThreeDStatusMode;
-
-  // Advanced 3D Accessories
-  accessoryType: "none" | "crown" | "halo-cyber" | "orb-float";
-  accessoryColor: string;
-  orbitSpeed: string;
-
-  // Motion Textures & Effects
-  entranceAnimation: MotionEntrance;
-  hoverEffect: MotionHover;
-  textureEffect: "none" | "glitch" | "fluid" | "glass";
-  borderEffect: "none" | "snake" | "heartbeat" | "glow-pulse";
-
-  // Accessibility
-  ariaLabel: string;
-  ariaRole: "img" | "figure" | "presentation" | "none";
-};
-
-const INITIAL_STATE: AvatarState = {
-  src: "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
-  srcSet: "",
-  alt: "User Avatar",
-  initials: "JD",
-  objectFit: "cover",
-  objectPosition: "center",
-  loadingState: "default",
-  size: "128px",
-  aspectRatio: "1/1",
-  radiusMode: "circle",
-  radiusValue: 64,
-  borderWidth: 0,
-  borderColor: "#e2e8f0",
-  borderStyle: "solid",
-  borderOffset: 0,
-  initialsBg: "#e2e8f0",
-  initialsColor: "#64748b",
-  fontFamily: "sans-serif",
-  opacity: 100,
-  filterGrayscale: 0,
-  filterBlur: 0,
-  filterSepia: 0,
-  filterBrightness: 100,
-  filterContrast: 100,
-  status: "none",
-  statusPosition: "bottom-right",
-  statusAnimation: "none",
-  badgeCount: "",
-  showGroup: false,
-  groupSpacing: -12,
-  groupLimit: 5,
-  groupDirection: "row",
-  hoverZoom: false,
-  hoverGrayscale: false,
-  imageRotation: 0,
-  imageScale: 1,
-  effect3D: "none",
-  use3DBadge: "none",
-  badgeAnimate: true,
-  use3DStatus: "none",
-  accessoryType: "none",
-  accessoryColor: "#facc15",
-  orbitSpeed: "1",
-  entranceAnimation: "none",
-  hoverEffect: "none",
-  textureEffect: "none",
-  borderEffect: "none",
-
-  ariaLabel: "",
-  ariaRole: "img",
-};
-
-// Sections
-import BasicsSection from "./_section/BasicsSection";
-import SizingSection from "./_section/SizingSection";
-import StyleSection from "./_section/StyleSection";
-import StatusSection from "./_section/StatusSection";
-import EffectsSection from "./_section/EffectsSection";
-import GroupPreviewSection from "./_section/GroupPreviewSection";
-import AccessibilitySection from "./_section/AccessibilitySection";
+  INITIAL_STATE,
+  type AvatarState,
+} from "../types";
+import BasicsSection from "../_section/BasicsSection";
+import MetadataSection from "../_section/MetadataSection";
+import FramingSection from "../_section/FramingSection";
+import SizingSection from "../_section/SizingSection";
+import SurfaceSection from "../_section/SurfaceSection";
+import TypographySection from "../_section/TypographySection";
+import StatePreviewSection from "../_section/StatePreviewSection";
+import StatusSection from "../_section/StatusSection";
+import EffectsSection from "../_section/EffectsSection";
+import GroupPreviewSection from "../_section/GroupPreviewSection";
+import AccessibilitySection from "../_section/AccessibilitySection";
+import StatesSection from "../_section/StatesSection";
+import PresetsSection from "../_section/PresetsSection";
 
 import useHydrated from "@/components/hooks/useHydrated";
 
 export default function AvatarPage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
 
   // --- Unified State Management ---
   const {
@@ -202,7 +91,9 @@ export default function AvatarPage() {
     src,
     srcSet,
     alt,
+    title,
     initials,
+    fallbackPriority,
     objectFit,
     objectPosition,
     size,
@@ -213,6 +104,7 @@ export default function AvatarPage() {
     borderColor,
     borderStyle,
     borderOffset,
+    shadow,
     initialsBg,
     initialsColor,
     fontFamily,
@@ -248,291 +140,153 @@ export default function AvatarPage() {
     borderEffect,
     ariaLabel,
     ariaRole,
+    ariaHidden,
+    ariaDescribedBy,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingOffset,
+    focusRingColor,
+    transitionDuration,
+    transitionEasing,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+    hoverBorderColor,
+    hoverOpacity,
   } = state;
 
   // -- Proxy Setters for Backward Compatibility --
-  const setSrc = (v: any) =>
-    updateState((s) => ({ ...s, src: typeof v === "function" ? v(s.src) : v }));
-  const setSrcSet = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      srcSet: typeof v === "function" ? v(s.srcSet) : v,
-    }));
-  const setAlt = (v: any) =>
-    updateState((s) => ({ ...s, alt: typeof v === "function" ? v(s.alt) : v }));
-  const setInitials = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      initials: typeof v === "function" ? v(s.initials) : v,
-    }));
-  const setObjectFit = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      objectFit: typeof v === "function" ? v(s.objectFit) : v,
-    }));
-  const setObjectPosition = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      objectPosition: typeof v === "function" ? v(s.objectPosition) : v,
-    }));
-  const setSize = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      size: typeof v === "function" ? v(s.size) : v,
-    }));
-  const setAspectRatio = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      aspectRatio: typeof v === "function" ? v(s.aspectRatio) : v,
-    }));
-  const setRadiusMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusMode: typeof v === "function" ? v(s.radiusMode) : v,
-    }));
-  const setRadiusValue = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusValue: typeof v === "function" ? v(s.radiusValue) : v,
-    }));
-  const setBorderWidth = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderWidth: typeof v === "function" ? v(s.borderWidth) : v,
-    }));
-  const setBorderColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderColor: typeof v === "function" ? v(s.borderColor) : v,
-    }));
-  const setBorderStyle = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderStyle: typeof v === "function" ? v(s.borderStyle) : v,
-    }));
-  const setBorderOffset = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderOffset: typeof v === "function" ? v(s.borderOffset) : v,
-    }));
-  const setInitialsBg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      initialsBg: typeof v === "function" ? v(s.initialsBg) : v,
-    }));
-  const setInitialsColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      initialsColor: typeof v === "function" ? v(s.initialsColor) : v,
-    }));
-  const setFontFamily = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontFamily: typeof v === "function" ? v(s.fontFamily) : v,
-    }));
-  const setOpacity = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      opacity: typeof v === "function" ? v(s.opacity) : v,
-    }));
-  const setFilterGrayscale = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      filterGrayscale: typeof v === "function" ? v(s.filterGrayscale) : v,
-    }));
-  const setFilterBlur = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      filterBlur: typeof v === "function" ? v(s.filterBlur) : v,
-    }));
-  const setFilterSepia = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      filterSepia: typeof v === "function" ? v(s.filterSepia) : v,
-    }));
-  const setFilterBrightness = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      filterBrightness: typeof v === "function" ? v(s.filterBrightness) : v,
-    }));
-  const setFilterContrast = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      filterContrast: typeof v === "function" ? v(s.filterContrast) : v,
-    }));
-  const setStatus = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      status: typeof v === "function" ? v(s.status) : v,
-    }));
-  const setStatusPosition = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      statusPosition: typeof v === "function" ? v(s.statusPosition) : v,
-    }));
-  const setStatusAnimation = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      statusAnimation: typeof v === "function" ? v(s.statusAnimation) : v,
-    }));
-  const setBadgeCount = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      badgeCount: typeof v === "function" ? v(s.badgeCount) : v,
-    }));
-  const setShowGroup = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      showGroup: typeof v === "function" ? v(s.showGroup) : v,
-    }));
-  const setGroupSpacing = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupSpacing: typeof v === "function" ? v(s.groupSpacing) : v,
-    }));
-  const setGroupLimit = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupLimit: typeof v === "function" ? v(s.groupLimit) : v,
-    }));
-  const setGroupDirection = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupDirection: typeof v === "function" ? v(s.groupDirection) : v,
-    }));
-  const setHoverZoom = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverZoom: typeof v === "function" ? v(s.hoverZoom) : v,
-    }));
-  const setHoverGrayscale = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGrayscale: typeof v === "function" ? v(s.hoverGrayscale) : v,
-    }));
-  const setImageRotation = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      imageRotation: typeof v === "function" ? v(s.imageRotation) : v,
-    }));
-  const setImageScale = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      imageScale: typeof v === "function" ? v(s.imageScale) : v,
-    }));
-  const setEffect3D = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      effect3D: typeof v === "function" ? v(s.effect3D) : v,
-    }));
-  const setUse3DBadge = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      use3DBadge: typeof v === "function" ? v(s.use3DBadge) : v,
-    }));
-  const setBadgeAnimate = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      badgeAnimate: typeof v === "function" ? v(s.badgeAnimate) : v,
-    }));
-  const setUse3DStatus = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      use3DStatus: typeof v === "function" ? v(s.use3DStatus) : v,
-    }));
-  const setEntranceAnimation = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      entranceAnimation: typeof v === "function" ? v(s.entranceAnimation) : v,
-    }));
-  const setHoverEffect = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverEffect: typeof v === "function" ? v(s.hoverEffect) : v,
-    }));
-  const setAccessoryType = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      accessoryType: typeof v === "function" ? v(s.accessoryType) : v,
-    }));
-  const setAccessoryColor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      accessoryColor: typeof v === "function" ? v(s.accessoryColor) : v,
-    }));
-  const setOrbitSpeed = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      orbitSpeed: typeof v === "function" ? v(s.orbitSpeed) : v,
-    }));
-  const setTextureEffect = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      textureEffect: typeof v === "function" ? v(s.textureEffect) : v,
-    }));
-  const setBorderEffect = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderEffect: typeof v === "function" ? v(s.borderEffect) : v,
-    }));
-  const setAriaLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaLabel: typeof v === "function" ? v(s.ariaLabel) : v,
-    }));
-  const setAriaRole = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaRole: typeof v === "function" ? v(s.ariaRole) : v,
-    }));
-  const setLoadingState = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingState: typeof v === "function" ? v(s.loadingState) : v,
-    }));
+  type Updater<T> = T | ((prev: T) => T);
+  const makeSetter =
+    <K extends keyof AvatarState>(key: K) =>
+    (value: Updater<AvatarState[K]>) =>
+      updateState((s) => ({
+        ...s,
+        [key]:
+          typeof value === "function"
+            ? (value as (prev: AvatarState[K]) => AvatarState[K])(s[key])
+            : value,
+      }));
+
+  const setSrc = makeSetter("src");
+  const setSrcSet = makeSetter("srcSet");
+  const setAlt = makeSetter("alt");
+  const setTitle = makeSetter("title");
+  const setInitials = makeSetter("initials");
+  const setFallbackPriority = makeSetter("fallbackPriority");
+  const setObjectFit = makeSetter("objectFit");
+  const setObjectPosition = makeSetter("objectPosition");
+  const setSize = makeSetter("size");
+  const setAspectRatio = makeSetter("aspectRatio");
+  const setRadiusMode = makeSetter("radiusMode");
+  const setRadiusValue = makeSetter("radiusValue");
+  const setBorderWidth = makeSetter("borderWidth");
+  const setBorderColor = makeSetter("borderColor");
+  const setBorderStyle = makeSetter("borderStyle");
+  const setBorderOffset = makeSetter("borderOffset");
+  const setShadow = makeSetter("shadow");
+  const setInitialsBg = makeSetter("initialsBg");
+  const setInitialsColor = makeSetter("initialsColor");
+  const setFontFamily = makeSetter("fontFamily");
+  const setOpacity = makeSetter("opacity");
+  const setFilterGrayscale = makeSetter("filterGrayscale");
+  const setFilterBlur = makeSetter("filterBlur");
+  const setFilterSepia = makeSetter("filterSepia");
+  const setFilterBrightness = makeSetter("filterBrightness");
+  const setFilterContrast = makeSetter("filterContrast");
+  const setStatus = makeSetter("status");
+  const setStatusPosition = makeSetter("statusPosition");
+  const setStatusAnimation = makeSetter("statusAnimation");
+  const setBadgeCount = makeSetter("badgeCount");
+  const setShowGroup = makeSetter("showGroup");
+  const setGroupSpacing = makeSetter("groupSpacing");
+  const setGroupLimit = makeSetter("groupLimit");
+  const setGroupDirection = makeSetter("groupDirection");
+  const setHoverZoom = makeSetter("hoverZoom");
+  const setHoverGrayscale = makeSetter("hoverGrayscale");
+  const setImageRotation = makeSetter("imageRotation");
+  const setImageScale = makeSetter("imageScale");
+  const setEffect3D = makeSetter("effect3D");
+  const setUse3DBadge = makeSetter("use3DBadge");
+  const setBadgeAnimate = makeSetter("badgeAnimate");
+  const setUse3DStatus = makeSetter("use3DStatus");
+  const setEntranceAnimation = makeSetter("entranceAnimation");
+  const setHoverEffect = makeSetter("hoverEffect");
+  const setAccessoryType = makeSetter("accessoryType");
+  const setAccessoryColor = makeSetter("accessoryColor");
+  const setOrbitSpeed = makeSetter("orbitSpeed");
+  const setTextureEffect = makeSetter("textureEffect");
+  const setBorderEffect = makeSetter("borderEffect");
+  const setAriaLabel = makeSetter("ariaLabel");
+  const setAriaRole = makeSetter("ariaRole");
+  const setAriaHidden = makeSetter("ariaHidden");
+  const setAriaDescribedBy = makeSetter("ariaDescribedBy");
+  const setFocusRingEnabled = makeSetter("focusRingEnabled");
+  const setFocusRingWidth = makeSetter("focusRingWidth");
+  const setFocusRingOffset = makeSetter("focusRingOffset");
+  const setFocusRingColor = makeSetter("focusRingColor");
+  const setTransitionDuration = makeSetter("transitionDuration");
+  const setTransitionEasing = makeSetter("transitionEasing");
+  const setDisabled = makeSetter("disabled");
+  const setDisabledOpacity = makeSetter("disabledOpacity");
+  const setDisabledCursor = makeSetter("disabledCursor");
+  const setHoverBorderColor = makeSetter("hoverBorderColor");
+  const setHoverOpacity = makeSetter("hoverOpacity");
+  const setLoadingState = makeSetter("loadingState");
+  const applyPreset = (presetState: Partial<AvatarState>) => {
+    updateState(() => ({ ...INITIAL_STATE, ...presetState }));
+    setPreviewResetKey((value) => value + 1);
+  };
 
   // Export
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("my-avatar");
 
   // --- Tabs ---
   const sections = [
+    { id: "presets", label: "Presets" },
     { id: "basics", label: "Basics" },
+    { id: "state-preview", label: "State Preview" },
+    { id: "metadata", label: "Metadata" },
+    { id: "framing", label: "Framing" },
     { id: "sizing", label: "Sizing" },
-    { id: "style", label: "Style" },
+    { id: "surface", label: "Surface" },
+    { id: "typography", label: "Typography" },
     { id: "effects", label: "Effects" },
-    { id: "3d", label: "3D (New)" },
-    { id: "motion", label: "Motion (New)" },
+    { id: "accessories", label: "Accessories" },
+    { id: "motion", label: "Motion" },
     { id: "status", label: "Status" },
-    { id: "group", label: "Group" },
-    { id: "a11y", label: "A11y" },
+    { id: "grouping", label: "Grouping" },
+    { id: "accessibility", label: "Accessibility" },
+    { id: "states", label: "States" },
   ];
+
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((value) => value + 1);
+  };
 
   // --- Preview Logic (PostMessage) ---
   const getPreviewPayload = () => {
     // Helpers
-    let radiusStyle = "";
-    if (radiusMode === "circle") radiusStyle = "9999px";
-    else if (radiusMode === "square") radiusStyle = "0px";
-    else radiusStyle = `${radiusValue}px`;
-
-    const filters = [
-      filterGrayscale > 0 ? `grayscale(${filterGrayscale}%)` : "",
-      filterBlur > 0 ? `blur(${filterBlur}px)` : "",
-      filterSepia > 0 ? `sepia(${filterSepia}%)` : "",
-      filterBrightness !== 100 ? `brightness(${filterBrightness}%)` : "",
-      filterContrast !== 100 ? `contrast(${filterContrast}%)` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const radiusStyle = resolveAvatarRadiusStyle(radiusMode, radiusValue);
+    const filters = resolveAvatarFilterString({
+      filterGrayscale,
+      filterBlur,
+      filterSepia,
+      filterBrightness,
+      filterContrast,
+    });
 
     return {
       src,
       srcSet,
       alt,
+      title,
       initials,
+      fallbackPriority,
       size,
+      aspectRatio,
       radiusStyle,
       initialsBg,
       initialsColor,
@@ -540,6 +294,8 @@ export default function AvatarPage() {
       borderWidth,
       borderStyle,
       borderColor,
+      borderOffset,
+      shadow,
       objectFit,
       objectPosition,
       opacity,
@@ -557,6 +313,9 @@ export default function AvatarPage() {
       imageScale,
       effect3D,
       loadingState,
+      ariaLabel,
+      ariaRole,
+      ariaHidden,
     };
   };
 
@@ -578,7 +337,9 @@ export default function AvatarPage() {
       src,
       srcSet,
       alt,
+      title,
       initials,
+      fallbackPriority,
       objectFit,
       objectPosition,
       size,
@@ -589,7 +350,7 @@ export default function AvatarPage() {
       borderColor,
       borderStyle,
       borderOffset,
-      shadow: "",
+      shadow,
       opacity,
       initialsBg,
       initialsColor,
@@ -622,18 +383,31 @@ export default function AvatarPage() {
       hoverEffect,
       textureEffect,
       borderEffect,
-      downloadFormat: "html" as const,
+      loadingState,
+      ariaLabel,
+      ariaRole,
+      ariaHidden,
+      ariaDescribedBy,
+      focusRingEnabled,
+      focusRingWidth,
+      focusRingOffset,
+      focusRingColor,
+      transitionDuration,
+      transitionEasing,
+      disabled,
+      disabledOpacity,
+      disabledCursor,
+      hoverBorderColor,
+      hoverOpacity,
       downloadName: downloadName || "",
     };
   }, [
-    state, // state includes most things
-    // We need to list specific dependencies if getExportParams reads from state directly
-    // getExportParams reads individual vars.
-    // Let's list what getExportParams uses + extra spreads
     src,
     srcSet,
     alt,
+    title,
     initials,
+    fallbackPriority,
     objectFit,
     objectPosition,
     size,
@@ -644,6 +418,7 @@ export default function AvatarPage() {
     borderColor,
     borderStyle,
     borderOffset,
+    shadow,
     opacity,
     initialsBg,
     initialsColor,
@@ -676,7 +451,22 @@ export default function AvatarPage() {
     hoverEffect,
     textureEffect,
     borderEffect,
-    downloadFormat,
+    loadingState,
+    ariaLabel,
+    ariaRole,
+    ariaHidden,
+    ariaDescribedBy,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingOffset,
+    focusRingColor,
+    transitionDuration,
+    transitionEasing,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+    hoverBorderColor,
+    hoverOpacity,
     downloadName,
   ]);
 
@@ -698,22 +488,104 @@ export default function AvatarPage() {
     URL.revokeObjectURL(url);
   };
 
+  const radiusStyle = resolveAvatarRadiusStyle(radiusMode, radiusValue);
+  const filters = resolveAvatarFilterString({
+    filterGrayscale,
+    filterBlur,
+    filterSepia,
+    filterBrightness,
+    filterContrast,
+  });
+  const transform = resolveAvatarTransform({
+    imageRotation,
+    imageScale,
+  });
+  const boxShadow = resolveAvatarBoxShadow({
+    borderOffset,
+    borderColor,
+    shadow,
+  });
+  const containerStyle = resolveAvatarRootStyle({
+    size,
+    aspectRatio,
+    radiusStyle,
+    borderWidth,
+    borderColor,
+    borderStyle,
+    opacity,
+    fontFamily,
+    initialsBg,
+    initialsColor,
+    boxShadow,
+    transform,
+    transitionDuration,
+    transitionEasing,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+  });
+  const imageStyle = resolveAvatarImageStyle({
+    objectFit,
+    objectPosition,
+    radiusStyle,
+    filters,
+  });
+
   // --- Section Renderer ---
   const renderActiveSection = () => {
     switch (activeSection) {
+      case "presets":
+        return <PresetsSection state={state} applyPreset={applyPreset} />;
       case "basics":
         return (
           <BasicsSection
             src={src}
             setSrc={setSrc}
-            alt={alt}
-            setAlt={setAlt}
+            srcSet={srcSet}
+            setSrcSet={setSrcSet}
             initials={initials}
             setInitials={setInitials}
             objectFit={objectFit}
             setObjectFit={setObjectFit}
+          />
+        );
+      case "state-preview":
+        return (
+          <StatePreviewSection
             loadingState={loadingState}
             setLoadingState={setLoadingState}
+            fallbackPriority={fallbackPriority}
+            setFallbackPriority={setFallbackPriority}
+            status={status}
+            setStatus={setStatus}
+            badgeCount={badgeCount}
+            setBadgeCount={setBadgeCount}
+            showGroup={showGroup}
+            setShowGroup={setShowGroup}
+          />
+        );
+      case "metadata":
+        return (
+          <MetadataSection
+            alt={alt}
+            setAlt={setAlt}
+            title={title}
+            setTitle={setTitle}
+            ariaLabel={ariaLabel}
+            setAriaLabel={setAriaLabel}
+            ariaRole={ariaRole}
+            setAriaRole={setAriaRole}
+            ariaHidden={ariaHidden}
+            setAriaHidden={setAriaHidden}
+            ariaDescribedBy={ariaDescribedBy}
+            setAriaDescribedBy={setAriaDescribedBy}
+          />
+        );
+      case "framing":
+        return (
+          <FramingSection
+            objectPosition={objectPosition}
+            setObjectPosition={setObjectPosition}
           />
         );
       case "sizing":
@@ -721,25 +593,38 @@ export default function AvatarPage() {
           <SizingSection
             size={size}
             setSize={setSize}
+            aspectRatio={aspectRatio}
+            setAspectRatio={setAspectRatio}
             radiusMode={radiusMode}
             setRadiusMode={setRadiusMode}
             radiusValue={radiusValue}
             setRadiusValue={setRadiusValue}
           />
         );
-      case "style":
+      case "surface":
         return (
-          <StyleSection
+          <SurfaceSection
             borderWidth={borderWidth}
             setBorderWidth={setBorderWidth}
             borderColor={borderColor}
             setBorderColor={setBorderColor}
             borderStyle={borderStyle}
             setBorderStyle={setBorderStyle}
+            borderOffset={borderOffset}
+            setBorderOffset={setBorderOffset}
+            shadow={shadow}
+            setShadow={setShadow}
+          />
+        );
+      case "typography":
+        return (
+          <TypographySection
             initialsBg={initialsBg}
             setInitialsBg={setInitialsBg}
             initialsColor={initialsColor}
             setInitialsColor={setInitialsColor}
+            fontFamily={fontFamily}
+            setFontFamily={setFontFamily}
           />
         );
       case "effects":
@@ -761,11 +646,15 @@ export default function AvatarPage() {
             setImageRotation={setImageRotation}
             imageScale={imageScale}
             setImageScale={setImageScale}
+            hoverZoom={hoverZoom}
+            setHoverZoom={setHoverZoom}
+            hoverGrayscale={hoverGrayscale}
+            setHoverGrayscale={setHoverGrayscale}
             effect3D={effect3D}
             setEffect3D={setEffect3D}
           />
         );
-      case "3d":
+      case "accessories":
         return (
           <ThreeAvatarSection
             use3DBadge={use3DBadge}
@@ -774,7 +663,7 @@ export default function AvatarPage() {
             setBadgeAnimate={setBadgeAnimate}
             use3DStatus={use3DStatus}
             setUse3DStatus={setUse3DStatus}
-            accessoryType={accessoryType as any}
+            accessoryType={accessoryType}
             setAccessoryType={setAccessoryType}
             accessoryColor={accessoryColor}
             setAccessoryColor={setAccessoryColor}
@@ -789,9 +678,9 @@ export default function AvatarPage() {
             setEntranceAnimation={setEntranceAnimation}
             hoverEffect={hoverEffect}
             setHoverEffect={setHoverEffect}
-            textureEffect={textureEffect as any}
+            textureEffect={textureEffect}
             setTextureEffect={setTextureEffect}
-            borderEffect={borderEffect as any}
+            borderEffect={borderEffect}
             setBorderEffect={setBorderEffect}
           />
         );
@@ -806,9 +695,19 @@ export default function AvatarPage() {
             setStatusAnimation={setStatusAnimation}
             badgeCount={badgeCount}
             setBadgeCount={setBadgeCount}
+            accessoryType={accessoryType}
+            setAccessoryType={setAccessoryType}
+            accessoryColor={accessoryColor}
+            setAccessoryColor={setAccessoryColor}
+            use3DBadge={use3DBadge}
+            setUse3DBadge={setUse3DBadge}
+            use3DStatus={use3DStatus}
+            setUse3DStatus={setUse3DStatus}
+            badgeAnimate={badgeAnimate}
+            setBadgeAnimate={setBadgeAnimate}
           />
         );
-      case "group":
+      case "grouping":
         return (
           <GroupPreviewSection
             showGroup={showGroup}
@@ -821,15 +720,40 @@ export default function AvatarPage() {
             setGroupDirection={setGroupDirection}
           />
         );
-      case "a11y":
+      case "accessibility":
         return (
           <AccessibilitySection
             alt={alt}
-            setAlt={setAlt}
             ariaLabel={ariaLabel}
-            setAriaLabel={setAriaLabel}
             ariaRole={ariaRole}
-            setAriaRole={setAriaRole}
+            ariaHidden={ariaHidden}
+          />
+        );
+      case "states":
+        return (
+          <StatesSection
+            focusRingEnabled={focusRingEnabled}
+            setFocusRingEnabled={setFocusRingEnabled}
+            focusRingWidth={focusRingWidth}
+            setFocusRingWidth={setFocusRingWidth}
+            focusRingOffset={focusRingOffset}
+            setFocusRingOffset={setFocusRingOffset}
+            focusRingColor={focusRingColor}
+            setFocusRingColor={setFocusRingColor}
+            transitionDuration={transitionDuration}
+            setTransitionDuration={setTransitionDuration}
+            transitionEasing={transitionEasing}
+            setTransitionEasing={setTransitionEasing}
+            disabled={disabled}
+            setDisabled={setDisabled}
+            disabledOpacity={disabledOpacity}
+            setDisabledOpacity={setDisabledOpacity}
+            disabledCursor={disabledCursor}
+            setDisabledCursor={setDisabledCursor}
+            hoverBorderColor={hoverBorderColor}
+            setHoverBorderColor={setHoverBorderColor}
+            hoverOpacity={hoverOpacity}
+            setHoverOpacity={setHoverOpacity}
           />
         );
       default:
@@ -837,84 +761,81 @@ export default function AvatarPage() {
     }
   };
 
-  // --- Live Preview Node construction ---
-  const showLivePreview =
-    use3DBadge !== "none" ||
-    use3DStatus !== "none" ||
-    entranceAnimation !== "none" ||
-    hoverEffect !== "none";
-  let livePreviewNode = null;
-
-  if (showLivePreview) {
-    let radiusStyle = "";
-    if (radiusMode === "circle") radiusStyle = "9999px";
-    else if (radiusMode === "square") radiusStyle = "0px";
-    else radiusStyle = `${radiusValue}px`;
-
-    const containerStyle: React.CSSProperties = {
-      width: size,
-      height: size,
-      borderRadius: radiusStyle,
-      borderWidth: `${borderWidth}px`,
-      borderStyle: borderStyle as any,
-      borderColor: borderColor,
-      backgroundColor: initialsBg,
-      color: initialsColor,
-      fontFamily: fontFamily,
-      fontSize: "2rem", // approximate
-      // Filters
-      filter: `grayscale(${filterGrayscale}%) blur(${filterBlur}px) sepia(${filterSepia}%) brightness(${filterBrightness}%) contrast(${filterContrast}%)`,
-      opacity: opacity / 100,
-      transform: `rotate(${imageRotation}deg) scale(${imageScale})`,
-      // internal layout
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    };
-
-    const imageStyle: React.CSSProperties = {
-      width: "100%",
-      height: "100%",
-      objectFit: objectFit as any,
-      objectPosition: objectPosition,
-      display: "block",
-    };
-
-    livePreviewNode = (
-      <AvatarLivePreview
-        src={src}
-        alt={alt}
-        initials={initials}
-        size={size}
-        radiusMode={radiusMode}
-        radiusValue={radiusValue}
-        borderWidth={borderWidth}
-        borderColor={borderColor}
-        borderStyle={borderStyle}
-        objectFit={objectFit}
-        filters=""
-        loadingState={loadingState}
-        use3DBadge={use3DBadge}
-        badgeAnimate={badgeAnimate}
-        use3DStatus={use3DStatus}
-        accessoryType={accessoryType}
-        accessoryColor={accessoryColor}
-        orbitSpeed={orbitSpeed}
-        entranceAnimation={entranceAnimation}
-        hoverEffect={hoverEffect}
-        textureEffect={textureEffect}
-        borderEffect={borderEffect}
-        containerStyle={containerStyle}
-        imageStyle={imageStyle}
-      />
-    );
-  }
+  const livePreviewNode = (
+    <AvatarLivePreview
+      key={previewResetKey}
+      src={src}
+      srcSet={srcSet}
+      alt={alt}
+      title={title}
+      initials={initials}
+      fallbackPriority={fallbackPriority}
+      objectFit={objectFit}
+      objectPosition={objectPosition}
+      loadingState={loadingState}
+      size={size}
+      aspectRatio={aspectRatio}
+      radiusMode={radiusMode}
+      radiusValue={radiusValue}
+      borderWidth={borderWidth}
+      borderColor={borderColor}
+      borderStyle={borderStyle}
+      borderOffset={borderOffset}
+      shadow={shadow}
+      opacity={opacity}
+      filterGrayscale={filterGrayscale}
+      filterBlur={filterBlur}
+      filterSepia={filterSepia}
+      filterBrightness={filterBrightness}
+      filterContrast={filterContrast}
+      initialsBg={initialsBg}
+      initialsColor={initialsColor}
+      fontFamily={fontFamily}
+      status={status}
+      statusPosition={statusPosition}
+      statusAnimation={statusAnimation}
+      badgeCount={badgeCount}
+      showGroup={showGroup}
+      groupSpacing={groupSpacing}
+      groupLimit={groupLimit}
+      groupDirection={groupDirection}
+      hoverZoom={hoverZoom}
+      hoverGrayscale={hoverGrayscale}
+      imageRotation={imageRotation}
+      imageScale={imageScale}
+      ariaDescribedBy={ariaDescribedBy}
+      focusRingEnabled={focusRingEnabled}
+      focusRingWidth={focusRingWidth}
+      focusRingOffset={focusRingOffset}
+      focusRingColor={focusRingColor}
+      disabled={disabled}
+      hoverBorderColor={hoverBorderColor}
+      hoverOpacity={hoverOpacity}
+      effect3D={effect3D}
+      use3DBadge={use3DBadge}
+      badgeAnimate={badgeAnimate}
+      use3DStatus={use3DStatus}
+      accessoryType={accessoryType}
+      accessoryColor={accessoryColor}
+      orbitSpeed={orbitSpeed}
+      entranceAnimation={entranceAnimation}
+      hoverEffect={hoverEffect}
+      textureEffect={textureEffect}
+      borderEffect={borderEffect}
+      filters={filters}
+      containerStyle={containerStyle}
+      imageStyle={imageStyle}
+      ariaLabel={ariaLabel}
+      ariaRole={ariaRole}
+      ariaHidden={ariaHidden}
+    />
+  );
 
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -927,7 +848,11 @@ export default function AvatarPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      {renderActiveSection()}
+      {activeSection === "presets" ? (
+        <PresetsSection state={state} applyPreset={applyPreset} />
+      ) : (
+        renderActiveSection()
+      )}
     </>
   );
 
@@ -942,11 +867,15 @@ export default function AvatarPage() {
           iframeRef.current.contentWindow.postMessage(previewPayload, "*");
         }
       }}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
       previewNode={livePreviewNode}
       code={exportCode.content}
     />
@@ -960,6 +889,7 @@ export default function AvatarPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

@@ -20,7 +20,7 @@ export function AnimatedToggle({
 }: AnimatedToggleProps) {
   return (
     <div
-      className="flex p-1 rounded-full relative"
+      className="flex shrink-0 p-1 rounded-full relative"
       style={{
         background: "color-mix(in oklab, var(--surface) 90%, transparent)",
         border: "1px solid var(--border)",
@@ -28,8 +28,10 @@ export function AnimatedToggle({
     >
       {options.map((option) => (
         <button
+          type="button"
           key={option.value}
           onClick={() => onChange(option.value)}
+          aria-pressed={value === option.value}
           className={`relative z-10 px-4 py-1.5 text-xs font-semibold transition-colors duration-300 ${
             value === option.value
               ? "text-white"

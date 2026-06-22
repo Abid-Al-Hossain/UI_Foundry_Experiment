@@ -1,21 +1,22 @@
 "use client";
 
 import React from "react";
-import { SectionCard } from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import TypographyControl from "@/app/components/controls/typography/TypographyControl";
+import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import {
   SYSTEM_FONTS,
   GOOGLE_FONTS,
 } from "@/app/components/controls/typography/fontConstants";
-import { TextInputState } from "../types";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 export default function TypographySection({
   state,
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   // Simple filtering for fonts
   const search = state.fontSearch.toLowerCase();
@@ -69,7 +70,15 @@ export default function TypographySection({
           setLineHeight={(v) => setKey("lineHeight")(v)}
         />
 
-        <div className="pt-4 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="pt-4 border-t space-y-4" style={{ borderColor: "var(--border)" }}>
+          <div>
+            <label className="text-sm font-medium block mb-2" style={{ color: "var(--text)" }}>Text Align</label>
+            <SegmentedControl
+              value={state.textAlign}
+              onChange={(v) => setKey("textAlign")(v as "left" | "center" | "right")}
+              items={[{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }]}
+            />
+          </div>
           <ColorControl
             label="Text Color"
             palette={[

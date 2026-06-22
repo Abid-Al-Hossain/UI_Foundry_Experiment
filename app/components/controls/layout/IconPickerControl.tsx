@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { SegmentedControl } from "../input/SegmentedControl";
 import { LabeledField } from "../layout/LabeledField";
 
@@ -12,9 +13,6 @@ export type IconName = string;
 const ICON_NAMES = Object.keys(LucideIcons).filter(
   (key) => key !== "icons" && key !== "createLucideIcon" && key !== "default",
 );
-
-// We need to support "none" as a valid option often
-const ALL_ICONS = ["none", ...ICON_NAMES];
 
 export default function IconPickerControl(props: {
   label?: string;
@@ -129,8 +127,9 @@ export default function IconPickerControl(props: {
                 );
               }
 
-              // @ts-ignore
-              const IconComp = LucideIcons[iconKey];
+              const IconComp = LucideIcons[
+                iconKey as keyof typeof LucideIcons
+              ] as LucideIcon | undefined;
               if (!IconComp) return null;
 
               return (

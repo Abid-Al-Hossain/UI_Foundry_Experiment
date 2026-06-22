@@ -1,29 +1,46 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import React, { useState, useMemo } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
-import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
-import { INITIAL_PROGRESS_STATE, type ProgressState } from "../types";
-import { buildProgressExport } from "./_utils/exportUtils";
-import { ProgressPreview } from "./_components/ProgressPreview";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
+import {
+  INITIAL_PROGRESS_STATE,
+  type ProgressLabelsUpdater,
+  type ProgressState,
+  type ProgressUpdater,
+} from "../types";
+import { buildProgressExport } from "../_utils/exportUtils";
+import { ProgressPreview } from "../_components/ProgressPreview";
+import { PROGRESS_PRESETS } from "../_data/progressPresets";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
-import BasicsSection from "./_section/BasicsSection";
-import StylingSection from "./_section/StylingSection";
-import EffectsSection from "./_section/EffectsSection";
-import ContentSection from "./_section/ContentSection";
-import LabelsSection from "./_section/LabelsSection";
-import ThreeDSection from "./_section/ThreeDSection";
-import AccessibilitySection from "./_section/AccessibilitySection";
-import { type ProgressLabelConfig } from "../types";
-
+import PresetsSection from "../_section/PresetsSection";
+import BasicsSection from "../_section/BasicsSection";
+import MetadataSection from "../_section/MetadataSection";
+import SizingSection from "../_section/SizingSection";
+import ColorsSection from "../_section/ColorsSection";
+import TrackSection from "../_section/TrackSection";
+import EffectsSection from "../_section/EffectsSection";
+import MotionSection from "../_section/MotionSection";
+import ContentSection from "../_section/ContentSection";
+import SurfaceSection from "../_section/SurfaceSection";
+import LabelsSection from "../_section/LabelsSection";
+import AccessibilitySection from "../_section/AccessibilitySection";
+import StatusSection from "../_section/StatusSection";
+import ThreeDSection from "../_section/ThreeDSection";
+import StatePreviewSection from "../_section/StatePreviewSection";
+import StatesSection from "../_section/StatesSection";
 export default function ProgressBarPlayground() {
   const mounted = useHydrated();
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const {
     state,
     set: updateState,
@@ -33,14 +50,30 @@ export default function ProgressBarPlayground() {
     canUndo,
     canRedo,
   } = useHistoryState<ProgressState>(INITIAL_PROGRESS_STATE);
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
 
-  const handleUpdate = (key: keyof ProgressState, value: any) => {
+  const handleUpdate: ProgressUpdater = (key, value) => {
     updateState((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleUpdateLabels = (labels: ProgressLabelConfig[]) => {
+  const handleUpdateLabels: ProgressLabelsUpdater = (labels) => {
     updateState((prev) => ({ ...prev, labels }));
+  };
+
+  const handleApplyPreset = (preset: (typeof PROGRESS_PRESETS)[number]) => {
+    updateState((prev) => ({
+      ...prev,
+      ...preset.state,
+      labels: preset.state.labels
+        ? preset.state.labels.map((label) => ({ ...label }))
+        : prev.labels,
+    }));
+    setPreviewResetKey((value) => value + 1);
+  };
+
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((value) => value + 1);
   };
 
   // --- Header Actions (Matching Avatar Template) ---
@@ -48,7 +81,7 @@ export default function ProgressBarPlayground() {
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -57,35 +90,68 @@ export default function ProgressBarPlayground() {
   // --- Controls & Navigation ---
   const renderActiveSection = () => {
     switch (activeSection) {
+      case "presets":
+        return (
+          <PresetsSection
+            state={state}
+            presets={PROGRESS_PRESETS}
+            onApplyPreset={handleApplyPreset}
+          />
+        );
       case "basics":
         return <BasicsSection state={state} update={handleUpdate} />;
-      case "styling":
-        return <StylingSection state={state} update={handleUpdate} />;
+      case "metadata":
+        return <MetadataSection state={state} update={handleUpdate} />;
+      case "sizing":
+        return <SizingSection state={state} update={handleUpdate} />;
+      case "colors":
+        return <ColorsSection state={state} update={handleUpdate} />;
+      case "track":
+        return <TrackSection state={state} update={handleUpdate} />;
+      case "surface":
+        return <SurfaceSection state={state} update={handleUpdate} />;
+      case "status":
+        return <StatusSection state={state} update={handleUpdate} />;
+      case "state-preview":
+        return <StatePreviewSection state={state} update={handleUpdate} />;
       case "effects":
         return <EffectsSection state={state} update={handleUpdate} />;
+      case "depth":
+        return <ThreeDSection state={state} update={handleUpdate} />;
+      case "motion":
+        return <MotionSection state={state} update={handleUpdate} />;
       case "content":
         return <ContentSection state={state} update={handleUpdate} />;
       case "labels":
         return (
           <LabelsSection state={state} updateLabels={handleUpdateLabels} />
         );
-      case "3d":
-        return <ThreeDSection state={state} update={handleUpdate} />;
-      case "a11y":
-        return <AccessibilitySection state={state} update={handleUpdate} />;
+      case "accessibility":
+        return <AccessibilitySection />;
+      case "states":
+        return <StatesSection state={state} update={handleUpdate} />;
       default:
         return null;
     }
   };
 
   const sections = [
+    { id: "presets", label: "Presets" },
     { id: "basics", label: "Basics" },
-    { id: "styling", label: "Styling" },
+    { id: "metadata", label: "Metadata" },
+    { id: "sizing", label: "Sizing" },
+    { id: "colors", label: "Colors" },
+    { id: "track", label: "Track" },
+    { id: "surface", label: "Surface" },
+    { id: "status", label: "Status" },
+    { id: "state-preview", label: "State Preview" },
     { id: "effects", label: "Effects" },
+    { id: "depth", label: "Depth" },
+    { id: "motion", label: "Motion" },
     { id: "labels", label: "Labels" },
     { id: "content", label: "Content" },
-    { id: "3d", label: "3D" },
-    { id: "a11y", label: "A11y" },
+    { id: "accessibility", label: "Accessibility" },
+    { id: "states", label: "States" },
   ];
 
   const controls = (
@@ -100,23 +166,15 @@ export default function ProgressBarPlayground() {
   );
 
   // --- Preview & Download ---
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
     return {
       ...state,
-      downloadFormat: state.downloadFormat || "react",
       downloadName: state.downloadName || "progress",
     };
   }, [state]);
 
-  const deferredExportPayload = useDeferredValue(exportPayload);
-
-  const exportCode = useMemo(
-    () => buildProgressExport(deferredExportPayload),
-    [deferredExportPayload],
-  );
+  const exportCode = useMemo(() => buildProgressExport(exportPayload), [exportPayload]);
 
   const handleDownload = () => {
     const { content, filename } = buildProgressExport(exportPayload);
@@ -135,28 +193,19 @@ export default function ProgressBarPlayground() {
       iframeSrcDoc="" // We use inline React preview for progress bar
       iframeRef={{ current: null }}
       handleIframeLoad={() => {}}
-      downloadFormat={state.downloadFormat || "react"}
+      downloadFormat="react"
       downloadName={state.downloadName || "progress"}
-      setDownloadFormat={(v) => handleUpdate("downloadFormat", v)}
+      setDownloadFormat={() => {}}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
       handleDownload={handleDownload}
-      previewNode={
-        <div className="flex items-center justify-center p-12 bg-slate-900 rounded-xl min-h-[400px] overflow-hidden relative w-full h-full">
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at center, #334155 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
-            }}
-          />
-          <ProgressPreview state={state} />
-        </div>
-      }
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<ProgressPreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -165,6 +214,9 @@ export default function ProgressBarPlayground() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }
+
+

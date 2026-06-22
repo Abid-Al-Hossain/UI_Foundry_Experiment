@@ -5,15 +5,15 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
-import { ToggleState } from "../types";
+} from "@/app/components/controls/ui";
+import { type ToggleState, type ToggleKeyUpdater } from "../types";
 
 export default function BasicsSection({
   state,
   setKey,
 }: {
   state: ToggleState;
-  setKey: (key: keyof ToggleState) => (val: any) => void;
+  setKey: ToggleKeyUpdater;
 }) {
   return (
     <SectionCard title="Basics" subtitle="Core toggle properties.">
@@ -64,24 +64,13 @@ export default function BasicsSection({
         <LabeledField label="Label Position">
           <Segmented
             value={state.labelPosition}
-            onChange={(v) => setKey("labelPosition")(v)}
+            onChange={(v) =>
+              setKey("labelPosition")(v as ToggleState["labelPosition"])
+            }
             items={[
               { value: "right", label: "Right" },
               { value: "left", label: "Left" },
             ]}
-          />
-        </LabeledField>
-        <LabeledField label="Name">
-          <input
-            value={state.name}
-            onChange={(e) => setKey("name")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
           />
         </LabeledField>
       </div>

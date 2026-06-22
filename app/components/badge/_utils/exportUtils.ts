@@ -1,21 +1,126 @@
 "use client";
 
-import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import {
+  type BadgeState,
   type BadgeVariant,
   type BadgeShape,
   type BadgeSize,
   type BadgeIconPosition,
 } from "../types";
 
+const BADGE_SIZE_SCALE: Record<BadgeSize, number> = {
+  sm: 0.92,
+  md: 1,
+  lg: 1.1,
+};
+
+function getBadgeSizeScale(size: BadgeSize) {
+  return BADGE_SIZE_SCALE[size] ?? 1;
+}
+
+function getBadgeRadius(shape: BadgeShape, borderRadius: number) {
+  if (shape === "pill") return "9999px";
+  if (shape === "circle") return "50%";
+  if (shape === "square") return "0px";
+  return `${borderRadius}px`;
+}
+
+function getBadgeVariantStyles(params: {
+  variant: BadgeVariant;
+  color: string;
+  textColor: string;
+  borderWidth: number;
+  borderStyle: string;
+  dropShadow: boolean;
+  shadowColor: string;
+  shadowBlur: number;
+  gradientEnabled: boolean;
+  gradientStart: string;
+  gradientEnd: string;
+  gradientAngle: number;
+}) {
+  const {
+    variant,
+    color,
+    textColor,
+    borderWidth,
+    borderStyle,
+    dropShadow,
+    shadowColor,
+    shadowBlur,
+    gradientEnabled,
+    gradientStart,
+    gradientEnd,
+    gradientAngle,
+  } = params;
+
+  const styles = {
+    background: color,
+    color: textColor,
+    border: `${borderWidth}px ${borderStyle} ${color}`,
+    boxShadow: "none",
+    backdropFilter: undefined as string | undefined,
+    WebkitBackdropFilter: undefined as string | undefined,
+  };
+
+  if (variant === "outline") {
+    styles.background = "transparent";
+    styles.color = color;
+  } else if (variant === "soft") {
+    styles.background = `${color}20`;
+    styles.color = color;
+    styles.border = "none";
+  } else if (variant === "ghost") {
+    styles.background = "transparent";
+    styles.color = color;
+    styles.border = "none";
+  } else if (variant === "neumorphic") {
+    styles.background = "#e0e5ec";
+    styles.color = "#4a5568";
+    styles.border = "none";
+    if (dropShadow) {
+      styles.boxShadow = "5px 5px 10px #bebebe, -5px -5px 10px #ffffff";
+    }
+  } else if (variant === "glass") {
+    styles.background = `${color}40`;
+    styles.color = textColor;
+    styles.border = "1px solid rgba(255,255,255,0.3)";
+    styles.backdropFilter = "blur(12px)";
+    styles.WebkitBackdropFilter = "blur(12px)";
+  } else if (gradientEnabled) {
+    styles.background = `linear-gradient(${gradientAngle}deg, ${gradientStart}, ${gradientEnd})`;
+    styles.border = "none";
+  }
+
+  if (dropShadow && variant !== "neumorphic") {
+    styles.boxShadow = `0 4px ${shadowBlur}px ${shadowColor}`;
+  }
+
+  return styles;
+}
+
+function getGeometryJsx(geometry: BadgeState["icon3DGeometry"]) {
+  if (geometry === "cube") {
+    return "<boxGeometry args={[0.8, 0.8, 0.8]} />";
+  }
+  if (geometry === "pyramid") {
+    return "<coneGeometry args={[0.5, 0.9, 4]} />";
+  }
+  if (geometry === "torus") {
+    return "<torusGeometry args={[0.4, 0.15, 16, 32]} />";
+  }
+  return "<sphereGeometry args={[0.5, 32, 32]} />";
+}
+
 export type BadgeExportInput = {
-  downloadFormat: DownloadFormat;
   downloadName: string;
   label: string;
   count: string;
   showIcon: boolean;
   iconName: string;
   iconPosition: BadgeIconPosition;
+  iconGap: number;
+  iconSize: number;
   variant: BadgeVariant;
   shape: BadgeShape;
   size: BadgeSize;
@@ -42,22 +147,40 @@ export type BadgeExportInput = {
   tiltMax: number;
   glareOpacity: number;
   icon3DEnabled: boolean;
-  icon3DGeometry: string;
+  icon3DGeometry: BadgeState["icon3DGeometry"];
   icon3DSpinSpeed: number;
+  dismissible: boolean;
   interactive: boolean;
   hoverScale: number;
   clickRipple: boolean;
+  borderStyle: BadgeState["borderStyle"];
+  disabled: boolean;
+  disabledOpacity: number;
+  disabledCursor: BadgeState["disabledCursor"];
+  transitionDuration: number;
+  transitionEasing: BadgeState["transitionEasing"];
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingColor: string;
+  hoverBgColor: string;
+  hoverTextColor: string;
+  letterSpacing: number;
+  textTransform: BadgeState["textTransform"];
+  ariaLabel?: string;
+  ariaRole?: BadgeState["ariaRole"];
+  ariaLive?: BadgeState["ariaLive"];
 };
 
 export function buildBadgeExportPayload(params: BadgeExportInput) {
   const {
-    downloadFormat,
     downloadName,
     label,
     count,
     showIcon,
     iconName,
     iconPosition,
+    iconGap,
+    iconSize,
     variant,
     shape,
     size,
@@ -85,235 +208,235 @@ export function buildBadgeExportPayload(params: BadgeExportInput) {
     glareOpacity,
     icon3DEnabled,
     icon3DGeometry,
+    dismissible,
     interactive,
     hoverScale,
+    clickRipple,
+    icon3DSpinSpeed,
+    borderStyle,
+    disabled,
+    disabledOpacity,
+    disabledCursor,
+    transitionDuration,
+    transitionEasing,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingColor,
+    hoverBgColor,
+    hoverTextColor,
+    letterSpacing,
+    textTransform,
+    ariaLabel,
+    ariaRole,
+    ariaLive,
   } = params;
 
-  let content = "";
-  const ext =
-    downloadFormat === "react"
-      ? "jsx"
-      : downloadFormat === "tailwind-config"
-        ? "js"
-        : downloadFormat === "figma-tokens"
-          ? "json"
-          : downloadFormat === "css-vars"
-            ? "css"
-            : downloadFormat === "scss"
-              ? "scss"
-              : "html";
-  const filename = `${downloadName}.${ext}`;
+  const sizeScale = getBadgeSizeScale(size);
+  const scaledFontSize = Math.max(10, Math.round(fontSize * sizeScale));
+  const scaledPaddingX = Math.max(0, Math.round(paddingX * sizeScale));
+  const scaledPaddingY = Math.max(0, Math.round(paddingY * sizeScale));
+  const scaledIconGap = Math.max(0, Math.round(iconGap * sizeScale));
+  const scaledIconSize = Math.max(
+    12,
+    Math.round((scaledFontSize * iconSize) / 100),
+  );
+  const scaledBorderRadius =
+    shape === "pill" || shape === "circle" || shape === "square"
+      ? getBadgeRadius(shape, borderRadius)
+      : `${Math.max(0, Math.round(borderRadius * sizeScale))}px`;
+  const scaledBorderWidth = Math.max(0.5, Number((borderWidth * sizeScale).toFixed(2)));
+  const scaledShadowBlur = Math.max(0, Math.round(shadowBlur * sizeScale));
+  const scaledDepth = Math.round(depth * sizeScale);
+  const scaledTiltMax = Math.max(1, Math.round(tiltMax * sizeScale));
 
-  // 1. Logic Helpers
-  const getRadius = () => {
-    if (shape === "pill") return "9999px";
-    if (shape === "circle") return "50%";
-    if (shape === "square") return "0px";
-    return `${borderRadius}px`;
+  const variantStyles = getBadgeVariantStyles({
+    variant,
+    color,
+    textColor,
+    borderWidth: scaledBorderWidth,
+    borderStyle,
+    dropShadow,
+    shadowColor,
+    shadowBlur: scaledShadowBlur,
+    gradientEnabled,
+    gradientStart,
+    gradientEnd,
+    gradientAngle,
+  });
+
+  const reactIconMap: Record<string, string> = {
+    star: "Star",
+    check: "Check",
+    alert: "AlertTriangle",
+    bell: "Bell",
+    heart: "Heart",
+    shield: "Shield",
+    zap: "Zap",
   };
+  const reactIconName = reactIconMap[iconName] ?? "Star";
+  const dismissIconSize = Math.max(12, Math.round(scaledIconSize * 0.72));
+  const icon3dGeometryJsx = getGeometryJsx(icon3DGeometry);
+  const focusable = interactive || dismissible;
+  const needsState = interactive || (focusRingEnabled && focusable);
+  const needsHooks = tiltEnabled || clickRipple || needsState;
+  const needsMotion = interactive || tiltEnabled || clickRipple;
+  const wrapperTag = needsMotion ? "motion.div" : "div";
+  const ariaProps =
+    ariaRole && ariaRole !== "none"
+      ? `role="${ariaRole}" aria-live="${ariaLive || "polite"}"`
+      : "";
+  const labelProp = ariaLabel ? `aria-label="${ariaLabel}"` : "";
 
-  const css = {
-    bg: color,
-    txt: textColor,
-    border: `${borderWidth}px solid ${color}`,
-    shadow: "none",
-  };
+  const reactIconImport = showIcon
+    ? `import { ${reactIconName}${dismissible ? ", X" : ""} } from "lucide-react";`
+    : dismissible
+      ? `import { X } from "lucide-react";`
+      : "";
 
-  if (variant === "outline") {
-    css.bg = "transparent";
-    css.txt = color;
-  } else if (variant === "soft") {
-    css.bg = `${color}33`;
-    css.txt = color;
-    css.border = "none";
-  } else if (variant === "ghost") {
-    css.bg = "transparent";
-    css.txt = color;
-    css.border = "none";
-  } else if (variant === "neumorphic") {
-    css.bg = "#e0e5ec";
-    css.txt = "#4a5568";
-    css.border = "none";
-    if (dropShadow) css.shadow = "5px 5px 10px #bebebe, -5px -5px 10px #ffffff";
-  } else if (variant === "glass") {
-    css.bg = "rgba(255, 255, 255, 0.2)";
-    css.border = "1px solid rgba(255,255,255,0.3)";
-  } else if (gradientEnabled) {
-    css.bg = `linear-gradient(${gradientAngle}deg, ${gradientStart}, ${gradientEnd})`;
-    css.border = "none";
-  }
-
-  if (dropShadow && variant !== "neumorphic")
-    css.shadow = `0 4px ${shadowBlur}px ${shadowColor}`;
-
-  // 2. Formats
-
-  if (downloadFormat === "react") {
-    content = `import React${tiltEnabled ? ", { useRef }" : ""} from 'react';
-${icon3DEnabled ? `import { Canvas } from '@react-three/fiber';\nimport { Float } from '@react-three/drei';` : ""}
+  const content = `import React${needsHooks ? ", { useRef, useState }" : ""} from "react";
+${needsMotion ? `import { motion } from "framer-motion";` : ""}
+${reactIconImport}
+${icon3DEnabled ? `import { Canvas } from "@react-three/fiber";
+import { Float } from "@react-three/drei";` : ""}
 
 export default function Badge() {
-  ${
-    tiltEnabled
-      ? `
-  const ref = useRef(null);
-  const handleMove = (e) => {
-    if(!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    ref.current.style.transform = \`perspective(1000px) rotateX(\${y * -${tiltMax}}deg) rotateY(\${x * ${tiltMax}}deg)\`;
+${needsHooks ? `
+  ${tiltEnabled || clickRipple ? "const ref = useRef<HTMLDivElement | null>(null);" : ""}
+  ${interactive ? "const [hovered, setHovered] = useState(false);" : ""}
+  ${focusRingEnabled && focusable ? "const [focused, setFocused] = useState(false);" : ""}
+  ${clickRipple ? "const [ripples, setRipples] = useState<{ id: number; x: number; y: number; size: number }[]>([]);" : ""}
+  ${clickRipple ? "const rippleId = useRef(0);" : ""}
+  ${tiltEnabled ? `const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    ref.current.style.transform = \`perspective(1000px) rotateX(\${y * -${scaledTiltMax}}deg) rotateY(\${x * ${scaledTiltMax}}deg)${use3D ? ` translateZ(${scaledDepth}px)` : ""}\`;
   };
-  const handleLeave = () => { if(ref.current) ref.current.style.transform = "none"; };`
-      : ""
-  }
+  const handleLeave = () => {
+    if (ref.current) {
+      ref.current.style.transform = ${use3D ? `\`perspective(1000px) translateZ(${scaledDepth}px)\`` : `"none"`};
+    }
+  };` : ""}
+  ${clickRipple ? `const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rippleSize = Math.max(rect.width, rect.height) * 1.15;
+    const id = rippleId.current + 1;
+    rippleId.current = id;
+    setRipples((current) => [
+      ...current,
+      {
+        id,
+        x: e.clientX - rect.left - rippleSize / 2,
+        y: e.clientY - rect.top - rippleSize / 2,
+        size: rippleSize,
+      },
+    ]);
+    window.setTimeout(() => {
+      setRipples((current) => current.filter((item) => item.id !== id));
+    }, 520);
+  };` : ""}
+` : ""}
 
   return (
-    <div 
-      ${tiltEnabled ? "ref={ref} onMouseMove={handleMove} onMouseLeave={handleLeave}" : ""}
+    <${wrapperTag}
+      ${tiltEnabled || clickRipple ? "ref={ref}" : ""}
+      ${tiltEnabled ? "onMouseMove={handleMove}" : ""}
+      ${interactive ? "onMouseEnter={() => setHovered(true)}" : ""}
+      onMouseLeave={() => {${tiltEnabled ? " handleLeave();" : ""}${interactive ? " setHovered(false);" : ""}}}
+      ${focusRingEnabled && focusable ? "onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}" : ""}
+      ${clickRipple ? "onPointerDown={handlePointerDown}" : ""}
+      ${interactive ? `whileHover={${disabled ? "{}" : `{ scale: ${hoverScale} }`}} whileTap={${disabled ? "{}" : `{ scale: ${clickRipple ? 0.97 : 0.98} }`}}` : ""}
+      ${focusable ? `tabIndex={${disabled ? -1 : 0}}` : ""}
+      ${disabled ? "aria-disabled={true}" : ""}
+      ${ariaProps}
+      ${labelProp}
       style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-        padding: '${paddingY}px ${paddingX}px', fontSize: '${fontSize}px', fontWeight: 600,
-        borderRadius: '${getRadius()}', background: '${css.bg}', color: '${css.txt}',
-        border: '${css.border}', boxShadow: '${css.shadow}', cursor: '${interactive ? "pointer" : "default"}',
-        transition: 'transform 0.2s ease', position: 'relative', overflow: 'hidden'
-        ${use3D ? `, transform: 'perspective(1000px) translateZ(${depth}px)', transformStyle: 'preserve-3d'` : ""}
-        ${variant === "glass" ? `, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'` : ""}
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "${scaledIconGap}px",
+        padding: "${scaledPaddingY}px ${scaledPaddingX}px",
+        fontSize: "${scaledFontSize}px",
+        fontWeight: 600,
+        letterSpacing: "${letterSpacing}px",
+        textTransform: "${textTransform}",
+        borderRadius: "${scaledBorderRadius}",
+        fontFamily: "Inter, sans-serif",
+        cursor: "${disabled ? disabledCursor : interactive ? "pointer" : "default"}",
+        position: "relative",
+        overflow: "hidden",
+        transition: ${transitionDuration > 0 ? `"all ${transitionDuration}ms ${transitionEasing}"` : `"none"`},
+        background: ${interactive ? `hovered && !${disabled} ? "${hoverBgColor}" : "${variantStyles.background}"` : `"${variantStyles.background}"`},
+        color: ${interactive ? `hovered && !${disabled} ? "${hoverTextColor}" : "${variantStyles.color}"` : `"${variantStyles.color}"`},
+        border: "${variantStyles.border}",
+        boxShadow: "${variantStyles.boxShadow}",
+        opacity: ${disabled ? disabledOpacity : 1},
+        ${focusRingEnabled && focusable ? `outline: focused ? "${focusRingWidth}px solid ${focusRingColor}" : "none", outlineOffset: 2,` : ""}
+        ${variantStyles.backdropFilter ? `backdropFilter: "${variantStyles.backdropFilter}",` : ""}
+        ${variantStyles.WebkitBackdropFilter ? `WebkitBackdropFilter: "${variantStyles.WebkitBackdropFilter}",` : ""}
+        ${use3D || tiltEnabled ? `transform: "perspective(1000px)${tiltEnabled ? "" : ` translateZ(${scaledDepth}px)`}", transformStyle: "preserve-3d",` : ""}
       }}
     >
-      ${showDot ? `<span style={{width: 10, height: 10, borderRadius: '50%', background: '${dotColor}', ${dotPulse ? 'animation: "pulse 1.5s infinite"' : ""}}} />` : ""}
-      ${showIcon && iconPosition === "left" ? `<span style={{fontSize: '1.2em'}}>${iconName}</span>` : ""}
-      <span>${label}</span>
-      ${count ? `<span style={{marginLeft: 4, padding: '2px 6px', fontSize: '0.8em', borderRadius: 99, background: 'rgba(255,255,255,0.2)'}}>${count}</span>` : ""}
-       ${showIcon && iconPosition === "right" ? `<span style={{fontSize: '1.2em'}}>${iconName}</span>` : ""}
-      ${icon3DEnabled ? `<div style={{position: 'absolute', inset: 0, pointerEvents: 'none'}}><Canvas><ambientLight /><pointLight position={[10,10,10]} /><Float><mesh><${icon3DGeometry}Geometry args={[0.5, 32, 32]} /><meshStandardMaterial color="${color}" /></mesh></Float></Canvas></div>` : ""}
-      ${tiltEnabled ? `<div style={{position:'absolute', inset:0, background: 'linear-gradient(45deg, transparent, rgba(255,255,255,${glareOpacity}), transparent)', pointerEvents:'none'}} />` : ""}
-    </div>
+      ${showDot ? `<span style={{ width: ${Math.max(8, Math.round(10 * sizeScale))}, height: ${Math.max(8, Math.round(10 * sizeScale))}, borderRadius: "50%", background: "${dotColor}", ${dotPulse ? 'animation: "pulse 1.5s infinite"' : ""} }} />` : ""}
+      ${showIcon && iconPosition === "left" ? `<${reactIconName} size={${scaledIconSize}} />` : ""}
+      ${showIcon && iconPosition === "only" ? `<${reactIconName} size={${scaledIconSize}} />` : ""}
+      ${iconPosition === "only" ? "" : `<span>${label}</span>`}
+      ${count && iconPosition !== "only" ? `<span style={{ marginLeft: 4, padding: "2px 6px", fontSize: "0.8em", borderRadius: "99px", background: "rgba(255,255,255,0.2)" }}>${count}</span>` : ""}
+      ${showIcon && iconPosition === "right" ? `<${reactIconName} size={${scaledIconSize}} />` : ""}
+      ${dismissible ? `<button type="button" aria-label="Dismiss badge" style={{ marginLeft: 4, width: ${Math.max(22, dismissIconSize + 8)}, height: ${Math.max(22, dismissIconSize + 8)}, borderRadius: 9999, border: "none", background: "rgba(0,0,0,0.08)", color: "currentColor", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><X size={${dismissIconSize}} /></button>` : ""}
+      ${clickRipple ? `{ripples.map((ripple) => (
+        <span
+          key={ripple.id}
+          style={{
+            position: "absolute",
+            left: ripple.x,
+            top: ripple.y,
+            width: ripple.size,
+            height: ripple.size,
+            borderRadius: "9999px",
+            pointerEvents: "none",
+            background: "${variant === "solid" ? "rgba(255,255,255,0.28)" : `${color}2E`}",
+            animation: "badge-ripple 520ms ease-out forwards",
+          }}
+        />
+      ))}` : ""}
+      ${icon3DEnabled ? `<div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+        <Canvas gl={{ alpha: true }}>
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} />
+          <Float speed={${icon3DSpinSpeed}} rotationIntensity={1} floatIntensity={1}>
+            <mesh position={[0, 1.5, 0]}>
+              ${icon3dGeometryJsx}
+              <meshStandardMaterial color="${color}" roughness={0.3} metalness={0.8} />
+            </mesh>
+          </Float>
+        </Canvas>
+      </div>` : ""}
+      ${tiltEnabled ? `<div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(45deg, transparent, rgba(255,255,255,${glareOpacity}), transparent)", opacity: ${glareOpacity}, mixBlendMode: "overlay" }} />` : ""}
+      <style>{\`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+        @keyframes badge-ripple {
+          from {
+            transform: scale(0.2);
+            opacity: 0.45;
+          }
+          to {
+            transform: scale(1);
+            opacity: 0;
+          }
+        }
+      \`}</style>
+    </${wrapperTag}>
   );
 }`;
-  } else if (downloadFormat === "html") {
-    content = `
-<div class="badge">
-  ${showDot ? `<span class="dot"></span>` : ""}
-  ${showIcon && iconPosition === "left" ? `<span class="icon">${iconName}</span>` : ""}
-  <span class="content">${label}</span>
-  ${count ? `<span class="count">${count}</span>` : ""}
-  ${showIcon && iconPosition === "right" ? `<span class="icon">${iconName}</span>` : ""}
-  ${tiltEnabled ? '<div class="glare"></div>' : ""}
-</div>
 
-<style>
-.badge {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: ${paddingY}px ${paddingX}px; fontSize: ${fontSize}px; fontWeight: 600;
-  border-radius: ${getRadius()}; background: ${css.bg}; color: ${css.txt};
-  border: ${css.border}; box-shadow: ${css.shadow}; cursor: ${interactive ? "pointer" : "default"};
-  transition: transform 0.2s ease; position: relative; overflow: hidden;
-  ${variant === "glass" ? "backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);" : ""}
-  ${use3D ? `transform: perspective(1000px) translateZ(${depth}px); transform-style: preserve-3d;` : ""}
-}
-.badge:hover { ${interactive ? `transform: scale(${hoverScale});` : ""} }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: ${dotColor}; ${dotPulse ? "animation: pulse 1.5s infinite;" : ""} }
-.count { margin-left: 4px; padding: 2px 6px; font-size: 0.8em; border-radius: 99px; background: rgba(255,255,255,0.2); }
-.glare { position: absolute; inset: 0; background: linear-gradient(45deg, transparent, rgba(255,255,255,${glareOpacity}), transparent); pointer-events: none; }
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-</style>
-
-${
-  tiltEnabled
-    ? `
-<script>
-(function(){
-  const b = document.querySelector('.badge');
-  b.addEventListener('mousemove', e => {
-    const r = b.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    b.style.transform = \`perspective(1000px) rotateX(\${y * -${tiltMax}}deg) rotateY(\${x * ${tiltMax}}deg)\`;
-  });
-  b.addEventListener('mouseleave', () => { b.style.transform = 'none'; });
-})();
-</script>`
-    : ""
-}`;
-  } else if (downloadFormat === "tailwind") {
-    // Robust Tailwind
-    const classes = [
-      "inline-flex items-center justify-center gap-1.5 relative overflow-hidden",
-      `px-[${paddingX}px] py-[${paddingY}px] text-[${fontSize}px] font-semibold text-[${textColor}]`,
-      `rounded-[${getRadius()}]`,
-      variant === "outline"
-        ? `border-[${borderWidth}px] border-[${color}] bg-transparent`
-        : variant === "soft"
-          ? `bg-[${color}]/20`
-          : variant === "glass"
-            ? `bg-white/20 border border-white/30 backdrop-blur-md`
-            : variant === "neumorphic"
-              ? `bg-[#e0e5ec] ${dropShadow ? "shadow-[5px_5px_10px_#bebebe,_-5px_-5px_10px_#ffffff]" : ""}`
-              : gradientEnabled
-                ? `bg-gradient-to-r from-[${gradientStart}] to-[${gradientEnd}]`
-                : `bg-[${color}]`,
-      dropShadow && variant !== "neumorphic"
-        ? `shadow-[0_4px_${shadowBlur}px_${shadowColor}]`
-        : "",
-      interactive
-        ? "cursor-pointer hover:scale-105 transition-transform"
-        : "cursor-default",
-      tiltEnabled
-        ? "hover:[transform:perspective(1000px)_rotateX(10deg)_rotateY(-10deg)]"
-        : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    content = `<div class="${classes}">
-  ${showDot ? `<span class="w-2.5 h-2.5 rounded-full bg-[${dotColor}] ${dotPulse ? "animate-pulse" : ""}"></span>` : ""}
-  ${showIcon && iconPosition === "left" ? `<span>${iconName}</span>` : ""}
-  <span>${label}</span>
-  ${count ? `<span class="ml-1 px-1.5 py-0.5 text-[0.8em] rounded-full bg-white/20">${count}</span>` : ""}
-</div>`;
-  } else if (downloadFormat === "scss") {
-    content = `.badge {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: ${paddingY}px ${paddingX}px; font-size: ${fontSize}px; font-weight: 600;
-  border-radius: ${getRadius()}; background: ${css.bg}; color: ${css.txt};
-  border: ${css.border}; box-shadow: ${css.shadow};
-  
-  ${variant === "glass" ? "backdrop-filter: blur(12px);" : ""}
-  
-  .dot { width: 10px; height: 10px; background: ${dotColor}; border-radius: 50%; }
-  .count { background: rgba(255,255,255,0.2); border-radius: 99px; padding: 2px 6px; font-size: 0.8em; }
-  
-  &:hover { ${interactive ? `transform: scale(${hoverScale});` : ""} }
-}`;
-  } else if (downloadFormat === "figma-tokens") {
-    content = JSON.stringify(
-      {
-        badge: {
-          color: { value: color },
-          shadow: { value: css.shadow },
-          radius: { value: getRadius() },
-        },
-      },
-      null,
-      2,
-    );
-  } else if (downloadFormat === "tailwind-config") {
-    content = JSON.stringify(
-      {
-        theme: {
-          extend: {
-            borderRadius: { badge: getRadius() },
-            colors: { badge: color },
-          },
-        },
-      },
-      null,
-      2,
-    );
-  } else if (downloadFormat === "css-vars") {
-    content = `:root { --badge-bg: ${css.bg}; --badge-radius: ${getRadius()}; } .badge { background: var(--badge-bg); }`;
-  }
-
-  return { content, filename };
+  return {
+    content,
+    filename: `${downloadName}.tsx`,
+  };
 }

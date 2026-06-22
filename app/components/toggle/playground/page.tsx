@@ -1,29 +1,39 @@
 "use client";
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 import BasicsSection from "../_section/BasicsSection";
+import MetadataSection from "../_section/MetadataSection";
 import TrackSection from "../_section/TrackSection";
 import ThumbSection from "../_section/ThumbSection";
 import StatesSection from "../_section/StatesSection";
+import FocusSection from "../_section/FocusSection";
+import ShadowSection from "../_section/ShadowSection";
+import MessagesSection from "../_section/MessagesSection";
 import EffectsSection from "../_section/EffectsSection";
 import TypographySection from "../_section/TypographySection";
 import AccessibilitySection from "../_section/AccessibilitySection";
+import PresetsSection from "../_section/PresetsSection";
+import { TOGGLE_PRESETS } from "../_data/presets";
 import { buildToggleExportPayload } from "../_utils/exportUtils";
-import { type ToggleState, INITIAL_STATE } from "../types";
+import { type ToggleState, type ToggleKeyUpdater, INITIAL_STATE } from "../types";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 
 export default function TogglePlaygroundPage() {
   const mounted = useHydrated();
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const {
     state,
     set: updateState,
@@ -34,21 +44,18 @@ export default function TogglePlaygroundPage() {
     canRedo,
   } = useHistoryState<ToggleState>(INITIAL_STATE);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("toggle-switch");
 
   const exportPayload = useMemo(
     () => ({
       ...state,
-      downloadFormat,
       downloadName: downloadName || "toggle-switch",
     }),
-    [downloadFormat, downloadName, state],
+    [downloadName, state],
   );
-  const deferredExportPayload = useDeferredValue(exportPayload);
   const exportCode = useMemo(
-    () => buildToggleExportPayload(deferredExportPayload),
-    [deferredExportPayload],
+    () => buildToggleExportPayload(exportPayload),
+    [exportPayload],
   );
 
   const handleDownload = () => {
@@ -64,30 +71,57 @@ export default function TogglePlaygroundPage() {
     URL.revokeObjectURL(url);
   };
 
-  const sections = [
-    { id: "basics", label: "Basics", component: BasicsSection },
-    { id: "track", label: "Track", component: TrackSection },
-    { id: "thumb", label: "Thumb", component: ThumbSection },
-    { id: "states", label: "States", component: StatesSection },
-    { id: "effects", label: "Effects", component: EffectsSection },
-    { id: "typography", label: "Typography", component: TypographySection },
-    { id: "a11y", label: "A11y", component: AccessibilitySection },
-  ];
-
-  const setKey = (key: keyof ToggleState) => (val: any) => {
+  const applyPreset = (presetState: ToggleState) => {
     updateState((prev) => ({
       ...prev,
-      [key]: typeof val === "function" ? val(prev[key]) : val,
+      ...presetState,
     }));
+    setPreviewResetKey((key) => key + 1);
   };
 
-  const activeComp = sections.find((s) => s.id === activeSection);
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((key) => key + 1);
+  };
+
+  const editorSections = [
+    { id: "basics", label: "Basics", component: BasicsSection },
+    { id: "metadata", label: "Metadata", component: MetadataSection },
+    { id: "track", label: "Track", component: TrackSection },
+    { id: "thumb", label: "Thumb", component: ThumbSection },
+    { id: "focus", label: "Focus", component: FocusSection },
+    { id: "states", label: "States", component: StatesSection },
+    { id: "messages", label: "Description & Messages", component: MessagesSection },
+    { id: "motion", label: "Motion", component: EffectsSection },
+    { id: "shadow", label: "Shadow", component: ShadowSection },
+    { id: "typography", label: "Typography", component: TypographySection },
+    { id: "accessibility", label: "Accessibility", component: AccessibilitySection },
+  ];
+  const sections = [
+    { id: "presets", label: "Presets" },
+    ...editorSections,
+  ];
+
+  const setKey: ToggleKeyUpdater = (key) => (val) => {
+    updateState((prev) => {
+      const nextValue =
+        typeof val === "function"
+          ? val(prev[key])
+          : val;
+      return {
+        ...prev,
+        [key]: nextValue,
+      } as ToggleState;
+    });
+  };
+
+  const activeComp = editorSections.find((s) => s.id === activeSection);
   const ActiveComponent = activeComp?.component || BasicsSection;
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -100,7 +134,15 @@ export default function TogglePlaygroundPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      <ActiveComponent state={state} setKey={setKey} />
+      {activeSection === "presets" ? (
+        <PresetsSection
+          state={state}
+          presets={TOGGLE_PRESETS}
+          onApply={(preset) => applyPreset(preset.state)}
+        />
+      ) : (
+        <ActiveComponent state={state} setKey={setKey} />
+      )}
     </>
   );
 
@@ -110,16 +152,19 @@ export default function TogglePlaygroundPage() {
       iframeSrcDoc=""
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview state={state} resetKey={previewResetKey} canvasBg={previewBgInput} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -128,6 +173,7 @@ export default function TogglePlaygroundPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

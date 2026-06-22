@@ -3,38 +3,25 @@
 import GalleryPageTemplate from "@/app/components/controls/templates/GalleryPageTemplate";
 import { useMemo } from "react";
 
-function buildMiniAvatarPreview() {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<style>
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: sans-serif; background: #fff; }
-  .avatar { width: 64px; height: 64px; border-radius: 9999px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; font-size: 24px; border: 2px solid #e2e8f0; }
-  .img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
-</style>
-</head>
-<body>
-  <div class="avatar">
-    <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Avatar" class="img" />
-  </div>
-</body>
-</html>`;
+function buildMiniPreview() {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" />
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#fff;color:#0f172a}
+.card{padding:18px 24px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:18px;box-shadow:0 10px 30px rgba(99,102,241,.35)}</style>
+</head><body><div class="card">Avatar</div></body></html>`;
 }
 
-export default function AvatarGalleryPage() {
-  const srcDoc = useMemo(() => buildMiniAvatarPreview(), []);
-
+export default function avatarGalleryPage() {
+  const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate
       title="Avatar"
-      description="Highly customizable avatar component with advanced features like 3D tilt, groups, and badging."
+      description="User profile pictures with status indicators."
       playgroundLink="/components/avatar/playground"
-      playgroundTitle="Playground"
-      playgroundDescription="Full editor with all premium features."
+      playgroundTitle="Avatar Studio"
+      playgroundDescription="Full editor with live preview, presets, and code export."
       playgroundButtonLabel="Open Studio"
       previewSrcDoc={srcDoc}
-      featureTags={["3D Tilt", "Groups", "Badges"]}
+      featureTags={["Presets", "Live Preview", "Export"]}
     />
   );
 }

@@ -1,14 +1,12 @@
 "use client";
 
-import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import {
+  type DividerContentPosition,
   type DividerOrientation,
   type DividerVariant,
-  type DividerContentPosition,
 } from "../types";
 
 export type DividerExportInput = {
-  downloadFormat: DownloadFormat;
   downloadName: string;
   orientation: DividerOrientation;
   width: string;
@@ -23,6 +21,13 @@ export type DividerExportInput = {
   labelBackground: string;
   labelColor: string;
   labelPadding: number;
+  contentType: "text" | "icon";
+  iconName: string;
+  iconSize: number;
+  fontSize: number;
+  fontWeight: string;
+  labelTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  letterSpacing: number;
   gradientEnabled: boolean;
   gradientStart: string;
   gradientEnd: string;
@@ -35,11 +40,33 @@ export type DividerExportInput = {
   neonGlow: boolean;
   glowColor: string;
   glowBlur: number;
+  interactiveResize: boolean;
+  ariaRole: "separator" | "presentation" | "none";
+  ariaLabel: string;
+  gradientAngle: number;
+  shadowEnabled: boolean;
+  shadowX: number;
+  shadowY: number;
+  shadowBlur: number;
+  shadowSpread: number;
+  shadowColor: string;
+  shadowOpacity: number;
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+  disabled: boolean;
+  disabledOpacity: number;
+  hoverColor: string;
+  hoverOpacity: number;
+  marginTop: number;
+  marginBottom: number;
 };
 
 export function buildDividerExportPayload(params: DividerExportInput) {
   const {
-    downloadFormat,
     downloadName,
     orientation,
     width,
@@ -54,6 +81,13 @@ export function buildDividerExportPayload(params: DividerExportInput) {
     labelBackground,
     labelColor,
     labelPadding,
+    contentType,
+    iconName,
+    iconSize,
+    fontSize,
+    fontWeight,
+    labelTransform,
+    letterSpacing,
     gradientEnabled,
     gradientStart,
     gradientEnd,
@@ -61,84 +95,159 @@ export function buildDividerExportPayload(params: DividerExportInput) {
     animateBeam,
     beamColor,
     beamSpeed,
+    shimmerEnabled,
+    shimmerSpeed,
     neonGlow,
     glowColor,
     glowBlur,
+    interactiveResize,
+    ariaRole,
+    ariaLabel,
+    gradientAngle,
+    shadowEnabled,
+    shadowX,
+    shadowY,
+    shadowBlur,
+    shadowSpread,
+    shadowColor,
+    shadowOpacity,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingOffset,
+    focusRingColor,
+    transitionDuration,
+    transitionEasing,
+    disabled,
+    disabledOpacity,
+    hoverColor,
+    hoverOpacity,
+    marginTop,
+    marginBottom,
   } = params;
 
   const isHorizontal = orientation === "horizontal";
-  const ext =
-    downloadFormat === "react"
-      ? "jsx"
-      : downloadFormat === "tailwind-config"
-        ? "js"
-        : downloadFormat === "figma-tokens"
-          ? "json"
-          : downloadFormat === "css-vars"
-            ? "css"
-            : downloadFormat === "scss"
-              ? "scss"
-              : "html";
-  const filename = `${downloadName}.${ext}`;
+  const filename = `${downloadName}.tsx`;
+  const doubleGap = Math.max(2, thickness);
+  const lineAxisThickness =
+    variant === "double" ? thickness * 2 + doubleGap : thickness;
 
-  // 1. Logic Helpers
   const getSizeStyle = () =>
     isHorizontal
-      ? { width: width, height: `${thickness}px` }
-      : { width: `${thickness}px`, height: width };
+      ? { width, height: `${lineAxisThickness}px` }
+      : { width: `${lineAxisThickness}px`, height: width };
+
+  const getLineFill = () =>
+    gradientEnabled
+      ? `linear-gradient(${gradientAngle}deg, ${gradientStart}, ${gradientEnd})`
+      : color;
+
+  const getDoubleBackground = () =>
+    isHorizontal
+      ? `linear-gradient(to bottom, ${getLineFill()} 0 ${thickness}px, transparent ${thickness}px ${thickness + doubleGap}px, ${getLineFill()} ${thickness + doubleGap}px ${thickness * 2 + doubleGap}px)`
+      : `linear-gradient(to right, ${getLineFill()} 0 ${thickness}px, transparent ${thickness}px ${thickness + doubleGap}px, ${getLineFill()} ${thickness + doubleGap}px ${thickness * 2 + doubleGap}px)`;
+
+  const reactIconComponentMap: Record<string, string> = {
+    star: "Star",
+    check: "Check",
+    heart: "Heart",
+    shield: "Shield",
+    zap: "Zap",
+    bell: "Bell",
+    alert: "AlertCircle",
+  };
+  const reactIconName = reactIconComponentMap[iconName] ?? "Star";
+  const reactIconImport =
+    contentType === "icon"
+      ? `import { ${reactIconName} } from "lucide-react";\n`
+      : "";
+
+  const labelCommonStyle = `padding: '${isHorizontal ? `0 ${labelPadding}px` : `${labelPadding}px 0`}', color: '${labelColor}', background: '${labelBackground}'`;
+  const reactLabelContent =
+    contentType === "icon"
+      ? `<${reactIconName} size={${iconSize}} />`
+      : labelText;
+  const reactLabelMarkup = showLabel
+    ? `<div style={{ ${labelCommonStyle}, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>${contentType === "icon" ? reactLabelContent : `<span style={{ fontSize: '${fontSize}px', fontWeight: '${fontWeight}', textTransform: '${labelTransform}', letterSpacing: '${letterSpacing}px', whiteSpace: 'nowrap' }}>${reactLabelContent}</span>`}</div>`
+    : "";
 
   let bg = color;
-  let border = "none";
-  if (gradientEnabled) {
-    bg = `linear-gradient(${isHorizontal ? "to right" : "to bottom"}, ${gradientStart}, ${gradientEnd})`;
+  if (variant === "double") {
+    bg = getDoubleBackground();
+  } else if (gradientEnabled) {
+    bg = getLineFill();
   } else if (variant !== "solid") {
-    if (isHorizontal) {
-      border =
-        "none"; /* Special handling below for dashed/dotted lines via border-top */
-    } else {
-      border = "none";
-    }
     bg = "transparent";
   }
 
   const getBorderInfo = () => {
-    if (variant === "solid" || gradientEnabled) return "";
-    // For dashed/dotted, we usually use a border on one side
-    if (isHorizontal)
-      return `border-top: ${thickness}px ${variant} ${color}; height: 0;`;
-    return `border-left: ${thickness}px ${variant} ${color}; width: 0;`;
+    if (variant === "solid" || gradientEnabled || variant === "double") {
+      return "";
+    }
+    const side = isHorizontal ? "borderTop" : "borderLeft";
+    const crossAxis = isHorizontal ? "height" : "width";
+    return `${side}: \`${thickness}px ${variant} \` + lineColor, ${crossAxis}: 0,`;
   };
 
-  const shadow = neonGlow
+  const glowShadow = neonGlow
     ? `0 0 ${glowBlur}px ${glowColor}, 0 0 ${glowBlur * 2}px ${glowColor}`
-    : "none";
+    : "";
+  const dropShadowHex = Math.round(shadowOpacity * 255).toString(16).padStart(2, "0");
+  const dropShadow = shadowEnabled
+    ? `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowSpread}px ${shadowColor}${dropShadowHex}`
+    : "";
+  const shadow = [dropShadow, glowShadow].filter(Boolean).join(", ") || "none";
+  const roleProp =
+    ariaRole === "none" ? "" : `\n      role="${ariaRole}"`;
+  const ariaLabelProp =
+    ariaRole === "separator" && ariaLabel.trim()
+      ? `\n      aria-label="${ariaLabel.trim()}"`
+      : "";
+  const interactive = !disabled && (hoverColor !== color || hoverOpacity !== 1);
 
-  // 2. Formats
-  let content = "";
-
-  if (downloadFormat === "react") {
-    content = `import React from 'react';
+  const content = `import React from 'react';
+${reactIconImport}
 
 export default function Divider() {
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
+  const interactive = ${interactive};
+  const lineColor = ${disabled} ? '${color}' : (interactive && isHovered ? '${hoverColor}' : '${color}');
+  const lineOpacity = ${disabled} ? ${disabledOpacity} : (interactive && isHovered ? ${hoverOpacity} : 1);
+  const lineStyle = {
+    flex: 1,
+    position: 'relative',
+    borderRadius: ${borderRadius},
+    overflow: 'hidden',
+    opacity: lineOpacity,
+    transition: ${transitionDuration} > 0 ? 'opacity ${transitionDuration}ms ${transitionEasing}, background-color ${transitionDuration}ms ${transitionEasing}' : undefined,
+    ${
+      variant === "solid" || gradientEnabled || variant === "double"
+        ? `background: ${gradientEnabled || variant === "double" ? `'${bg}'` : "lineColor"}, width: '100%', height: '100%'`
+        : getBorderInfo()
+    }
+  };
+
   return (
-    <div style={{
+    <div${roleProp}${ariaLabelProp}
+      aria-disabled={${disabled} || undefined}
+      tabIndex={${focusRingEnabled} && !${disabled} ? 0 : undefined}
+      onMouseEnter={() => interactive && setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      style={{
       display: 'flex', flexDirection: '${isHorizontal ? "row" : "column"}', alignItems: 'center', justifyContent: 'center',
-      width: '${getSizeStyle().width}', height: '${getSizeStyle().height}', margin: '${gap}px', opacity: ${opacity},
-      boxShadow: '${shadow}', position: 'relative'
+      width: '${getSizeStyle().width}', height: '${getSizeStyle().height}', margin: '${gap}px', marginTop: ${marginTop}, marginBottom: ${marginBottom},
+      opacity: ${disabled} ? ${disabledOpacity} : ${opacity},
+      boxShadow: '${shadow}', position: 'relative',
+      pointerEvents: ${disabled} ? 'none' : undefined,
+      outline: isFocused && ${focusRingEnabled} ? '${focusRingWidth}px solid ${focusRingColor}' : undefined,
+      outlineOffset: isFocused && ${focusRingEnabled} ? ${focusRingOffset} : undefined,
+      resize: '${interactiveResize ? (isHorizontal ? "horizontal" : "vertical") : "none"}', overflow: '${interactiveResize ? "auto" : "visible"}'
     }}>
-      ${showLabel && labelPosition === "left" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
-      
-      <div style={{
-         flex: 1, position: 'relative', borderRadius: ${borderRadius}, overflow: 'hidden',
-         ${
-           variant === "solid" || gradientEnabled
-             ? `background: '${bg}', width: '100%', height: '100%'`
-             : getBorderInfo()
-                 .replace(/;/g, ",")
-                 .replace(/:/g, ": ")
-                 .replace(/-([a-z])/g, (m) => m[1].toUpperCase())
-         }
-      }}>
+      ${showLabel && labelPosition === "left" ? reactLabelMarkup : ""}
+
+      <div style={lineStyle}>
          ${
            animateBeam
              ? `<div style={{
@@ -148,119 +257,26 @@ export default function Divider() {
          }} />`
              : ""
          }
+         ${
+           shimmerEnabled
+             ? `<div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', animation: 'pulse ${shimmerSpeed}s ease-in-out infinite' }} />`
+             : ""
+         }
       </div>
 
-      ${showLabel && labelPosition === "center" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
+      ${showLabel && labelPosition === "center" ? reactLabelMarkup : ""}
       ${
         showLabel && labelPosition === "center"
-          ? `<div style={{flex: 1, position: 'relative', borderRadius: ${borderRadius}, overflow: 'hidden', ${
-              variant === "solid" || gradientEnabled
-                ? `background: '${bg}', width: '100%', height: '100%'`
-                : getBorderInfo()
-                    .replace(/;/g, ",")
-                    .replace(/:/g, ": ")
-                    .replace(/-([a-z])/g, (m) => m[1].toUpperCase())
-            }}>${animateBeam ? `<div style={{position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, ${beamColor}, transparent)', animation: 'beam ${beamSpeed}s linear infinite'}} />` : ""}</div>`
+          ? `<div style={lineStyle}>${animateBeam ? `<div style={{position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, ${beamColor}, transparent)', animation: 'beam ${beamSpeed}s linear infinite'}} />` : ""}${shimmerEnabled ? `<div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', animation: 'pulse ${shimmerSpeed}s ease-in-out infinite' }} />` : ""}</div>`
           : ""
       }
 
-      ${showLabel && labelPosition === "right" ? `<span style={{padding: '${labelPadding}px', color: '${labelColor}', background: '${labelBackground}'}}>${labelText}</span>` : ""}
-      
-      <style>{\`@keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }\`}</style>
+      ${showLabel && labelPosition === "right" ? reactLabelMarkup : ""}
+
+      <style>{\`@keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } } @keyframes pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }\`}</style>
     </div>
   );
 }`;
-  } else if (downloadFormat === "html") {
-    content = `
-<div class="divider">
-   ${showLabel && labelPosition === "left" ? `<span class="label">${labelText}</span>` : ""}
-   <div class="line">
-      ${animateBeam ? `<div class="beam"></div>` : ""}
-   </div>
-   ${showLabel && labelPosition === "center" ? `<span class="label">${labelText}</span><div class="line">${animateBeam ? `<div class="beam"></div>` : ""}</div>` : ""}
-   ${showLabel && labelPosition === "right" ? `<span class="label">${labelText}</span>` : ""}
-</div>
-
-<style>
-.divider {
-  display: flex; flex-direction: ${isHorizontal ? "row" : "column"}; align-items: center; justify-content: center;
-  width: ${getSizeStyle().width}; height: ${getSizeStyle().height}; margin: ${gap}px; opacity: ${opacity};
-  box-shadow: ${shadow};
-}
-.line {
-  flex: 1; position: relative; border-radius: ${borderRadius}px; overflow: hidden;
-  ${variant === "solid" || gradientEnabled ? `background: ${bg}; width: 100%; height: 100%;` : getBorderInfo()}
-}
-.label { padding: ${labelPadding}px; color: ${labelColor}; background: ${labelBackground}; font-size: 0.85em; white-space: nowrap; }
-${
-  animateBeam
-    ? `
-.beam {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, ${beamColor}, transparent);
-  animation: beam ${beamSpeed}s linear infinite;
-}
-@keyframes beam { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-`
-    : ""
-}
-</style>
-`;
-  } else if (downloadFormat === "tailwind") {
-    const dim = isHorizontal
-      ? `w-[${width}] h-[${thickness}px]`
-      : `w-[${thickness}px] h-[${width}]`;
-    const flexDir = isHorizontal ? "flex-row" : "flex-col";
-    const bgClass = gradientEnabled
-      ? `bg-gradient-to-${isHorizontal ? "r" : "b"} from-[${gradientStart}] to-[${gradientEnd}]`
-      : variant === "solid"
-        ? `bg-[${color}]`
-        : "";
-    const borderClass =
-      variant !== "solid" && !gradientEnabled
-        ? isHorizontal
-          ? `border-t-[${thickness}px] border-${variant} border-[${color}]`
-          : `border-l-[${thickness}px] border-${variant} border-[${color}]`
-        : "";
-    const shadowClass = neonGlow
-      ? `shadow-[0_0_${glowBlur}px_${glowColor},0_0_${glowBlur * 2}px_${glowColor}]`
-      : "";
-
-    const lineEl = `
-      <div class="flex-1 relative rounded-[${borderRadius}px] overflow-hidden ${bgClass} ${borderClass}">
-        ${animateBeam ? `<div class="absolute inset-0 bg-gradient-to-r from-transparent via-[${beamColor}] to-transparent animate-[beam_${beamSpeed}s_linear_infinite]"></div>` : ""}
-      </div>`;
-
-    content = `
-<div class="flex ${flexDir} items-center justify-center ${dim} opacity-[${opacity}] m-[${gap}px] ${shadowClass}">
-  ${showLabel && labelPosition === "left" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>` : ""}
-  ${lineEl}
-  ${showLabel && labelPosition === "center" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>${lineEl}` : ""}
-  ${showLabel && labelPosition === "right" ? `<span class="px-[${labelPadding}px] text-[${labelColor}] bg-[${labelBackground}] text-sm">${labelText}</span>` : ""}
-</div>`;
-  } else if (downloadFormat === "scss") {
-    content = `.divider {
-  display: flex; flex-direction: ${isHorizontal ? "row" : "column"}; align-items: center;
-  width: ${getSizeStyle().width}; height: ${getSizeStyle().height}; margin: ${gap}px; opacity: ${opacity};
-  box-shadow: ${shadow};
-  .line { flex: 1; border-radius: ${borderRadius}px; overflow: hidden; background: ${bg}; ${getBorderInfo()} }
-  .label { padding: ${labelPadding}px; color: ${labelColor}; background: ${labelBackground}; }
-}`;
-  } else if (downloadFormat === "figma-tokens") {
-    content = JSON.stringify(
-      { divider: { thickness: { value: thickness }, color: { value: color } } },
-      null,
-      2,
-    );
-  } else if (downloadFormat === "tailwind-config") {
-    content = JSON.stringify(
-      { theme: { extend: { colors: { divider: color } } } },
-      null,
-      2,
-    );
-  } else if (downloadFormat === "css-vars") {
-    content = `:root { --div-thick: ${thickness}px; --div-col: ${color}; } .divider { width: ${width}; height: var(--div-thick); background: var(--div-col); }`;
-  }
 
   return { content, filename };
 }

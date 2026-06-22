@@ -4,14 +4,7 @@ import React from "react";
 import { Download, Check, FileCode, Code2 } from "lucide-react";
 import Select from "../input/Select";
 
-export type DownloadFormat =
-  | "html"
-  | "react"
-  | "tailwind"
-  | "css-vars"
-  | "scss"
-  | "tailwind-config"
-  | "figma-tokens";
+export type DownloadFormat = "react";
 
 type ExportOptionsControlProps = {
   format: DownloadFormat;
@@ -68,21 +61,15 @@ export default function ExportOptionsControl({
             value={format}
             onChange={(v) => setFormat(v as DownloadFormat)}
             startContent={<Code2 size={16} />}
-            options={[
-              { value: "html", label: "HTML" },
-              { value: "react", label: "React / JSX" },
-              { value: "tailwind", label: "Tailwind" },
-              { value: "css-vars", label: "CSS Vars" },
-              { value: "scss", label: "SCSS" },
-              { value: "tailwind-config", label: "Tailwind Config" },
-              { value: "figma-tokens", label: "Figma Tokens" },
-            ]}
+            options={[{ value: "react", label: "React / JSX" }]}
           />
         </div>
 
         <button
+          type="button"
           onClick={onDownload}
           disabled={isDownloading}
+          aria-label={isDownloading ? "Downloaded React component" : "Export React component"}
           className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           style={{
             background: isDownloading

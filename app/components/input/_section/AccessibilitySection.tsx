@@ -1,23 +1,21 @@
 "use client";
 
 import React from "react";
-import {
-  SectionCard,
-  LabeledField,
-  Segmented,
-} from "../../buttons/action/_section/ui";
-import Select from "@/app/components/controls/input/Select";
-import { TextInputState } from "../types";
+import { SectionCard, LabeledField } from "@/app/components/controls/ui";
+import { type TextInputSetter, type TextInputState } from "../types";
 
 export default function AccessibilitySection({
   state,
   setKey,
 }: {
   state: TextInputState;
-  setKey: (key: keyof TextInputState) => (val: any) => void;
+  setKey: TextInputSetter;
 }) {
   return (
-    <SectionCard title="Accessibility" subtitle="ARIA and input modes.">
+    <SectionCard
+      title="Accessibility"
+      subtitle="ARIA wiring and semantic overrides."
+    >
       <div className="space-y-4">
         <LabeledField label="aria-label">
           <input
@@ -61,39 +59,6 @@ export default function AccessibilitySection({
             aria-invalid
           </label>
         </div>
-        <LabeledField label="Autocomplete">
-          <Select
-            value={state.autocomplete}
-            onChange={(v) => setKey("autocomplete")(v)}
-            options={[
-              { value: "off", label: "Off" },
-              { value: "on", label: "On" },
-              { value: "name", label: "Name" },
-              { value: "email", label: "Email" },
-              { value: "tel", label: "Tel" },
-              { value: "url", label: "URL" },
-              { value: "current-password", label: "Current Password" },
-              { value: "new-password", label: "New Password" },
-              { value: "one-time-code", label: "One-Time Code" },
-            ]}
-          />
-        </LabeledField>
-        <LabeledField label="Input Mode">
-          <Select
-            value={state.inputmode}
-            onChange={(v) => setKey("inputmode")(v)}
-            options={[
-              { value: "text", label: "Text" },
-              { value: "decimal", label: "Decimal" },
-              { value: "numeric", label: "Numeric" },
-              { value: "tel", label: "Tel" },
-              { value: "search", label: "Search" },
-              { value: "email", label: "Email" },
-              { value: "url", label: "URL" },
-              { value: "none", label: "None" },
-            ]}
-          />
-        </LabeledField>
         <LabeledField label="Role">
           <input
             value={state.role}

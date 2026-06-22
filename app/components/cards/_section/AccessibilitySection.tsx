@@ -1,0 +1,27 @@
+"use client";
+
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
+import type { CardStudioState } from "../types";
+
+type Props = {
+  state: CardStudioState;
+  update: <K extends keyof CardStudioState>(key: K, value: CardStudioState[K]) => void;
+};
+
+export default function AccessibilitySection({ state, update }: Props) {
+  return (
+    <SectionCard title="Accessibility" subtitle="ARIA, labels, language, and semantic guidance.">
+      <div className="space-y-4">
+      <Input label="Accessible label" value={state.ariaLabel} onChange={(value) => update("ariaLabel", value)} />
+      <Input label="Media alternative text" value={state.mediaAlt} onChange={(value) => update("mediaAlt", value)} />
+      <Select label="Semantic role" value={state.role} options={[
+  "article",
+  "region",
+  "group"
+]} onChange={(value) => update("role", value)} />
+    </div>
+    </SectionCard>
+  );
+}

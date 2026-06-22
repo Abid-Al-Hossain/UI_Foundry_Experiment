@@ -1,17 +1,29 @@
 "use client";
 import React from "react";
+import type { DividerState } from "../types";
 import {
   SectionCard,
   LabeledField,
   Segmented,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Switch from "@/app/components/controls/input/Switch";
 import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
 
-export default function DividerContentSection({ state, setKey }: any) {
+type SetterValue<T> = T | ((prev: T) => T);
+type DividerSetter = <K extends keyof DividerState>(
+  key: K,
+) => (val: SetterValue<DividerState[K]>) => void;
+
+export default function DividerContentSection({
+  state,
+  setKey,
+}: {
+  state: DividerState;
+  setKey: DividerSetter;
+}) {
   const {
     showLabel,
     labelText,
@@ -22,10 +34,6 @@ export default function DividerContentSection({ state, setKey }: any) {
     contentType,
     iconName,
     iconSize,
-    fontSize,
-    fontWeight,
-    labelTransform,
-    letterSpacing,
   } = state;
 
   return (
@@ -38,11 +46,13 @@ export default function DividerContentSection({ state, setKey }: any) {
         />
 
         {showLabel && (
-          <div className="space-y-4 pl-4 border-l-2 border-slate-700/50">
+          <div className="space-y-4 border-l-2 border-slate-700/50 pl-4">
             <LabeledField label="Content Type">
               <Segmented
                 value={contentType}
-                onChange={setKey("contentType")}
+                onChange={(v) =>
+                  setKey("contentType")(v as DividerState["contentType"])
+                }
                 items={[
                   { label: "Text", value: "text" },
                   { label: "Icon", value: "icon" },
@@ -59,36 +69,6 @@ export default function DividerContentSection({ state, setKey }: any) {
                   />
                 </LabeledField>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <SizeControl
-                    label="Font Size"
-                    value={fontSize}
-                    onChange={setKey("fontSize")}
-                    min={10}
-                    max={32}
-                    step={1}
-                  />
-                  <SizeControl
-                    label="Spacing"
-                    value={letterSpacing}
-                    onChange={setKey("letterSpacing")}
-                    min={-2}
-                    max={10}
-                    step={0.5}
-                  />
-                </div>
-
-                <LabeledField label="Transform">
-                  <Segmented
-                    value={labelTransform}
-                    onChange={setKey("labelTransform")}
-                    items={[
-                      { label: "None", value: "none" },
-                      { label: "ABC", value: "uppercase" },
-                      { label: "abc", value: "lowercase" },
-                    ]}
-                  />
-                </LabeledField>
               </>
             ) : (
               <>
@@ -121,7 +101,9 @@ export default function DividerContentSection({ state, setKey }: any) {
             <LabeledField label="Position">
               <Segmented
                 value={labelPosition}
-                onChange={setKey("labelPosition")}
+                onChange={(v) =>
+                  setKey("labelPosition")(v as DividerState["labelPosition"])
+                }
                 items={[
                   { label: "Left", value: "left" },
                   { label: "Center", value: "center" },
@@ -147,7 +129,7 @@ export default function DividerContentSection({ state, setKey }: any) {
             <SizeControl
               label="Padding (px)"
               value={labelPadding}
-              onChange={(v) => setKey("labelPadding")(v)}
+              onChange={setKey("labelPadding")}
               min={0}
               max={40}
               step={2}

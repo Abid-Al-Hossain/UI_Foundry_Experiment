@@ -1,73 +1,268 @@
 "use client";
-import type { DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import { clamp, norm } from "@/app/components/controls/color/colorUtils";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 import { type RadioState } from "../types";
 
 export type RadioExportInput = RadioState & {
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
 
-export function buildRadioExportPayload(params: RadioExportInput) {
-  const { downloadFormat, downloadName } = params;
-  const ext =
-    downloadFormat === "react"
-      ? "jsx"
-      : downloadFormat === "tailwind-config"
-        ? "js"
-        : downloadFormat === "figma-tokens"
-          ? "json"
-          : downloadFormat === "css-vars"
-            ? "css"
-            : downloadFormat === "scss"
-              ? "scss"
-              : "html";
-  const filename = `${downloadName}.${ext}`;
-  const labelFontFamily =
-    params.fontBucket === "google"
-      ? params.googleFontFamily || "inherit"
-      : SYSTEM_FONTS[params.systemFontIdx]?.css || "inherit";
-  const labelFontSize = `${params.labelFontSize}${params.fontSizeUnit}`;
+function resolveFontFamily(state: RadioState): string {
+  if (state.fontBucket === "google") return state.googleFontFamily;
+  return SYSTEM_FONTS[state.systemFontIdx]?.css ?? "inherit";
+}
 
-  const optionsHtml = params.options
-    .map(
-      (o) =>
-        `  <label class="radio-option${o.disabled ? " disabled" : ""}">\n    <input type="radio" name="${params.name}" value="${o.value}"${o.value === params.selectedValue ? " checked" : ""}${o.disabled ? " disabled" : ""} />\n    <span class="radio-circle"></span>\n    <span class="radio-label">${o.label}</span>\n  </label>`,
-    )
-    .join("\n");
+function resolveShadowColor(color: string, opacity: number): string {
+  const parsed = norm(color);
+  const match = parsed.ok ? parsed.rgb.match(/\d+/g) : null;
+  const alpha = clamp(opacity, 0, 1);
 
-  let content = "";
-
-  if (downloadFormat === "html") {
-    content = `<div class="radio-group" role="radiogroup">\n${optionsHtml}\n</div>\n\n<style>\n.radio-group { display: flex; flex-direction: ${params.orientation === "horizontal" ? "row" : "column"}; gap: ${params.gap}px; }\n.radio-option { display: inline-flex; align-items: center; gap: ${params.labelGap}px; cursor: pointer; font-family: ${labelFontFamily}; font-size: ${labelFontSize}; color: ${params.labelColor}; }\n.radio-option input { position: absolute; opacity: 0; width: 0; height: 0; }\n.radio-circle { display: inline-flex; align-items: center; justify-content: center; width: ${params.outerSize}px; height: ${params.outerSize}px; border: ${params.outerBorderWidth}px solid ${params.outerBorderColor}; border-radius: 50%; transition: all ${params.transitionDuration}ms ${params.transitionEasing}; }\n.radio-option input:checked + .radio-circle { border-color: ${params.selectedOuterBorderColor}; }\n.radio-option input:checked + .radio-circle::after { content: ''; display: block; width: ${params.dotSize}px; height: ${params.dotSize}px; border-radius: 50%; background: ${params.dotColor}; }\n.radio-option.disabled { opacity: ${params.disabledOpacity}; cursor: ${params.disabledCursor}; }\n</style>`;
-  } else if (downloadFormat === "react") {
-    content = `import React, { useState } from 'react';\n\nconst options = ${JSON.stringify(params.options, null, 2)};\n\nexport default function RadioGroup() {\n  const [selected, setSelected] = useState('${params.selectedValue}');\n  return (\n    <div role="radiogroup" style={{ display: 'flex', flexDirection: '${params.orientation === "horizontal" ? "row" : "column"}', gap: ${params.gap} }}>\n      {options.map((opt) => (\n        <label key={opt.value} style={{ display: 'inline-flex', alignItems: 'center', gap: ${params.labelGap}, cursor: opt.disabled ? '${params.disabledCursor}' : 'pointer', opacity: opt.disabled ? ${params.disabledOpacity} : 1, fontFamily: '${labelFontFamily}', fontSize: '${labelFontSize}', color: '${params.labelColor}' }}>\n          <input type="radio" name="${params.name}" value={opt.value} checked={selected === opt.value} onChange={() => setSelected(opt.value)} disabled={opt.disabled} style={{ position: 'absolute', opacity: 0 }} />\n          <span style={{ width: ${params.outerSize}, height: ${params.outerSize}, border: '${params.outerBorderWidth}px solid ' + (selected === opt.value ? '${params.selectedOuterBorderColor}' : '${params.outerBorderColor}'), borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>\n            {selected === opt.value && <span style={{ width: ${params.dotSize}, height: ${params.dotSize}, borderRadius: '50%', background: '${params.dotColor}' }} />}\n          </span>\n          <span>{opt.label}</span>\n        </label>\n      ))}\n    </div>\n  );\n}`;
-  } else if (downloadFormat === "css-vars") {
-    content = `:root {\n  --radio-size: ${params.outerSize}px;\n  --radio-dot: ${params.dotSize}px;\n  --radio-border: ${params.outerBorderColor};\n  --radio-selected: ${params.selectedOuterBorderColor};\n  --radio-dot-color: ${params.dotColor};\n}`;
-  } else if (downloadFormat === "figma-tokens") {
-    content = JSON.stringify(
-      {
-        radio: {
-          outer: {
-            size: { value: `${params.outerSize}px` },
-            borderColor: { value: params.outerBorderColor },
-          },
-          dot: {
-            size: { value: `${params.dotSize}px` },
-            color: { value: params.dotColor },
-          },
-          label: {
-            fontSize: { value: `${params.labelFontSize}px` },
-            color: { value: params.labelColor },
-          },
-        },
-      },
-      null,
-      2,
-    );
-  } else {
-    content = `<!-- Radio group -->\n<div class="flex flex-col gap-3" role="radiogroup">\n  ${params.options.map((o) => `<label class="inline-flex items-center gap-2 cursor-pointer"><input type="radio" name="${params.name}" value="${o.value}" class="sr-only peer" /><span class="w-5 h-5 border-2 border-slate-300 rounded-full peer-checked:border-blue-500 flex items-center justify-center"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 hidden peer-checked:block"></span></span><span class="text-sm">${o.label}</span></label>`).join("\n  ")}  \n</div>`;
+  if (match && match.length >= 3) {
+    return `rgba(${match[0]}, ${match[1]}, ${match[2]}, ${alpha})`;
   }
+
+  return `rgba(0, 0, 0, ${alpha})`;
+}
+
+export function buildRadioExportPayload(params: RadioExportInput) {
+  const filename = `${params.downloadName || "radio-group"}.tsx`;
+  const config = {
+    id: params.id,
+    name: params.name,
+    selectedValue: params.selectedValue,
+    orientation: params.orientation,
+    gap: params.gap,
+    options: params.options,
+    outerSize: params.outerSize,
+    outerBorderWidth: params.outerBorderWidth,
+    outerBorderStyle: params.outerBorderStyle,
+    outerBorderColor: params.outerBorderColor,
+    outerBgColor: params.outerBgColor,
+    selectedOuterBorderColor: params.selectedOuterBorderColor,
+    selectedOuterBgColor: params.selectedOuterBgColor,
+    dotSize: params.dotSize,
+    dotColor: params.dotColor,
+    animationType: params.animationType,
+    transitionDuration: params.transitionDuration,
+    transitionEasing: params.transitionEasing,
+    focusRingEnabled: params.focusRingEnabled,
+    focusRingColor: params.focusRingColor,
+    focusRingWidth: params.focusRingWidth,
+    focusRingOffset: params.focusRingOffset,
+    hoverBorderColor: params.hoverBorderColor,
+    hoverBgColor: params.hoverBgColor,
+    hoverDotColor: params.hoverDotColor,
+    disabledOpacity: params.disabledOpacity,
+    disabledCursor: params.disabledCursor,
+    disabledUseCustomColors: params.disabledUseCustomColors,
+    disabledBgColor: params.disabledBgColor,
+    disabledTextColor: params.disabledTextColor,
+    disabledBorderColor: params.disabledBorderColor,
+    disabledDotColor: params.disabledDotColor,
+    fontFamily: resolveFontFamily(params),
+    labelFontSize: params.labelFontSize,
+    fontSizeUnit: params.fontSizeUnit,
+    labelFontWeight: params.labelFontWeight,
+    labelColor: params.labelColor,
+    labelLetterSpacing: params.labelLetterSpacing,
+    letterSpacingUnit: params.letterSpacingUnit,
+    labelLineHeight: params.labelLineHeight,
+    labelFontStyle: params.labelFontStyle,
+    labelTextTransform: params.labelTextTransform,
+    labelUnderline: params.labelUnderline,
+    labelGap: params.labelGap,
+    labelPosition: params.labelPosition,
+    shadowEnabled: params.shadowEnabled,
+    shadowX: params.shadowX,
+    shadowY: params.shadowY,
+    shadowBlur: params.shadowBlur,
+    shadowSpread: params.shadowSpread,
+    shadowOpacity: params.shadowOpacity,
+    shadowColor: resolveShadowColor(params.shadowColor, params.shadowOpacity),
+    ariaLabel: params.ariaLabel,
+    ariaDescribedBy: params.ariaDescribedBy,
+    ariaRequired: params.ariaRequired,
+    tabIndex: params.tabIndex,
+    dir: params.dir,
+    lang: params.lang,
+    title: params.title,
+    role: params.role,
+    descriptionText: params.descriptionText,
+    descriptionColor: params.descriptionColor,
+    helperText: params.helperText,
+    helperColor: params.helperColor,
+    errorText: params.errorText,
+    errorColor: params.errorColor,
+    errorBorderColor: params.errorBorderColor,
+    errorBgColor: params.errorBgColor,
+    successText: params.successText,
+    successColor: params.successColor,
+  };
+
+  const content = `import React, { useState } from "react";
+
+const CONFIG = ${JSON.stringify(config, null, 2)};
+
+export default function RadioGroupComponent() {
+  const [selected, setSelected] = useState(CONFIG.selectedValue);
+  const [hoveredIndex, setHoveredIndex] = useState(-1);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const descriptionId = CONFIG.descriptionText ? "radio-preview-description" : undefined;
+  const helperId = CONFIG.helperText ? "radio-preview-helper" : undefined;
+  const errorId = CONFIG.errorText ? "radio-preview-error" : undefined;
+  const successId = CONFIG.successText ? "radio-preview-success" : undefined;
+  const transition = "all " + CONFIG.transitionDuration + "ms " + CONFIG.transitionEasing;
+  const boxShadow = CONFIG.shadowEnabled
+    ? CONFIG.shadowX + "px " + CONFIG.shadowY + "px " + CONFIG.shadowBlur + "px " + CONFIG.shadowSpread + "px " + CONFIG.shadowColor
+    : "none";
+
+  return (
+    <div
+      role={CONFIG.role || "radiogroup"}
+      aria-label={CONFIG.ariaLabel || CONFIG.name}
+      aria-required={CONFIG.ariaRequired || undefined}
+      aria-invalid={Boolean(CONFIG.errorText) || undefined}
+      aria-describedby={[descriptionId, helperId, errorId, successId, CONFIG.ariaDescribedBy]
+        .filter(Boolean)
+        .join(" ") || undefined}
+      style={{
+        display: "flex",
+        flexDirection: CONFIG.orientation === "horizontal" ? "row" : "column",
+        gap: CONFIG.gap,
+      }}
+      dir={CONFIG.dir}
+      lang={CONFIG.lang || undefined}
+    >
+      {CONFIG.options.map((option, index) => {
+        const isSelected = selected === option.value;
+        const isDisabled = Boolean(option.disabled);
+        const isHovered = hoveredIndex === index && !isDisabled;
+        const isFocused = focusedIndex === index && !isDisabled;
+        const dotStyle =
+          CONFIG.animationType === "scale"
+            ? {
+                transform: isSelected ? "scale(1)" : "scale(0)",
+                opacity: isSelected ? 1 : 0,
+                transition,
+              }
+            : CONFIG.animationType === "fade"
+              ? {
+                  opacity: isSelected ? 1 : 0,
+                  transition,
+                }
+              : { transition };
+
+        return (
+          <label
+            key={option.value + "-" + index}
+            onPointerEnter={() => setHoveredIndex(index)}
+            onPointerLeave={() => setHoveredIndex(-1)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              flexDirection: CONFIG.labelPosition === "left" ? "row-reverse" : "row",
+              gap: CONFIG.labelGap,
+              cursor: isDisabled ? CONFIG.disabledCursor : "pointer",
+              opacity: isDisabled ? CONFIG.disabledOpacity : 1,
+            }}
+          >
+            <input
+              id={(CONFIG.id || CONFIG.name) + "-" + option.value}
+              type="radio"
+              name={CONFIG.name}
+              value={option.value}
+              checked={isSelected}
+              disabled={isDisabled}
+              required={CONFIG.ariaRequired || undefined}
+              dir={CONFIG.dir}
+              lang={CONFIG.lang || undefined}
+              title={CONFIG.title || undefined}
+              tabIndex={CONFIG.tabIndex}
+              onChange={() => {
+                if (isDisabled) return;
+                setSelected(option.value);
+              }}
+              onFocus={() => setFocusedIndex(index)}
+              onBlur={() => setFocusedIndex(-1)}
+              style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
+            />
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: CONFIG.outerSize,
+                height: CONFIG.outerSize,
+                borderWidth: CONFIG.outerBorderWidth,
+                borderStyle: CONFIG.outerBorderStyle,
+                borderColor: isDisabled && CONFIG.disabledUseCustomColors
+                  ? CONFIG.disabledBorderColor
+                  : CONFIG.errorText
+                  ? CONFIG.errorBorderColor
+                  : isHovered
+                  ? CONFIG.hoverBorderColor
+                  : isSelected
+                    ? CONFIG.selectedOuterBorderColor
+                    : CONFIG.outerBorderColor,
+                borderRadius: "50%",
+                backgroundColor: isDisabled && CONFIG.disabledUseCustomColors
+                  ? CONFIG.disabledBgColor
+                  : CONFIG.errorText
+                  ? CONFIG.errorBgColor
+                  : isHovered
+                  ? CONFIG.hoverBgColor
+                  : isSelected
+                    ? CONFIG.selectedOuterBgColor
+                    : CONFIG.outerBgColor,
+                boxShadow: isFocused && CONFIG.focusRingEnabled ? "0 0 0 " + CONFIG.focusRingWidth + "px " + CONFIG.focusRingColor : boxShadow,
+                outlineOffset: isFocused && CONFIG.focusRingEnabled ? CONFIG.focusRingOffset : undefined,
+                transition,
+                flexShrink: 0,
+              }}
+            >
+              <span
+                style={{
+                  display: "block",
+                  width: CONFIG.dotSize,
+                  height: CONFIG.dotSize,
+                  borderRadius: "50%",
+                  backgroundColor: isDisabled && CONFIG.disabledUseCustomColors
+                    ? CONFIG.disabledDotColor
+                    : isHovered && !isSelected
+                    ? CONFIG.hoverDotColor
+                    : CONFIG.dotColor,
+                  ...dotStyle,
+                }}
+              />
+            </span>
+            <span
+              style={{
+                fontFamily: CONFIG.fontFamily,
+                fontSize: CONFIG.labelFontSize + CONFIG.fontSizeUnit,
+                fontWeight: CONFIG.labelFontWeight,
+                color: isDisabled && CONFIG.disabledUseCustomColors ? CONFIG.disabledTextColor : CONFIG.labelColor,
+                letterSpacing: CONFIG.labelLetterSpacing + CONFIG.letterSpacingUnit,
+                lineHeight: CONFIG.labelLineHeight,
+                fontStyle: CONFIG.labelFontStyle,
+                textTransform: CONFIG.labelTextTransform,
+                textDecoration: CONFIG.labelUnderline ? "underline" : "none",
+              }}
+            >
+              {option.label}
+            </span>
+          </label>
+        );
+      })}
+      <div style={{ marginTop: 12, display: "grid", gap: 4, textAlign: "center", fontSize: 12, maxWidth: 420 }}>
+        {CONFIG.descriptionText ? <p id={descriptionId} style={{ color: CONFIG.descriptionColor }}>{CONFIG.descriptionText}</p> : null}
+        {CONFIG.helperText ? <p id={helperId} style={{ color: CONFIG.helperColor }}>{CONFIG.helperText}</p> : null}
+        {CONFIG.errorText ? <p id={errorId} style={{ color: CONFIG.errorColor }}>{CONFIG.errorText}</p> : null}
+        {CONFIG.successText ? <p id={successId} style={{ color: CONFIG.successColor }}>{CONFIG.successText}</p> : null}
+      </div>
+    </div>
+  );
+}
+`;
 
   return { content, filename };
 }

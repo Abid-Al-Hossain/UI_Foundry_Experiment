@@ -54,9 +54,9 @@ export default function RootLayout({
                 </section>
 
                 {/* Right Panel: Animated Content */}
-                <section className="md:col-span-8 lg:col-span-9 flex min-h-0 flex-col">
+                <section className="md:col-span-8 lg:col-span-9 flex min-h-0 min-w-0 flex-col">
                   <div
-                    className="flex-1 overflow-hidden rounded-xl border shadow-sm hover:shadow-md relative" // Relative for absolute positioning of transitions
+                    className="flex-1 min-w-0 overflow-hidden rounded-xl border shadow-sm hover:shadow-md relative" // Relative for absolute positioning of transitions
                     style={{
                       borderColor: "var(--border)",
                       background: "var(--surface)",

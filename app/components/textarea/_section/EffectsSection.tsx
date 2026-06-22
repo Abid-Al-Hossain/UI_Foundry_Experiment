@@ -1,31 +1,18 @@
 "use client";
 
 import React from "react";
-import { SectionCard, LabeledField } from "../../buttons/action/_section/ui";
-import ColorControl from "@/app/components/controls/color/ColorControl";
+import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
-import { TextareaState } from "../types";
-
-const PRESET_COLORS = [
-  "#cbd5e1",
-  "#3b82f6",
-  "#ef4444",
-  "#10b981",
-  "#f59e0b",
-  "#6366f1",
-  "#ec4899",
-  "#000000",
-  "#ffffff",
-];
+import { type TextareaSetter, type TextareaState } from "../types";
 
 export default function EffectsSection({
   state,
   setKey,
 }: {
   state: TextareaState;
-  setKey: (key: keyof TextareaState) => (val: any) => void;
+  setKey: TextareaSetter;
 }) {
   return (
     <SectionCard title="Effects & Animation" subtitle="Shadow and transitions.">
@@ -68,7 +55,9 @@ export default function EffectsSection({
           <LabeledField label="Easing">
             <Select
               value={state.transitionEasing}
-              onChange={(v) => setKey("transitionEasing")(v)}
+              onChange={(v) =>
+                setKey("transitionEasing")(v as TextareaState["transitionEasing"])
+              }
               options={[
                 { value: "ease", label: "Ease" },
                 { value: "ease-in", label: "Ease In" },

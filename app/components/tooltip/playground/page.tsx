@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useMemo, useDeferredValue } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
@@ -11,30 +13,39 @@ import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 import {
   TooltipState,
   DEFAULT_TOOLTIP_STATE,
-  DOWNLOAD_FORMAT_OPTIONS,
 } from "../types";
+import { TOOLTIP_PRESETS } from "../_data/tooltipPresets";
 
 // Section imports
 import {
+  PresetsSection,
   PositionSection,
   AppearanceSection,
   ArrowSection,
-  AnimationSection,
+  AnimationSection as MotionSection,
+  BehaviorSection,
+  StatePreviewSection,
   TriggerSection,
   ContentSection,
   TypographySection,
   AccessibilitySection,
-} from "./_section";
+} from "../_section";
 
 // Preview component
-import TooltipPreview from "./_components/TooltipPreview";
+import TooltipPreview from "../_components/TooltipPreview";
 
 // Export utilities
-import { buildExportPayload } from "./_utils/exportUtils";
+import { buildExportPayload } from "../_utils/exportUtils";
 
 export default function TooltipPlayground() {
   const { state, set, undo, redo, reset, canUndo, canRedo } =
     useHistoryState<TooltipState>(DEFAULT_TOOLTIP_STATE);
+  const [activeSection, setActiveSection] = useState<string>("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Generic updater
   const update = <K extends keyof TooltipState>(
@@ -44,42 +55,31 @@ export default function TooltipPlayground() {
     set((s: TooltipState) => ({ ...s, [key]: value }));
   };
 
-  // Active section for tab navigation
-  const [activeSection, setActiveSection] = React.useState<string>("position");
+  const applyPreset = (preset: (typeof TOOLTIP_PRESETS)[number]) => {
+    set((prev) => ({ ...prev, ...preset.state }));
+    setPreviewResetKey((value) => value + 1);
+  };
 
   const sections = [
+    { id: "presets", label: "Presets" },
     { id: "position", label: "Position" },
     { id: "appearance", label: "Appearance" },
     { id: "arrow", label: "Arrow" },
-    { id: "animation", label: "Animation" },
+    { id: "motion", label: "Motion" },
+    { id: "state-preview", label: "State Preview" },
+    { id: "behavior", label: "Behavior" },
     { id: "trigger", label: "Trigger" },
     { id: "content", label: "Content" },
     { id: "typography", label: "Typography" },
-    { id: "accessibility", label: "A11y" },
+    { id: "accessibility", label: "Accessibility" },
   ];
 
   // Handle download
   // Handle download
-  const exportPayload = useMemo(
-    () => ({ ...state, downloadFormat: state.downloadFormat }),
-    [state],
-  );
-  const deferredExportPayload = useDeferredValue(exportPayload);
-
-  const exportCode = useMemo(
-    () =>
-      buildExportPayload(
-        deferredExportPayload,
-        deferredExportPayload.downloadFormat,
-      ),
-    [deferredExportPayload],
-  );
+  const exportCode = useMemo(() => buildExportPayload(state), [state]);
 
   const handleDownload = () => {
-    const { code, filename } = buildExportPayload(
-      exportPayload,
-      exportPayload.downloadFormat,
-    );
+    const { code, filename } = buildExportPayload(state);
     const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -90,11 +90,16 @@ export default function TooltipPlayground() {
   };
 
   // Header actions (undo/redo/reset buttons)
+  const handleReset = () => {
+    reset();
+    setPreviewResetKey((value) => value + 1);
+  };
+
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={handleReset}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -104,7 +109,6 @@ export default function TooltipPlayground() {
   const controlsContent = (
     <div className="p-6 space-y-8">
       {/* Section Selector */}
-      {/* Section Selector */}
       <SectionSelector
         sections={sections}
         activeSection={activeSection}
@@ -112,6 +116,13 @@ export default function TooltipPlayground() {
       />
 
       {/* Active Section Content */}
+      {activeSection === "presets" && (
+        <PresetsSection
+          state={state}
+          presets={TOOLTIP_PRESETS}
+          onApplyPreset={applyPreset}
+        />
+      )}
       {activeSection === "position" && (
         <PositionSection state={state} update={update} />
       )}
@@ -121,8 +132,14 @@ export default function TooltipPlayground() {
       {activeSection === "arrow" && (
         <ArrowSection state={state} update={update} />
       )}
-      {activeSection === "animation" && (
-        <AnimationSection state={state} update={update} />
+      {activeSection === "motion" && (
+        <MotionSection state={state} update={update} />
+      )}
+      {activeSection === "state-preview" && (
+        <StatePreviewSection state={state} update={update} />
+      )}
+      {activeSection === "behavior" && (
+        <BehaviorSection state={state} update={update} />
       )}
       {activeSection === "trigger" && (
         <TriggerSection state={state} update={update} />
@@ -144,25 +161,18 @@ export default function TooltipPlayground() {
     <PreviewDownloadPanel
       mounted={true}
       iframeSrcDoc=""
-      iframeRef={React.createRef()}
+      iframeRef={iframeRef}
       handleIframeLoad={() => {}}
       downloadName={state.downloadName}
       setDownloadName={(v) => update("downloadName", v)}
-      downloadFormat={
-        state.downloadFormat as
-          | "html"
-          | "react"
-          | "tailwind"
-          | "css-vars"
-          | "scss"
-          | "tailwind-config"
-          | "figma-tokens"
-      }
-      setDownloadFormat={(v) =>
-        update("downloadFormat", v as typeof state.downloadFormat)
-      }
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       handleDownload={handleDownload}
-      previewNode={<TooltipPreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<TooltipPreview key={previewResetKey} state={state} />}
       code={exportCode.code}
     />
   );
@@ -175,6 +185,7 @@ export default function TooltipPlayground() {
         controls={controlsContent}
         preview={previewContent}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

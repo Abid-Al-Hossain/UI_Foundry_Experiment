@@ -5,6 +5,7 @@ import type { ImageState } from "../types";
 import Slider from "@/app/components/controls/input/Slider";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Select from "@/app/components/controls/input/Select";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 
 interface ImageAnimationSectionProps {
   state: ImageState;
@@ -41,25 +42,22 @@ export default function ImageAnimationSection({
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Entrance Animations */}
+    <div className="space-y-6">
+      <SectionCard title="Entrance" subtitle="How the image arrives into view.">
       <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
-        >
-          Entrance Animation
-        </h3>
-
         <LabeledField label="Type">
           <Select
             value={state.entranceAnimation}
-            onChange={(v) => setKey("entranceAnimation")(v as any)}
+            onChange={(value) =>
+              setKey("entranceAnimation")(
+                value as ImageState["entranceAnimation"],
+              )
+            }
             options={entranceOptions}
           />
         </LabeledField>
 
-        {state.entranceAnimation !== "none" && (
+        {state.entranceAnimation !== "none" ? (
           <>
             <LabeledField label="Duration" hint={`${state.entranceDuration}ms`}>
               <Slider
@@ -81,27 +79,23 @@ export default function ImageAnimationSection({
               />
             </LabeledField>
           </>
-        )}
+        ) : null}
       </div>
+    </SectionCard>
 
-      {/* Hover Effects */}
+      <SectionCard title="Hover" subtitle="Interactive motion on pointer hover.">
       <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
-        >
-          Hover Interaction
-        </h3>
-
         <LabeledField label="Effect">
           <Select
             value={state.hoverEffect}
-            onChange={(v) => setKey("hoverEffect")(v as any)}
+            onChange={(value) =>
+              setKey("hoverEffect")(value as ImageState["hoverEffect"])
+            }
             options={hoverOptions}
           />
         </LabeledField>
 
-        {state.hoverEffect !== "none" && (
+        {state.hoverEffect !== "none" ? (
           <LabeledField label="Duration" hint={`${state.hoverDuration}ms`}>
             <Slider
               min={100}
@@ -111,7 +105,7 @@ export default function ImageAnimationSection({
               onChange={setKey("hoverDuration")}
             />
           </LabeledField>
-        )}
+        ) : null}
 
         {(state.hoverEffect === "zoom-in" ||
           state.hoverEffect === "zoom-out") && (
@@ -127,7 +121,7 @@ export default function ImageAnimationSection({
         )}
 
         {state.hoverEffect === "rotate" && (
-          <LabeledField label="Angle" hint={`${state.hoverRotateAngle}°`}>
+          <LabeledField label="Angle" hint={`${state.hoverRotateAngle} deg`}>
             <Slider
               min={-360}
               max={360}
@@ -151,7 +145,7 @@ export default function ImageAnimationSection({
         )}
 
         {state.hoverEffect === "tilt" && (
-          <LabeledField label="Tilt Amount" hint={`${state.hoverTiltAmount}°`}>
+          <LabeledField label="Tilt Amount" hint={`${state.hoverTiltAmount} deg`}>
             <Slider
               min={0}
               max={45}
@@ -174,6 +168,7 @@ export default function ImageAnimationSection({
           </LabeledField>
         )}
       </div>
+    </SectionCard>
     </div>
   );
 }

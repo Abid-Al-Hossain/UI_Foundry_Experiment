@@ -6,10 +6,54 @@ import Slider from "@/app/components/controls/input/Slider";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Switch from "@/app/components/controls/input/Switch";
 import ColorControl from "@/app/components/controls/color/ColorControl";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 
 interface ImageFiltersSectionProps {
   state: ImageState;
   setState: (updater: (prev: ImageState) => ImageState) => void;
+}
+
+interface FilterSliderProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  min?: number;
+  max?: number;
+  unit?: string;
+  resetValue?: string;
+}
+
+function FilterSlider({
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 200,
+  unit = "%",
+  resetValue = "100",
+}: FilterSliderProps) {
+  return (
+    <LabeledField
+      label={label}
+      hint={
+        <span className="flex items-center gap-2">
+          <span>
+            {value}
+            {unit}
+          </span>
+          <button
+            type="button"
+            onClick={() => onChange(resetValue)}
+            className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] transition-colors hover:bg-slate-700"
+          >
+            Reset
+          </button>
+        </span>
+      }
+    >
+      <Slider min={min} max={max} step={1} value={value} onChange={onChange} />
+    </LabeledField>
+  );
 }
 
 export default function ImageFiltersSection({
@@ -22,55 +66,9 @@ export default function ImageFiltersSection({
       setState((prev) => ({ ...prev, [key]: value }));
     };
 
-  const FilterSlider = ({
-    label,
-    value,
-    onChange,
-    min = 0,
-    max = 200,
-    unit = "%",
-    resetValue = "100",
-  }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    min?: number;
-    max?: number;
-    unit?: string;
-    resetValue?: string;
-  }) => (
-    <LabeledField
-      label={label}
-      hint={
-        <span className="flex items-center gap-2">
-          <span>
-            {value}
-            {unit}
-          </span>
-          <button
-            type="button"
-            onClick={() => onChange(resetValue)}
-            className="text-[10px] px-1.5 py-0.5 rounded border border-slate-700 hover:bg-slate-700 transition-colors"
-          >
-            Reset
-          </button>
-        </span>
-      }
-    >
-      <Slider min={min} max={max} step={1} value={value} onChange={onChange} />
-    </LabeledField>
-  );
-
   return (
-    <div className="space-y-8">
-      {/* Tonal Adjustments */}
-      <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
-        >
-          Tonal Adjustments
-        </h3>
+    <div className="space-y-6">
+      <SectionCard title="Tone" subtitle="Brightness, contrast, and saturation.">
         <FilterSlider
           label="Brightness"
           value={state.brightness}
@@ -86,16 +84,9 @@ export default function ImageFiltersSection({
           value={state.saturation}
           onChange={setKey("saturation")}
         />
-      </div>
+      </SectionCard>
 
-      {/* Color Effects */}
-      <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
-        >
-          Color Effects
-        </h3>
+      <SectionCard title="Color Effects" subtitle="Monochrome, sepia, hue, and invert.">
         <FilterSlider
           label="Grayscale"
           value={state.grayscale}
@@ -115,7 +106,7 @@ export default function ImageFiltersSection({
           value={state.hueRotate}
           onChange={setKey("hueRotate")}
           max={360}
-          unit="°"
+          unit="deg"
           resetValue="0"
         />
         <FilterSlider
@@ -125,16 +116,9 @@ export default function ImageFiltersSection({
           max={100}
           resetValue="0"
         />
-      </div>
+      </SectionCard>
 
-      {/* Optical Effects */}
-      <div className="space-y-4">
-        <h3
-          className="text-sm font-bold pb-2 border-b"
-          style={{ color: "var(--text)", borderColor: "var(--border)" }}
-        >
-          Optical Effects
-        </h3>
+      <SectionCard title="Optical" subtitle="Blur and opacity treatment.">
         <FilterSlider
           label="Blur"
           value={state.blur}
@@ -150,66 +134,59 @@ export default function ImageFiltersSection({
           max={100}
           resetValue="100"
         />
-      </div>
+      </SectionCard>
 
-      {/* Drop Shadow */}
-      <div className="space-y-4">
-        <div
-          className="flex items-center justify-between pb-2 border-b"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
-            Drop Shadow
-          </h3>
+      <SectionCard title="Drop Shadow" subtitle="Depth cast outside the frame.">
+        <div className="space-y-4">
           <Switch
             checked={state.dropShadowEnabled}
             onChange={setKey("dropShadowEnabled")}
           />
-        </div>
 
-        {state.dropShadowEnabled && (
-          <div
-            className="space-y-4 pl-2 border-l-2"
-            style={{ borderColor: "var(--primary)" }}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <LabeledField label="X Offset">
-                <Slider
-                  min={-50}
-                  max={50}
-                  step={1}
-                  value={state.dropShadowX}
-                  onChange={setKey("dropShadowX")}
-                />
-              </LabeledField>
-              <LabeledField label="Y Offset">
-                <Slider
-                  min={-50}
-                  max={50}
-                  step={1}
-                  value={state.dropShadowY}
-                  onChange={setKey("dropShadowY")}
-                />
-              </LabeledField>
+          {state.dropShadowEnabled ? (
+            <div
+              className="space-y-4 border-l-2 pl-2"
+              style={{ borderColor: "var(--primary)" }}
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <LabeledField label="X Offset">
+                  <Slider
+                    min={-50}
+                    max={50}
+                    step={1}
+                    value={state.dropShadowX}
+                    onChange={setKey("dropShadowX")}
+                  />
+                </LabeledField>
+                <LabeledField label="Y Offset">
+                  <Slider
+                    min={-50}
+                    max={50}
+                    step={1}
+                    value={state.dropShadowY}
+                    onChange={setKey("dropShadowY")}
+                  />
+                </LabeledField>
+              </div>
+
+              <FilterSlider
+                label="Blur Radius"
+                value={state.dropShadowBlur}
+                onChange={setKey("dropShadowBlur")}
+                max={100}
+                unit="px"
+                resetValue="0"
+              />
+
+              <ColorControl
+                label="Shadow Color"
+                value={state.dropShadowColor}
+                onChange={setKey("dropShadowColor")}
+              />
             </div>
-
-            <FilterSlider
-              label="Blur Radius"
-              value={state.dropShadowBlur}
-              onChange={setKey("dropShadowBlur")}
-              max={100}
-              unit="px"
-              resetValue="0"
-            />
-
-            <ColorControl
-              label="Shadow Color"
-              value={state.dropShadowColor}
-              onChange={setKey("dropShadowColor")}
-            />
-          </div>
-        )}
-      </div>
+          ) : null}
+        </div>
+      </SectionCard>
     </div>
   );
 }

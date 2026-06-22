@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion, type Variants } from "framer-motion";
 import {
   Star,
   Check,
@@ -13,16 +12,33 @@ import {
 } from "lucide-react";
 
 import { DividerLine } from "./DividerLine";
+import type { DividerState } from "../types";
 
-export default function LivePreview({ state }: { state: any }) {
+function renderDividerIcon(iconName: string, iconSize: number) {
+  switch (iconName) {
+    case "check":
+      return <Check size={iconSize} />;
+    case "heart":
+      return <Heart size={iconSize} />;
+    case "shield":
+      return <Shield size={iconSize} />;
+    case "zap":
+      return <Zap size={iconSize} />;
+    case "bell":
+      return <Bell size={iconSize} />;
+    case "alert":
+      return <AlertCircle size={iconSize} />;
+    case "star":
+    default:
+      return <Star size={iconSize} />;
+  }
+}
+
+export default function LivePreview({ state }: { state: DividerState }) {
   const {
     orientation,
     width,
-    thickness,
     gap, // Note: Gap is handled by the parent layout usually, but here we just render lines. The flex-gap handled in styling if specific.
-    color,
-    variant,
-    borderRadius,
     showLabel,
     labelText,
     labelPosition,
@@ -36,19 +52,20 @@ export default function LivePreview({ state }: { state: any }) {
     fontWeight,
     labelTransform,
     letterSpacing,
-    gradientEnabled,
-    gradientStart,
-    gradientEnd,
     opacity,
-    animateBeam,
-    beamColor,
-    beamSpeed,
-    shimmerEnabled,
-    shimmerSpeed,
-    neonGlow,
-    glowColor,
-    glowBlur,
+    interactiveResize,
+    ariaRole,
+    ariaLabel,
+    focusRingEnabled,
+    focusRingWidth,
+    focusRingOffset,
+    focusRingColor,
+    disabled,
+    disabledOpacity,
+    marginTop,
+    marginBottom,
   } = state;
+  const [isFocused, setIsFocused] = React.useState(false);
 
   const isHorizontal = orientation === "horizontal";
 
@@ -72,89 +89,72 @@ export default function LivePreview({ state }: { state: any }) {
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    opacity: opacity,
+    opacity: disabled ? disabledOpacity : opacity,
     gap: `${gap}px`, // Apply gap if label is present? Actually gap usually applies between items.
+    marginTop: `${marginTop}px`,
+    marginBottom: `${marginBottom}px`,
+    resize: interactiveResize
+      ? isHorizontal
+        ? "horizontal"
+        : "vertical"
+      : "none",
+    overflow: interactiveResize ? "auto" : "visible",
+    pointerEvents: disabled ? "none" : undefined,
+    outline: isFocused && focusRingEnabled ? `${focusRingWidth}px solid ${focusRingColor}` : undefined,
+    outlineOffset: isFocused && focusRingEnabled ? focusRingOffset : undefined,
   };
 
-  // Helper Component for Line Segment rendered via DividerLine
+  const labelOrder =
+    labelPosition === "left" ? -1 : labelPosition === "right" ? 1 : 0;
+  const labelPaddingStyle = isHorizontal
+    ? `0 ${labelPadding}px`
+    : `${labelPadding}px 0`;
+
+  const labelNode = showLabel ? (
+    <div
+      className="z-10 flex items-center justify-center"
+      style={{
+        padding: labelPaddingStyle,
+        backgroundColor: labelBackground,
+        order: labelOrder,
+      }}
+    >
+      {contentType === "text" ? (
+        <span
+          style={{
+            color: labelColor,
+            fontSize: `${fontSize}px`,
+            fontWeight: fontWeight as React.CSSProperties["fontWeight"],
+            textTransform: labelTransform as React.CSSProperties["textTransform"],
+            letterSpacing: `${letterSpacing}px`,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {labelText}
+        </span>
+      ) : (
+        <div style={{ color: labelColor }}>
+          {renderDividerIcon(iconName, iconSize)}
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className="overflow-hidden" style={containerStyle}>
-      <div style={wrapperStyle}>
+      <div
+        role={ariaRole === "none" ? undefined : ariaRole}
+        aria-label={ariaRole === "none" ? undefined : ariaLabel || undefined}
+        aria-disabled={disabled || undefined}
+        tabIndex={focusRingEnabled && !disabled ? 0 : undefined}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        style={wrapperStyle}
+      >
         <DividerLine {...state} />
 
-        {showLabel && (
-          <div
-            className="z-10 flex items-center justify-center"
-            style={{
-              padding: isHorizontal
-                ? `0 ${labelPadding}px`
-                : `${labelPadding}px 0`,
-              backgroundColor: labelBackground,
-              order: 0,
-            }}
-          >
-            {contentType === "text" ? (
-              <span
-                style={{
-                  color: labelColor,
-                  fontSize: `${fontSize}px`,
-                  fontWeight: fontWeight as any,
-                  textTransform: labelTransform as any,
-                  letterSpacing: `${letterSpacing}px`,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {labelText}
-              </span>
-            ) : (
-              <div style={{ color: labelColor }}>
-                {iconName === "star" && <Star size={iconSize} />}
-                {iconName === "check" && <Check size={iconSize} />}
-                {iconName === "heart" && <Heart size={iconSize} />}
-                {iconName === "shield" && <Shield size={iconSize} />}
-                {iconName === "zap" && <Zap size={iconSize} />}
-                {iconName === "bell" && <Bell size={iconSize} />}
-                {iconName === "alert" && <AlertCircle size={iconSize} />}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Right/Bottom Line only if center label */}
+        {labelNode}
         {showLabel && labelPosition === "center" && <DividerLine {...state} />}
-
-        {/* Correction: If label is LEFT, we only need Right line? 
-            Original code logic:
-            Line 1 is always rendered.
-            Label is rendered.
-            Line 2 is rendered IF labelPosition === "center".
-            
-            Order:
-            labelPosition === "left": Label (order -1), Line 1 (order 0).
-            labelPosition === "right": Line 1 (order 0), Label (order 1).
-            labelPosition === "center": Line 1, Label, Line 2.
-            
-            We need to match this.
-            The wrapper is flex row/column.
-            If I render <LineSegment /> <Label /> <LineSegment />
-            
-            Case Left:
-            <LineSegment /> (flex:1)
-            <Label /> (order -1 -> moves to start)
-            Result: Label, LineSegment. Correct.
-            
-            Case Right:
-            <LineSegment />
-            <Label /> (order 1 -> moves to end)
-            Result: LineSegment, Label. Correct.
-            
-            Case Center:
-            <LineSegment />
-            <Label />
-            <LineSegment /> (Only if center)
-            Result: Line, Label, Line. Correct.
-        */}
       </div>
     </div>
   );

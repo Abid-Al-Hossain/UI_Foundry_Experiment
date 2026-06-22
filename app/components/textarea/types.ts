@@ -1,5 +1,3 @@
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-
 // ── Types ────────────────────────────────────────────────
 export type BorderStyle = "solid" | "dashed" | "dotted" | "double" | "none";
 export type TransitionEasing =
@@ -14,6 +12,30 @@ export type TextTransform = "none" | "uppercase" | "lowercase" | "capitalize";
 export type LabelPosition = "top" | "left" | "floating" | "hidden";
 export type ResizeMode = "none" | "both" | "horizontal" | "vertical";
 export type AutocompleteMode = "off" | "on";
+export type InputMode =
+  | "none"
+  | "text"
+  | "decimal"
+  | "numeric"
+  | "tel"
+  | "search"
+  | "email"
+  | "url";
+export type EnterKeyHint =
+  | "enter"
+  | "done"
+  | "go"
+  | "next"
+  | "previous"
+  | "search"
+  | "send";
+export type AutoCapitalizeMode =
+  | "none"
+  | "off"
+  | "sentences"
+  | "words"
+  | "characters";
+export type AutoCorrectMode = "on" | "off";
 export type WhiteSpaceMode =
   | "normal"
   | "pre"
@@ -21,12 +43,19 @@ export type WhiteSpaceMode =
   | "pre-line"
   | "nowrap";
 export type OverflowWrapMode = "normal" | "break-word" | "anywhere";
+export type TextareaVariantMode =
+  | "default"
+  | "comment-reply"
+  | "message-composer"
+  | "editorial-note"
+  | "code-editor";
 
 // ── State ────────────────────────────────────────────────
 export type TextareaState = {
   // ── Basics ──
   placeholder: string;
   defaultValue: string;
+  id: string;
   name: string;
   required: boolean;
   disabled: boolean;
@@ -34,6 +63,8 @@ export type TextareaState = {
   maxLength: number;
   minLength: number;
   rows: number;
+  minRows: number;
+  maxRows: number;
   cols: number;
   wrap: "soft" | "hard" | "off";
   spellcheck: boolean;
@@ -47,10 +78,9 @@ export type TextareaState = {
 
   // ── Typography (numeric) ──
   fontBucket: "system" | "google";
-  fontSearch?: string;
+  fontSearch: string;
   systemFontIdx: number;
   googleFontFamily: string;
-  fontFamily: string; // fallback/computed
   fontSize: number;
   fontSizeUnit: "px" | "rem";
   fontWeight: FontWeight;
@@ -146,26 +176,49 @@ export type TextareaState = {
   requiredColor: string;
   helperText: string;
   helperColor: string;
+  descriptionText: string;
+  descriptionColor: string;
   errorText: string;
   errorColor: string;
+  successText: string;
+  successColor: string;
   charCount: boolean;
+  characterCountPosition: "below" | "above" | "inside" | "floating";
+  variantMode: TextareaVariantMode;
 
   // ── Accessibility ──
   ariaLabel: string;
   ariaDescribedBy: string;
   ariaInvalid: boolean;
+  ariaRequired: boolean;
   autocomplete: AutocompleteMode;
+  inputMode: InputMode;
+  enterKeyHint: EnterKeyHint;
+  autoCapitalize: AutoCapitalizeMode;
+  autoCorrect: AutoCorrectMode;
+  dir: "ltr" | "rtl" | "auto";
+  lang: string;
+  title: string;
+  tabIndex: number;
   role: string;
 
   // ── Download ──
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
+
+export type TextareaSetter = <K extends keyof TextareaState>(
+  key: K,
+) => (
+  val:
+    | TextareaState[K]
+    | ((prev: TextareaState[K]) => TextareaState[K]),
+) => void;
 
 // ── Initial State ────────────────────────────────────────
 export const INITIAL_STATE: TextareaState = {
   placeholder: "Type your message here...",
   defaultValue: "",
+  id: "textarea",
   name: "textarea",
   required: false,
   disabled: false,
@@ -173,6 +226,8 @@ export const INITIAL_STATE: TextareaState = {
   maxLength: 0,
   minLength: 0,
   rows: 4,
+  minRows: 2,
+  maxRows: 12,
   cols: 40,
   wrap: "soft",
   spellcheck: true,
@@ -184,9 +239,9 @@ export const INITIAL_STATE: TextareaState = {
   resize: "vertical",
 
   fontBucket: "system",
+  fontSearch: "",
   systemFontIdx: 0,
   googleFontFamily: "Inter",
-  fontFamily: "Inter, system-ui, sans-serif",
   fontSize: 14,
   fontSizeUnit: "px",
   fontWeight: 400,
@@ -272,16 +327,30 @@ export const INITIAL_STATE: TextareaState = {
   requiredColor: "#ef4444",
   helperText: "",
   helperColor: "#64748b",
+  descriptionText: "",
+  descriptionColor: "#94a3b8",
   errorText: "",
   errorColor: "#ef4444",
+  successText: "",
+  successColor: "#10b981",
   charCount: false,
+  characterCountPosition: "below",
+  variantMode: "default",
 
   ariaLabel: "",
   ariaDescribedBy: "",
   ariaInvalid: false,
+  ariaRequired: false,
   autocomplete: "off",
+  inputMode: "text",
+  enterKeyHint: "enter",
+  autoCapitalize: "sentences",
+  autoCorrect: "off",
+  dir: "auto",
+  lang: "",
+  title: "",
+  tabIndex: 0,
   role: "",
 
-  downloadFormat: "html",
   downloadName: "textarea",
 };

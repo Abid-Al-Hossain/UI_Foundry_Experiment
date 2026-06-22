@@ -4,9 +4,9 @@ import {
   SectionCard,
   LabeledField,
   Segmented,
-  Slider,
-  ExportWarningBadge,
-} from "../../buttons/action/_section/ui";
+} from "@/app/components/controls/ui";
+import Slider from "@/app/components/controls/input/Slider";
+import type { BadgeState } from "../types";
 
 export default function ThreeBadgeSection(props: {
   use3D: boolean;
@@ -23,12 +23,10 @@ export default function ThreeBadgeSection(props: {
   icon3DEnabled: boolean;
   setIcon3DEnabled: (v: boolean) => void;
   icon3DGeometry: string;
-  setIcon3DGeometry: (v: any) => void;
-  icon3DSpinSpeed: number;
-  setIcon3DSpinSpeed: (v: number) => void;
+  setIcon3DGeometry: (v: BadgeState["icon3DGeometry"]) => void;
 }) {
   return (
-    <SectionCard title="3D & Hyper FX" subtitle="Cinema-grade 3D engine.">
+    <SectionCard title="Depth" subtitle="Tilt, Z-depth, and icon overlay.">
       <div className="space-y-6">
         {/* Tilt Engine */}
         <div>
@@ -96,12 +94,9 @@ export default function ThreeBadgeSection(props: {
         {/* 3D Icon Overlay (R3F) */}
         <div className="pt-4 border-t border-slate-800">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-300">
-                3D Floating Object
-              </label>
-              <ExportWarningBadge />
-            </div>
+            <label className="text-sm font-medium text-slate-300">
+              3D Floating Object
+            </label>
             <input
               type="checkbox"
               checked={props.icon3DEnabled}
@@ -114,22 +109,16 @@ export default function ThreeBadgeSection(props: {
               <LabeledField label="Geometry">
                 <Segmented
                   value={props.icon3DGeometry}
-                  onChange={props.setIcon3DGeometry}
-                  items={[
-                    { label: "Sphere", value: "sphere" },
-                    { label: "Cube", value: "cube" },
-                    { label: "Torus", value: "torus" },
-                  ]}
-                />
-              </LabeledField>
-              <LabeledField label="Spin Speed">
-                <Slider
-                  value={props.icon3DSpinSpeed}
-                  onChange={(v) => props.setIcon3DSpinSpeed(parseFloat(v))}
-                  min={0}
-                  max={5}
-                  step={0.1}
-                />
+                  onChange={(v) =>
+                    props.setIcon3DGeometry(v as BadgeState["icon3DGeometry"])
+                  }
+                items={[
+                  { label: "Sphere", value: "sphere" },
+                  { label: "Cube", value: "cube" },
+                  { label: "Pyramid", value: "pyramid" },
+                  { label: "Torus", value: "torus" },
+                ]}
+              />
               </LabeledField>
             </div>
           )}

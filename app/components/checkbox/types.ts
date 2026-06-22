@@ -1,5 +1,3 @@
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
-
 // ── Types ─────────────────────────────────────────────
 export type CheckmarkStyle = "check" | "cross" | "dash" | "custom";
 export type LabelPosition = "right" | "left";
@@ -17,6 +15,7 @@ export type CheckboxState = {
   checked: boolean;
   indeterminate: boolean;
   disabled: boolean;
+  id: string;
   value: string;
   name: string;
   labelText: string;
@@ -25,7 +24,7 @@ export type CheckboxState = {
   // ── Box Sizing (numeric) ──
   boxSize: number;
   boxBorderWidth: number;
-  boxBorderStyle: "solid" | "dashed" | "dotted" | "none";
+  boxBorderStyle: "solid" | "dashed" | "dotted" | "double" | "none";
   boxBorderColor: string;
   boxBorderRadius: number;
   boxBgColor: string;
@@ -50,6 +49,7 @@ export type CheckboxState = {
   transitionEasing: TransitionEasing;
 
   // ── Focus State (numeric) ──
+  focusRingEnabled: boolean;
   focusRingColor: string;
   focusRingWidth: number;
   focusRingOffset: number;
@@ -58,10 +58,15 @@ export type CheckboxState = {
   hoverBorderColor: string;
   hoverBgColor: string;
   hoverCheckedBgColor: string;
+  hoverCheckedBorderColor: string;
 
   // ── Disabled State ──
   disabledOpacity: number;
   disabledCursor: "not-allowed" | "default";
+  disabledUseCustomColors: boolean;
+  disabledBgColor: string;
+  disabledTextColor: string;
+  disabledBorderColor: string;
 
   // ── Label Typography ──
   fontBucket: "system" | "google";
@@ -92,12 +97,32 @@ export type CheckboxState = {
   // ── Accessibility ──
   ariaLabel: string;
   ariaChecked: string;
+  ariaDescribedBy: string;
+  ariaRequired: boolean;
+  tabIndex: number;
+  dir: "ltr" | "rtl";
+  lang: string;
+  title: string;
   role: string;
+  descriptionText: string;
+  descriptionColor: string;
+  helperText: string;
+  helperColor: string;
+  errorText: string;
+  errorColor: string;
+  errorBorderColor: string;
+  errorBgColor: string;
+  ariaInvalid: boolean;
+  successText: string;
+  successColor: string;
 
   // ── Download ──
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
+
+export type CheckboxSetter = <K extends keyof CheckboxState>(
+  key: K,
+) => (val: CheckboxState[K]) => void;
 
 // ── Initial State ─────────────────────────────────────
 export const INITIAL_STATE: CheckboxState = {
@@ -105,6 +130,7 @@ export const INITIAL_STATE: CheckboxState = {
   checked: false,
   indeterminate: false,
   disabled: false,
+  id: "checkbox",
   value: "option-1",
   name: "checkbox",
   labelText: "Accept terms and conditions",
@@ -138,6 +164,7 @@ export const INITIAL_STATE: CheckboxState = {
   transitionEasing: "ease",
 
   // ── Focus ──
+  focusRingEnabled: true,
   focusRingColor: "#3b82f6",
   focusRingWidth: 3,
   focusRingOffset: 2,
@@ -146,10 +173,15 @@ export const INITIAL_STATE: CheckboxState = {
   hoverBorderColor: "#3b82f6",
   hoverBgColor: "#eff6ff",
   hoverCheckedBgColor: "#2563eb",
+  hoverCheckedBorderColor: "#1d4ed8",
 
   // ── Disabled ──
   disabledOpacity: 0.5,
   disabledCursor: "not-allowed",
+  disabledUseCustomColors: false,
+  disabledBgColor: "#e2e8f0",
+  disabledTextColor: "#94a3b8",
+  disabledBorderColor: "#cbd5e1",
 
   // ── Label Typography ──
   fontBucket: "system",
@@ -180,9 +212,25 @@ export const INITIAL_STATE: CheckboxState = {
   // ── Accessibility ──
   ariaLabel: "",
   ariaChecked: "",
+  ariaDescribedBy: "",
+  ariaRequired: false,
+  tabIndex: 0,
+  dir: "ltr",
+  lang: "en",
+  title: "",
   role: "",
+  descriptionText: "",
+  descriptionColor: "#475569",
+  helperText: "",
+  helperColor: "#64748b",
+  errorText: "",
+  errorColor: "#ef4444",
+  errorBorderColor: "#ef4444",
+  errorBgColor: "#fef2f2",
+  ariaInvalid: false,
+  successText: "",
+  successColor: "#10b981",
 
   // ── Download ──
-  downloadFormat: "html",
   downloadName: "checkbox",
 };

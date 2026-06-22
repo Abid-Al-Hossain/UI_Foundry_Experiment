@@ -54,6 +54,40 @@ export type DividerState = {
   // Accessibility
   ariaRole: "separator" | "presentation" | "none";
   ariaLabel: string;
+
+  // Shadow (drop shadow under the line, distinct from neon glow)
+  shadowEnabled: boolean;
+  shadowX: number;
+  shadowY: number;
+  shadowBlur: number;
+  shadowSpread: number;
+  shadowColor: string;
+  shadowOpacity: number;
+
+  // Focus Ring
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+
+  // Transitions
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+
+  // Disabled state
+  disabled: boolean;
+  disabledOpacity: number;
+
+  // Hover state (for interactive dividers, e.g. step wizards)
+  hoverColor: string;
+  hoverOpacity: number;
+
+  // Spacing (independent of gap)
+  marginTop: number;
+  marginBottom: number;
+
+  // Gradient angle override
+  gradientAngle: number;
 };
 
 export const INITIAL_DIVIDER_STATE: DividerState = {
@@ -101,4 +135,31 @@ export const INITIAL_DIVIDER_STATE: DividerState = {
 
   ariaRole: "separator",
   ariaLabel: "",
+
+  shadowEnabled: false,
+  shadowX: 0,
+  shadowY: 2,
+  shadowBlur: 4,
+  shadowSpread: 0,
+  shadowColor: "#000000",
+  shadowOpacity: 0.25,
+
+  focusRingEnabled: false,
+  focusRingWidth: 2,
+  focusRingOffset: 2,
+  focusRingColor: "#38bdf8",
+
+  transitionDuration: 200,
+  transitionEasing: "ease",
+
+  disabled: false,
+  disabledOpacity: 0.5,
+
+  hoverColor: "#3b82f6",
+  hoverOpacity: 1,
+
+  marginTop: 0,
+  marginBottom: 0,
+
+  gradientAngle: 90,
 };

@@ -1,18 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { LabeledField } from "../../buttons/action/_section/ui";
+import React from "react";
+import { LabeledField } from "@/app/components/controls/ui";
 import Select from "@/app/components/controls/input/Select";
 import { SegmentedControl } from "../input/SegmentedControl";
-import {
-  SYSTEM_FONTS,
-  GOOGLE_FONTS,
-} from "../../buttons/action/_data/buttonConstants";
-
 // Types extracted from Typography section
 export type SystemFontItem = { label: string; css: string };
 
-export default function FontFamilySelect(props: {
+type FullFontFamilySelectProps = {
   fontBucket: "system" | "google";
   setFontBucket: (v: "system" | "google") => void;
 
@@ -28,7 +23,43 @@ export default function FontFamilySelect(props: {
   filteredGoogleFonts: string[];
   googleFontFamily: string;
   setGoogleFontFamily: (v: string) => void;
-}) {
+};
+
+type SimpleFontFamilySelectProps = {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+};
+
+const SIMPLE_FONT_OPTIONS = [
+  "Inter",
+  "Geist",
+  "Manrope",
+  "Sora",
+  "Space Grotesk",
+  "JetBrains Mono",
+  "Georgia",
+  "Times New Roman",
+];
+
+const isSimpleFontSelect = (
+  props: FullFontFamilySelectProps | SimpleFontFamilySelectProps,
+): props is SimpleFontFamilySelectProps => "value" in props;
+
+export default function FontFamilySelect(
+  props: FullFontFamilySelectProps | SimpleFontFamilySelectProps,
+) {
+  if (isSimpleFontSelect(props)) {
+    return (
+      <Select
+        label={props.label ?? "Font family"}
+        value={props.value}
+        onChange={props.onChange}
+        options={SIMPLE_FONT_OPTIONS}
+      />
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div
@@ -111,3 +142,4 @@ export default function FontFamilySelect(props: {
     </div>
   );
 }
+

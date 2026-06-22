@@ -3,33 +3,36 @@
 import React, {
   useState,
   useRef,
-  useEffect,
   useMemo,
   useDeferredValue,
 } from "react";
+import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import useHydrated from "@/components/hooks/useHydrated";
-import { useHistoryState } from "../../../hooks/useHistoryState";
+import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
-import PreviewDownloadPanel, {
-  DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // Sections
+import PresetsSection from "../_section/PresetsSection";
 import DividerBasicsSection from "../_section/DividerBasicsSection";
+import DividerMetadataSection from "../_section/DividerMetadataSection";
+import DividerSizingSection from "../_section/DividerSizingSection";
+import DividerColorsSection from "../_section/DividerColorsSection";
+import DividerSurfaceSection from "../_section/DividerSurfaceSection";
 import DividerContentSection from "../_section/DividerContentSection";
+import DividerTypographySection from "../_section/DividerTypographySection";
 import DividerEffectsSection from "../_section/DividerEffectsSection";
-import DividerHyperSection from "../_section/DividerHyperSection";
+import DividerMotionSection from "../_section/DividerMotionSection";
 import DividerAccessibilitySection from "../_section/DividerAccessibilitySection";
+import DividerStatesSection from "../_section/DividerStatesSection";
 import { buildDividerExportPayload } from "../_utils/exportUtils";
 
 import {
-  type DividerOrientation,
-  type DividerVariant,
-  type DividerContentPosition,
   type DividerState,
   INITIAL_DIVIDER_STATE,
 } from "../types";
@@ -37,7 +40,11 @@ import {
 export default function DividerPage() {
   const mounted = useHydrated();
   // Layout & Resize State
-  const [activeSection, setActiveSection] = useState("basics");
+  const [activeSection, setActiveSection] = useState("presets");
+  const [previewResetKey, setPreviewResetKey] = useState(0);
+  const [previewBgMode, setPreviewBgMode] =
+    useState<PreviewCanvasMode>("custom");
+  const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
 
   // History State
   const {
@@ -54,17 +61,15 @@ export default function DividerPage() {
 
   // Download Props
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("html");
   const [downloadName, setDownloadName] = useState("divider-component");
 
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
-    return {
-      downloadFormat,
-      downloadName: downloadName || "divider-component",
-      ...state,
-    };
-  }, [downloadFormat, downloadName, state]);
+      return {
+        downloadName: downloadName || "divider-component",
+        ...state,
+      };
+  }, [downloadName, state]);
 
   const deferredExportPayload = useDeferredValue(exportPayload);
 
@@ -89,33 +94,55 @@ export default function DividerPage() {
 
   // Section Mapping
   const sections = [
+    { id: "presets", label: "Presets", component: PresetsSection },
     { id: "basics", label: "Basics", component: DividerBasicsSection },
-    { id: "content", label: "Label", component: DividerContentSection },
+    { id: "metadata", label: "Metadata", component: DividerMetadataSection },
+    { id: "sizing", label: "Sizing", component: DividerSizingSection },
+    { id: "colors", label: "Colors", component: DividerColorsSection },
+    { id: "surface", label: "Surface", component: DividerSurfaceSection },
+    { id: "content", label: "Content", component: DividerContentSection },
+    { id: "typography", label: "Typography", component: DividerTypographySection },
     { id: "effects", label: "Effects", component: DividerEffectsSection },
-    { id: "hyper", label: "Hyper FX", component: DividerHyperSection },
-    { id: "a11y", label: "A11y", component: DividerAccessibilitySection },
+    { id: "motion", label: "Motion", component: DividerMotionSection },
+    { id: "accessibility", label: "Accessibility", component: DividerAccessibilitySection },
+    { id: "states", label: "States", component: DividerStatesSection },
   ];
 
   // Generic Setter Helper
-  const setKey = (key: keyof DividerState) => (val: any) => {
+  type SetterValue<T> = T | ((prev: T) => T);
+  const setKey =
+    <K extends keyof DividerState>(key: K) =>
+    (val: SetterValue<DividerState[K]>) => {
     updateState((prev) => ({
       ...prev,
       [key]: typeof val === "function" ? val(prev[key]) : val,
     }));
   };
-  const setFloat = (key: keyof DividerState) => (val: any) => {
-    const num = parseFloat(val);
+  const setFloat =
+    <K extends keyof DividerState>(key: K) =>
+    (val: string | number) => {
+    const num = parseFloat(String(val));
     updateState((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
   };
 
   const activeComp = sections.find((s) => s.id === activeSection);
-  const ActiveComponent = activeComp?.component || DividerBasicsSection;
+  const ActiveComponent = (activeComp?.component ||
+    DividerBasicsSection) as React.ComponentType<{
+    state: DividerState;
+    setKey: typeof setKey;
+    setFloat: typeof setFloat;
+    updateState: typeof updateState;
+    applyPreset?: (preset: { state: Partial<DividerState> }) => void;
+  }>;
 
   const headerActions = (
     <UndoRedoButtons
       undo={undo}
       redo={redo}
-      reset={reset}
+      reset={() => {
+        reset();
+        setPreviewResetKey((value) => value + 1);
+      }}
       canUndo={canUndo}
       canRedo={canRedo}
     />
@@ -134,6 +161,10 @@ export default function DividerPage() {
         setKey={setKey}
         setFloat={setFloat}
         updateState={updateState}
+        applyPreset={(preset) => {
+          updateState((current) => ({ ...current, ...preset.state }));
+          setPreviewResetKey((value) => value + 1);
+        }}
       />
     </>
   );
@@ -144,16 +175,19 @@ export default function DividerPage() {
       iframeSrcDoc=""
       iframeRef={iframeRef}
       handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
+      downloadFormat="react"
+      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
-      previewNode={<LivePreview state={state} />}
+      previewBgMode={previewBgMode}
+      setPreviewBgMode={setPreviewBgMode}
+      previewBgInput={previewBgInput}
+      setPreviewBgInput={setPreviewBgInput}
+      previewNode={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );
-
   return (
     <AppShell contentOverflow="hidden">
       <PlaygroundLayout
@@ -162,6 +196,7 @@ export default function DividerPage() {
         controls={controls}
         preview={preview}
       />
-    </AppShell>
+
+<ContrastGuard /></AppShell>
   );
 }

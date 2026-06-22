@@ -1,15 +1,10 @@
 "use client";
 
 import React from "react";
-import {
-  SectionCard,
-  LabeledField,
-  Segmented,
-} from "../../buttons/action/_section/ui";
+import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
-import Select from "@/app/components/controls/input/Select";
-import { RadioState } from "../types";
+import { RadioState, RadioSetter } from "../types";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -30,7 +25,7 @@ export default function StylingSection({
   setKey,
 }: {
   state: RadioState;
-  setKey: (key: keyof RadioState) => (val: any) => void;
+  setKey: RadioSetter;
 }) {
   return (
     <SectionCard title="Appearance" subtitle="Radio circle and dot indicator.">
@@ -56,7 +51,9 @@ export default function StylingSection({
             width={state.outerBorderWidth}
             setWidth={(v) => setKey("outerBorderWidth")(v)}
             style={state.outerBorderStyle}
-            setStyle={(v) => setKey("outerBorderStyle")(v)}
+            setStyle={(v) =>
+              setKey("outerBorderStyle")(v as RadioState["outerBorderStyle"])
+            }
             color={state.outerBorderColor}
             setColor={setKey("outerBorderColor")}
             palette={PRESET_COLORS}
@@ -83,6 +80,12 @@ export default function StylingSection({
             palette={PRESET_COLORS}
             value={state.selectedOuterBorderColor}
             onChange={setKey("selectedOuterBorderColor")}
+          />
+          <ColorControl
+            label="Background Color"
+            palette={PRESET_COLORS}
+            value={state.selectedOuterBgColor}
+            onChange={setKey("selectedOuterBgColor")}
           />
           <SizeControl
             label="Dot Size (px)"

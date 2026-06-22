@@ -16,6 +16,13 @@ export type ProgressEffect =
   | "pulse"
   | "neon"
   | "glass";
+export type ProgressSurfaceStyle =
+  | "solid"
+  | "soft"
+  | "glass"
+  | "chrome"
+  | "paper"
+  | "neon";
 
 // NEW TYPES
 export type ProgressStatus =
@@ -53,6 +60,7 @@ export type ProgressLabelPosition =
   | "bottom-center"
   | "bottom-right"
   | "inside";
+export type ProgressStatusLabelPosition = "above" | "inline" | "below";
 
 // Multi-label configuration
 export type ProgressLabelConfig = {
@@ -106,6 +114,7 @@ export type ProgressState = {
 
   // Effects
   effect: ProgressEffect;
+  surfaceStyle: ProgressSurfaceStyle;
   stripeColor: string;
   stripeSpeed: number;
   stripesAnimated: boolean; // Toggle stripe animation
@@ -127,6 +136,9 @@ export type ProgressState = {
   disableAnimation: boolean; // Accessibility - disable all motion
   // Content (Multi-Label Support)
   labels: ProgressLabelConfig[];
+  statusLabel: string;
+  showStatusLabel: boolean;
+  statusLabelPosition: ProgressStatusLabelPosition;
 
   // Success Marker
   successPercent: number; // Secondary success fill (0 = disabled)
@@ -134,11 +146,38 @@ export type ProgressState = {
   // Accessibility
   ariaLabel: string;
   ariaDescribedBy: string;
+  ariaValueText: string;
+
+  // Focus Ring
+  focusRingEnabled: boolean;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  focusRingColor: string;
+
+  // Transitions
+  transitionDuration: number;
+  transitionEasing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear";
+
+  // Disabled state
+  disabled: boolean;
+  disabledOpacity: number;
+  disabledCursor: "not-allowed" | "default" | "pointer";
+
+  // Explicit step colors (steps mode)
+  stepsCompletedColor: string;
+  stepsActiveColor: string;
+  stepsInactiveColor: string;
 
   // Meta
-  downloadFormat?: "react" | "html" | "tailwind";
   downloadName?: string;
 };
+
+export type ProgressUpdater = <K extends keyof ProgressState>(
+  key: K,
+  value: ProgressState[K],
+) => void;
+
+export type ProgressLabelsUpdater = (labels: ProgressLabelConfig[]) => void;
 
 // Size preset thickness mappings
 export const SIZE_PRESET_MAP: Record<ProgressSize, number> = {
@@ -158,6 +197,27 @@ export const STATUS_COLOR_MAP: Record<ProgressStatus, string> = {
   error: "#ef4444", // Red
   warning: "#f59e0b", // Amber
 };
+
+export const SURFACE_STYLE_OPTIONS: {
+  value: ProgressSurfaceStyle;
+  label: string;
+}[] = [
+  { value: "solid", label: "Solid" },
+  { value: "soft", label: "Soft" },
+  { value: "glass", label: "Glass" },
+  { value: "chrome", label: "Chrome" },
+  { value: "paper", label: "Paper" },
+  { value: "neon", label: "Neon" },
+];
+
+export const STATUS_LABEL_POSITION_OPTIONS: {
+  value: ProgressStatusLabelPosition;
+  label: string;
+}[] = [
+  { value: "above", label: "Above" },
+  { value: "inline", label: "Inline" },
+  { value: "below", label: "Below" },
+];
 
 export const INITIAL_PROGRESS_STATE: ProgressState = {
   value: 45,
@@ -188,6 +248,7 @@ export const INITIAL_PROGRESS_STATE: ProgressState = {
   showStatusIcon: false,
 
   effect: "none",
+  surfaceStyle: "solid",
   stripeColor: "rgba(255,255,255,0.2)",
   stripeSpeed: 2,
   stripesAnimated: true,
@@ -215,12 +276,31 @@ export const INITIAL_PROGRESS_STATE: ProgressState = {
       size: 14,
     },
   ],
+  statusLabel: "On track",
+  showStatusLabel: false,
+  statusLabelPosition: "above",
 
   successPercent: 0,
 
   ariaLabel: "Progress",
   ariaDescribedBy: "",
+  ariaValueText: "",
 
-  downloadFormat: "react",
+  focusRingEnabled: false,
+  focusRingWidth: 2,
+  focusRingOffset: 2,
+  focusRingColor: "#38bdf8",
+
+  transitionDuration: 200,
+  transitionEasing: "ease",
+
+  disabled: false,
+  disabledOpacity: 0.5,
+  disabledCursor: "not-allowed",
+
+  stepsCompletedColor: "#3b82f6",
+  stepsActiveColor: "#8b5cf6",
+  stepsInactiveColor: "#e2e8f0",
+
   downloadName: "progress-bar",
 };
