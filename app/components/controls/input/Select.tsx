@@ -18,6 +18,8 @@ export interface SelectProps {
   className?: string;
   placeholder?: string;
   startContent?: React.ReactNode; // Icon/Element on the left
+  id?: string;
+  "aria-label"?: string;
 }
 
 export default function Select(props: SelectProps) {
@@ -46,6 +48,8 @@ export default function Select(props: SelectProps) {
         {startContent}
       </div>
       <select
+        id={props.id}
+        aria-label={props["aria-label"] ?? label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}

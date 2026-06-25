@@ -179,6 +179,7 @@ export default function SpinnerPlayground() {
         a.href = url;
         a.download = filename;
         a.click();
+        URL.revokeObjectURL(url);
       }}
       previewBgMode={previewBgMode}
       setPreviewBgMode={setPreviewBgMode}

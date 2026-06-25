@@ -79,7 +79,7 @@ export function Segmented(props: {
           style={{
             background:
               props.value === it.value ? "var(--primary)" : "transparent",
-            color: props.value === it.value ? "white" : "var(--text)",
+            color: props.value === it.value ? "var(--on-primary)" : "var(--text)",
           }}
         >
           {it.label}

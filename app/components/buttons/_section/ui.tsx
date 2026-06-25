@@ -40,10 +40,15 @@ export function LabeledField(props: {
   children: React.ReactNode;
   hint?: string;
 }) {
+  const autoId = React.useId();
+  const isEl = React.isValidElement(props.children);
+  const childEl = props.children as React.ReactElement<{ id?: string }>;
+  const fieldId = isEl ? childEl.props.id ?? autoId : undefined;
+  const child = isEl ? React.cloneElement(childEl, { id: fieldId }) : props.children;
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <label className="text-sm font-medium" style={{ color: "var(--text)" }}>
+        <label htmlFor={fieldId} className="text-sm font-medium" style={{ color: "var(--text)" }}>
           {props.label}
         </label>
         {props.hint ? (
@@ -52,7 +57,7 @@ export function LabeledField(props: {
           </span>
         ) : null}
       </div>
-      <div className="mt-2">{props.children}</div>
+      <div className="mt-2">{child}</div>
     </div>
   );
 }
@@ -79,7 +84,7 @@ export function Segmented(props: {
           style={{
             background:
               props.value === it.value ? "var(--primary)" : "transparent",
-            color: props.value === it.value ? "white" : "var(--text)",
+            color: props.value === it.value ? "var(--on-primary)" : "var(--text)",
           }}
         >
           {it.label}
@@ -97,10 +102,14 @@ export function FilterSelect(props: {
   onChange: (value: string) => void;
   items?: { value: string; label: string }[];
   options?: { value: string; label: string }[];
+  id?: string;
+  "aria-label"?: string;
 }) {
   const opts = props.items ?? props.options ?? [];
   return (
     <select
+      id={props.id}
+      aria-label={props["aria-label"]}
       value={props.value}
       onChange={(e) => props.onChange(e.target.value)}
       className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"

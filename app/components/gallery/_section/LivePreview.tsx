@@ -57,7 +57,7 @@ export default function LivePreview({ state }: { state: GalleryState }) {
   const aspectRatio = state.aspectRatio === "portrait" ? "3 / 4" : state.aspectRatio;
   const panel = shell(state);
 
-  return <section id={state.id} role={state.role} aria-label={state.ariaLabel} tabIndex={state.tabIndex} style={panel} className="grid">
+  return <section id={state.id} role={state.role === "list" ? "region" : state.role} aria-label={state.ariaLabel} tabIndex={state.tabIndex} style={panel} className="grid">
     <div className="grid gap-4">
       <header>
         <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: state.accent }}>{state.label}</p>
@@ -67,11 +67,11 @@ export default function LivePreview({ state }: { state: GalleryState }) {
       {state.filterMode !== "none" && <div role="group" aria-label="Filter gallery" className="flex flex-wrap gap-2">
         {categories.map((category) => <button key={category} type="button" onClick={() => setActiveFilter(category)} disabled={state.disabled} aria-pressed={activeFilter === category} className="rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: activeFilter === category ? state.accent : state.border, background: activeFilter === category ? state.accent : "transparent", color: activeFilter === category ? state.background : state.foreground }}>{category}</button>)}
       </div>}
-      <div data-layout={layoutMode} style={{ display: layoutMode === "list" ? "grid" : layoutMode === "masonry" ? "block" : "grid", columns: layoutMode === "masonry" ? Math.max(1, state.columns) : undefined, gridTemplateColumns: layoutMode === "grid" ? `repeat(${Math.max(1, state.columns)}, minmax(0, 1fr))` : undefined, gap: state.gap }}>
+      <div role="list" data-layout={layoutMode} style={{ display: layoutMode === "list" ? "grid" : layoutMode === "masonry" ? "block" : "grid", columns: layoutMode === "masonry" ? Math.max(1, state.columns) : undefined, gridTemplateColumns: layoutMode === "grid" ? `repeat(${Math.max(1, state.columns)}, minmax(0, 1fr))` : undefined, gap: state.gap }}>
         {visibleImages.map((image) => {
           const originalIndex = images.findIndex((item) => item.id === image.id);
           const selected = state.selectable && selectedIndex === originalIndex;
-          return <figure key={image.id} aria-selected={selected || undefined} className="border p-2" style={{ breakInside: "avoid", margin: layoutMode === "masonry" ? `0 0 ${state.gap}px` : 0, display: layoutMode === "list" ? "grid" : "block", gridTemplateColumns: layoutMode === "list" ? "minmax(120px, 220px) 1fr" : undefined, gap: state.gap, borderColor: selected ? state.accent : state.border, borderRadius: Math.max(10, state.radius - 10), background: "rgba(255,255,255,.05)", transition: state.transitionDuration > 0 ? "transform 0.25s ease, filter 0.25s ease" : "none" }}>
+          return <figure key={image.id} role="listitem" data-selected={selected || undefined} className="border p-2" style={{ breakInside: "avoid", margin: layoutMode === "masonry" ? `0 0 ${state.gap}px` : 0, display: layoutMode === "list" ? "grid" : "block", gridTemplateColumns: layoutMode === "list" ? "minmax(120px, 220px) 1fr" : undefined, gap: state.gap, borderColor: selected ? state.accent : state.border, borderRadius: Math.max(10, state.radius - 10), background: "rgba(255,255,255,.05)", transition: state.transitionDuration > 0 ? "transform 0.25s ease, filter 0.25s ease" : "none" }}>
             <button type="button" disabled={state.disabled} aria-label={`Open ${image.title} in lightbox`} onClick={() => { setSelectedIndex(originalIndex); setLightboxIndex(originalIndex); }} className="block w-full border-0 bg-transparent p-0 text-left">
               <img src={image.src} alt={image.alt} title={image.title} loading="lazy" className="block w-full" style={{ aspectRatio, objectFit: state.fit, borderRadius: Math.max(8, state.radius - 14) }} />
             </button>

@@ -90,7 +90,7 @@ export default function LivePreview({ state }: { state: RichTextState }) {
         ) : (
           <>
             <p style={{ margin: "0 0 10px" }}><strong>{state.label}</strong> starts with a {state.blockType} block and keeps editing affordances visible.</p>
-            {state.showMarks && <p style={{ margin: "0 0 10px" }}>Formatting preview: <strong>bold</strong>, <em>italic</em>, and <a href="#" style={{ color: state.accent }}>inline link</a>.</p>}
+            {state.showMarks && <p style={{ margin: "0 0 10px" }}>Formatting preview: <strong>bold</strong>, <em>italic</em>, and <a href="#" style={{ color: state.accent, textDecoration: "underline" }}>inline link</a>.</p>}
             {state.showLists && <ul style={{ margin: 0, paddingLeft: 22 }}><li>Semantic list content</li><li>Keyboard-editable surface</li></ul>}
           </>
         )}

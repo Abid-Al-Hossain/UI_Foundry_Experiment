@@ -34,7 +34,7 @@ export function AnimatedToggle({
           aria-pressed={value === option.value}
           className={`relative z-10 px-4 py-1.5 text-xs font-semibold transition-colors duration-300 ${
             value === option.value
-              ? "text-white"
+              ? "text-[var(--on-primary)]"
               : "text-[var(--muted)] hover:text-[var(--text)]"
           }`}
           style={{ WebkitTapHighlightColor: "transparent" }}

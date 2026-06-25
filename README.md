@@ -10,12 +10,8 @@ Unlike traditional component libraries, UI Foundry provides a **Studio-First wor
 The web is full of static UI kits. UI Foundry is built on a different principle: **Total Parameterization**. Every component is treated as a set of variables (state) that can be manipulated through a professional-grade interface.
 
 1. **Precision Control**: Adjust shadows, 3D tilts, magnetic strengths, and typography scales with granular precision.
-2. **Multi-Format Export**: One-click code generation for:
-   - **React (TSX)**: Fully typed, modern React 19 components.
-   - **HTML/CSS**: Vanilla web standard for maximum compatibility.
-   - **Tailwind CSS**: Utility-first code using arbitrary value syntax.
-   - **Design Tokens**: JSON-based tokens for Figma and cross-platform design systems.
-   - **Style Sheets**: Modular SCSS and CSS variable files.
+2. **Code Export**: One-click generation of fully typed, modern **React (TSX)** components that mirror the live preview exactly.
+   - _Roadmap:_ HTML/CSS, Tailwind, SCSS/CSS-variables, and Figma design-token export are planned but not yet shipped — the Studio currently exports React/JSX.
 
 ---
 

@@ -48,7 +48,7 @@ export default function LivePreview({ state }: { state: AudioPlayerState }) {
     </div>
     <audio controls src={state.src || undefined} muted={state.muted} loop={state.loop} preload={state.preload} aria-label={state.ariaLabel} className="w-full" style={{ accentColor: state.accent }} />
     {state.showTimeline && <div className="grid gap-2" aria-label={`${state.title} timeline preview`}>
-      <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "color-mix(in oklab, currentColor 14%, transparent)" }} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "color-mix(in oklab, currentColor 14%, transparent)" }} role="progressbar" aria-label="Playback progress" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div className="h-full rounded-full" style={{ width: `${progress}%`, background: state.accent, transition: state.transitionDuration > 0 ? "width 0.1s linear" : "none" }} />
       </div>
       <div className="flex justify-between text-xs" style={{ color: "color-mix(in oklab, currentColor 72%, transparent)" }}>

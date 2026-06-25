@@ -58,6 +58,7 @@ export default function ExportOptionsControl({
       <div className="flex items-center gap-2">
         <div className="relative w-[180px]">
           <Select
+            aria-label="Export format"
             value={format}
             onChange={(v) => setFormat(v as DownloadFormat)}
             startContent={<Code2 size={16} />}
@@ -70,7 +71,7 @@ export default function ExportOptionsControl({
           onClick={onDownload}
           disabled={isDownloading}
           aria-label={isDownloading ? "Downloaded React component" : "Export React component"}
-          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-[var(--on-primary)] transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           style={{
             background: isDownloading
               ? "var(--success, #10b981)"

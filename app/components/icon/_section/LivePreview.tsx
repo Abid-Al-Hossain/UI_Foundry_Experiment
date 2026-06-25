@@ -126,7 +126,7 @@ export default function LivePreview({ state }: { state: IconState }) {
           transform: transform2D,
           transition: "transform 0.3s ease",
         }}
-        aria-label={state.ariaHidden ? undefined : state.ariaLabel || undefined}
+        aria-label={state.ariaHidden ? undefined : state.ariaLabel || "Icon"}
         aria-hidden={state.ariaHidden || undefined}
         role={role}
       >

@@ -71,7 +71,7 @@ export default function SectionSelector<T extends string = string>({
               borderColor: "var(--border)",
               background:
                 selectedSection === section.id ? "var(--primary)" : "transparent",
-              color: selectedSection === section.id ? "white" : "var(--text)",
+              color: selectedSection === section.id ? "var(--on-primary)" : "var(--text)",
             }}
           >
             {section.icon && (

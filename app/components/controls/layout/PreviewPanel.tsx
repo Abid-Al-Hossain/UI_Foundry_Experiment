@@ -56,6 +56,9 @@ export function PreviewPanel({
       {/* Content Area */}
       <div
         className="flex-1 overflow-auto p-8 flex items-center justify-center"
+        tabIndex={0}
+        role="group"
+        aria-label="Component preview"
         data-audit="preview-canvas"
         data-testid="preview-canvas"
       >

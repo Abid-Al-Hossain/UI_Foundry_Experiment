@@ -27,7 +27,7 @@ export function SegmentedControl(props: {
           style={{
             background:
               props.value === it.value ? "var(--primary)" : "transparent",
-            color: props.value === it.value ? "white" : "var(--text)",
+            color: props.value === it.value ? "var(--on-primary)" : "var(--text)",
             boxShadow:
               props.value === it.value ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
           }}
