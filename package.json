@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --pretty false",
-    "audit:exports": "node scripts/audit-generated-exports.mjs"
+    "audit:exports": "node scripts/audit-generated-exports.mjs",
+    "audit:consistency": "node scripts/audit-common-capabilities.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -28,15 +27,9 @@ import IconStatesSection from "../_section/IconStatesSection";
 import IconPresetsSection from "../_section/IconPresetsSection";
 import { buildIconExportPayload } from "../_utils/exportUtils";
 
-import {
-  type IconFloatSetter,
-  type IconSetter,
-  type IconState,
-  INITIAL_ICON_STATE,
-} from "../types";
+import { type IconFloatSetter, type IconSetter, type IconState, INITIAL_ICON_STATE } from "../types";
 
 export default function IconPlaygroundPage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -53,11 +46,7 @@ export default function IconPlaygroundPage() {
     canUndo,
     canRedo,
   } = useHistoryState<IconState>(INITIAL_ICON_STATE);
-
-  // Download Props
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadName, setDownloadName] = useState("icon-component");
-  const downloadFormat = "react" as const;
 
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
@@ -73,20 +62,6 @@ export default function IconPlaygroundPage() {
     () => buildIconExportPayload(deferredExportPayload),
     [deferredExportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildIconExportPayload(exportPayload);
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   // Section Mapping
   const sections = [
@@ -147,8 +122,8 @@ export default function IconPlaygroundPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <IconPresetsSection state={state} applyPreset={applyPreset} />
@@ -163,20 +138,13 @@ export default function IconPlaygroundPage() {
   // --- Preview ---
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

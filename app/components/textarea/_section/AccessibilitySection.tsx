@@ -3,6 +3,8 @@
 import React from "react";
 import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import { type TextareaSetter, type TextareaState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function AccessibilitySection({
   state,
@@ -18,60 +20,30 @@ export default function AccessibilitySection({
     >
       <div className="space-y-4">
         <LabeledField label="aria-label">
-          <input
+          <Input
             value={state.ariaLabel}
-            onChange={(e) => setKey("ariaLabel")(e.target.value)}
+            onNativeChange={(e) => setKey("ariaLabel")(e.target.value)}
             placeholder="Textarea label"
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+           />
         </LabeledField>
         <LabeledField label="aria-describedby">
-          <input
+          <Input
             value={state.ariaDescribedBy}
-            onChange={(e) => setKey("ariaDescribedBy")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("ariaDescribedBy")(e.target.value)}
+           />
         </LabeledField>
-        <div className="flex items-center gap-2">
-          <input
-            id="ta-aria-inv"
-            type="checkbox"
-            checked={state.ariaInvalid}
-            onChange={(e) => setKey("ariaInvalid")(e.target.checked)}
-          />
-          <label
-            htmlFor="ta-aria-inv"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            aria-invalid
-          </label>
-        </div>
+        <Switch
+          label={<>aria-invalid</>}
+          id="ta-aria-inv"
+          checked={state.ariaInvalid}
+          onChange={(checked) => setKey("ariaInvalid")(checked)}
+        />
         <LabeledField label="Role">
-          <input
+          <Input
             value={state.role}
-            onChange={(e) => setKey("role")(e.target.value)}
+            onNativeChange={(e) => setKey("role")(e.target.value)}
             placeholder="textbox"
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+           />
         </LabeledField>
       </div>
     </SectionCard>

@@ -11,32 +11,7 @@ import CodeBlock from "./CodeBlock";
 import { AnimatedToggle } from "./AnimatedToggle";
 import { motion, AnimatePresence } from "framer-motion";
 
-export type DownloadFormat = "react";
-
-type IframePreviewDownloadPanelProps = {
-  mounted: boolean;
-
-  iframeSrcDoc: string;
-  iframeRef: React.RefObject<HTMLIFrameElement | null>;
-  handleIframeLoad: () => void;
-
-  downloadFormat: DownloadFormat;
-  setDownloadFormat: (v: DownloadFormat) => void;
-
-  downloadName: string;
-  setDownloadName: (v: string) => void;
-
-  handleDownload: () => void;
-  previewNode?: React.ReactNode;
-  code?: string;
-
-  previewBgMode?: PreviewCanvasMode;
-  setPreviewBgMode?: (v: PreviewCanvasMode) => void;
-  previewBgInput?: string;
-  setPreviewBgInput?: (v: string) => void;
-};
-
-type DirectPreviewDownloadPanelProps = {
+export type SharedPreviewDownloadPanelProps = {
   preview: React.ReactNode;
   code: string;
   downloadName: string;
@@ -47,20 +22,10 @@ type DirectPreviewDownloadPanelProps = {
   onPreviewBgInput: (value: string) => void;
 };
 
-type PreviewDownloadPanelProps =
-  | IframePreviewDownloadPanelProps
-  | DirectPreviewDownloadPanelProps;
-
-const isDirectPanel = (
-  props: PreviewDownloadPanelProps,
-): props is DirectPreviewDownloadPanelProps => "preview" in props;
-
-export function SharedPreviewDownloadPanel(props: PreviewDownloadPanelProps) {
-  return isDirectPanel(props) ? (
-    <DirectPreviewDownloadPanel {...props} />
-  ) : (
-    <IframePreviewDownloadPanel {...props} />
-  );
+export function SharedPreviewDownloadPanel(
+  props: SharedPreviewDownloadPanelProps,
+) {
+  return <DirectPreviewDownloadPanel {...props} />;
 }
 
 export default SharedPreviewDownloadPanel;
@@ -74,7 +39,7 @@ function DirectPreviewDownloadPanel({
   previewBgInput,
   onPreviewBgMode,
   onPreviewBgInput,
-}: DirectPreviewDownloadPanelProps) {
+}: SharedPreviewDownloadPanelProps) {
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
   const [isDownloading, setIsDownloading] = useState(false);
   const downloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,8 +70,6 @@ function DirectPreviewDownloadPanel({
       viewMode={viewMode}
       setViewMode={setViewMode}
       code={code}
-      downloadFormat="react"
-      setDownloadFormat={() => undefined}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
       handleDownload={handleDownload}
@@ -131,101 +94,10 @@ function DirectPreviewDownloadPanel({
   );
 }
 
-function IframePreviewDownloadPanel(props: IframePreviewDownloadPanelProps) {
-  const {
-    mounted,
-    iframeSrcDoc,
-    iframeRef,
-    handleIframeLoad,
-    downloadFormat,
-    setDownloadFormat,
-    downloadName,
-    setDownloadName,
-    handleDownload,
-    previewNode,
-    code,
-    previewBgMode,
-    setPreviewBgMode,
-    previewBgInput,
-    setPreviewBgInput,
-  } = props;
-
-  const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
-  const [isDownloading, setIsDownloading] = useState(false);
-  const downloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (downloadTimerRef.current !== null) clearTimeout(downloadTimerRef.current);
-    };
-  }, []);
-
-  const handleDownloadWithFeedback = () => {
-    handleDownload();
-    setIsDownloading(true);
-    if (downloadTimerRef.current !== null) clearTimeout(downloadTimerRef.current);
-    downloadTimerRef.current = setTimeout(() => setIsDownloading(false), 1600);
-  };
-
-  return (
-    <PanelShell
-      viewMode={viewMode}
-      setViewMode={setViewMode}
-      code={code}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
-      downloadName={downloadName}
-      setDownloadName={setDownloadName}
-      handleDownload={handleDownloadWithFeedback}
-      isDownloading={isDownloading}
-      previewContent={
-        <PreviewPanel
-          bgMode={previewBgMode}
-          setBgMode={setPreviewBgMode}
-          customColor={previewBgInput}
-          setCustomColor={setPreviewBgInput}
-        >
-          {previewNode ? (
-            <div
-              className="h-full w-full flex items-center justify-center"
-              data-audit="preview-node-container"
-              data-testid="preview-node-container"
-            >
-              {previewNode}
-            </div>
-          ) : mounted && iframeSrcDoc ? (
-            <iframe
-              ref={iframeRef}
-              onLoad={handleIframeLoad}
-              onFocus={() => {
-                iframeRef.current?.contentWindow?.postMessage(
-                  { type: "focus-button" },
-                  "*",
-                );
-              }}
-              title={`${normalizeDownloadBase(downloadName)} preview`}
-              sandbox="allow-scripts"
-              srcDoc={iframeSrcDoc}
-              tabIndex={0}
-              className="h-full w-full border-none"
-              data-audit="preview-iframe"
-              data-testid="preview-iframe"
-            />
-          ) : (
-            <div className="h-full w-full" />
-          )}
-        </PreviewPanel>
-      }
-    />
-  );
-}
-
 function PanelShell(props: {
   viewMode: "preview" | "code";
   setViewMode: (value: "preview" | "code") => void;
   code?: string;
-  downloadFormat: DownloadFormat;
-  setDownloadFormat: (value: DownloadFormat) => void;
   downloadName: string;
   setDownloadName: (value: string) => void;
   handleDownload: () => void;
@@ -236,8 +108,6 @@ function PanelShell(props: {
     viewMode,
     setViewMode,
     code,
-    downloadFormat,
-    setDownloadFormat,
     downloadName,
     setDownloadName,
     handleDownload,
@@ -279,8 +149,6 @@ function PanelShell(props: {
 
           <div data-audit="export-button" data-testid="export-button">
             <ExportOptionsControl
-              format={downloadFormat}
-              setFormat={setDownloadFormat}
               fileName={downloadName}
               setFileName={(value) => setDownloadName(normalizeDownloadBase(value))}
               onDownload={handleDownload}

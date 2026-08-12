@@ -7,6 +7,7 @@ import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import Switch from "@/app/components/controls/input/Switch";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 
 interface ImageShapeSectionProps {
   state: ImageState;
@@ -24,7 +25,11 @@ export default function ImageShapeSection({
     };
 
   return (
-    <div className="space-y-8">
+    <SectionCard
+      title="Shape"
+      subtitle="Corner radius, clipping, borders, and box shadow."
+    >
+      <div className="space-y-8">
       {/* Border Radius */}
       <div className="space-y-4">
         <div
@@ -260,6 +265,7 @@ export default function ImageShapeSection({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </SectionCard>
   );
 }

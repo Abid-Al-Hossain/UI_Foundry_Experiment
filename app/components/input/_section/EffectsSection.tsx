@@ -7,6 +7,9 @@ import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Textarea from "@/app/components/controls/input/Textarea";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -84,36 +87,20 @@ export default function EffectsSection({
             />
           </LabeledField>
           <LabeledField label="Property">
-            <input
+            <Input
               value={state.transitionProperty}
-              onChange={(e) => setKey("transitionProperty")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none font-mono"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("transitionProperty")(e.target.value)}
+             />
           </LabeledField>
         </div>
         {/* Icon */}
         <div className="pt-4 border-t border-slate-700/50 space-y-3">
-          <div className="flex items-center gap-2">
-            <input
-              id="icon-on"
-              type="checkbox"
-              checked={state.iconEnabled}
-              onChange={(e) => setKey("iconEnabled")(e.target.checked)}
-            />
-            <label
-              htmlFor="icon-on"
-              className="text-xs font-semibold uppercase tracking-wider uf-clickable"
-              style={{ color: "var(--muted)" }}
-            >
-              Icon / Adornment
-            </label>
-          </div>
+          <Switch
+            label={<>Icon / Adornment</>}
+            id="icon-on"
+            checked={state.iconEnabled}
+            onChange={(checked) => setKey("iconEnabled")(checked)}
+          />
           {state.iconEnabled && (
             <>
               <LabeledField label="Position">
@@ -143,18 +130,11 @@ export default function EffectsSection({
                 onChange={setKey("iconColor")}
               />
               <LabeledField label="SVG">
-                <textarea
+                <Textarea
                   value={state.iconSvg}
-                  onChange={(e) => setKey("iconSvg")(e.target.value)}
+                  onNativeChange={(e) => setKey("iconSvg")(e.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border px-3 py-2 text-xs outline-none font-mono"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      "color-mix(in oklab, var(--surface) 70%, transparent)",
-                    color: "var(--text)",
-                  }}
-                />
+                 />
               </LabeledField>
             </>
           )}

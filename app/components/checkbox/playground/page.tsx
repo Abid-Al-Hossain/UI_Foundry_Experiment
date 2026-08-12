@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -29,7 +28,6 @@ import { buildCheckboxExportPayload } from "../_utils/exportUtils";
 import { type CheckboxState, type CheckboxSetter, INITIAL_STATE } from "../types";
 
 export default function CheckboxPlaygroundPage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -45,8 +43,6 @@ export default function CheckboxPlaygroundPage() {
     canUndo,
     canRedo,
   } = useHistoryState<CheckboxState>(INITIAL_STATE);
-
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadName, setDownloadName] = useState("checkbox");
 
   const exportPayload = useMemo(
@@ -61,19 +57,6 @@ export default function CheckboxPlaygroundPage() {
     () => buildCheckboxExportPayload(exportPayload),
     [exportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildCheckboxExportPayload(exportPayload);
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const applyPreset = (presetState: CheckboxState) => {
     updateState((prev) => ({
@@ -129,8 +112,8 @@ export default function CheckboxPlaygroundPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <PresetsSection
@@ -146,20 +129,13 @@ export default function CheckboxPlaygroundPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={
+      onPreviewBgInput={setPreviewBgInput}
+      preview={
         <LivePreview
           key={`${previewResetKey}:${state.checked}:${state.indeterminate}`}
           state={state}

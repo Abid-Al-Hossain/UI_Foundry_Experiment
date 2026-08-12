@@ -2,6 +2,7 @@
 
 import React from "react";
 import { SectionCard } from "./ui";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function StatePreviewSection(props: {
   forceHover: boolean;
@@ -16,33 +17,21 @@ export default function StatePreviewSection(props: {
   return (
     <SectionCard title="State Preview" subtitle="Force states in the preview.">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
-          <input
-            type="checkbox"
-            checked={props.forceHover}
-            onChange={(e) => props.setForceHover(e.target.checked)}
-            className="uf-clickable"
-          />
-          Force hover
-        </label>
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
-          <input
-            type="checkbox"
-            checked={props.forceActive}
-            onChange={(e) => props.setForceActive(e.target.checked)}
-            className="uf-clickable"
-          />
-          Force active
-        </label>
-        <label className="flex items-center gap-2 text-sm uf-clickable" style={{ color: "var(--text)" }}>
-          <input
-            type="checkbox"
-            checked={props.forceFocus}
-            onChange={(e) => props.setForceFocus(e.target.checked)}
-            className="uf-clickable"
-          />
-          Force focus
-        </label>
+        <Switch
+          label={<>Force hover</>}
+          checked={props.forceHover}
+          onChange={(checked) => props.setForceHover(checked)}
+        />
+        <Switch
+          label={<>Force active</>}
+          checked={props.forceActive}
+          onChange={(checked) => props.setForceActive(checked)}
+        />
+        <Switch
+          label={<>Force focus</>}
+          checked={props.forceFocus}
+          onChange={(checked) => props.setForceFocus(checked)}
+        />
       </div>
     </SectionCard>
   );

@@ -2,14 +2,9 @@
 
 import React from "react";
 import { Download, Check, FileCode, Code2 } from "lucide-react";
-import Select from "../input/Select";
-
-export type DownloadFormat = "react";
+import Input from "../input/Input";
 
 type ExportOptionsControlProps = {
-  format: DownloadFormat;
-  setFormat: (v: DownloadFormat) => void;
-
   fileName: string;
   setFileName: (v: string) => void;
 
@@ -18,8 +13,6 @@ type ExportOptionsControlProps = {
 };
 
 export default function ExportOptionsControl({
-  format,
-  setFormat,
   fileName,
   setFileName,
   onDownload,
@@ -34,36 +27,28 @@ export default function ExportOptionsControl({
       }}
     >
       <div className="flex-1 min-w-[200px]">
-        <div className="relative group">
-          <input
-            type="text"
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            placeholder="component-name"
-            className="w-full rounded-xl border px-3 py-2 pl-9 text-sm font-medium outline-none transition-colors focus:border-[var(--primary)]"
-            style={{
-              borderColor: "var(--border)",
-              background: "var(--card)",
-              color: "var(--text)",
-            }}
-          />
-          <FileCode
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
-            style={{ color: "var(--text)" }}
-          />
-        </div>
+        <Input
+          aria-label="Export filename"
+          type="text"
+          value={fileName}
+          onChange={setFileName}
+          placeholder="component-name"
+          startContent={<FileCode size={16} />}
+        />
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="relative w-[180px]">
-          <Select
-            aria-label="Export format"
-            value={format}
-            onChange={(v) => setFormat(v as DownloadFormat)}
-            startContent={<Code2 size={16} />}
-            options={[{ value: "react", label: "React / JSX" }]}
-          />
+        <div
+          className="flex h-9 w-[180px] items-center gap-2 rounded-xl border px-3 text-sm font-medium"
+          aria-label="Export format: React / JSX"
+          style={{
+            borderColor: "var(--border)",
+            background: "color-mix(in oklab, var(--card) 65%, transparent)",
+            color: "var(--text)",
+          }}
+        >
+          <Code2 size={16} className="opacity-50" />
+          React / JSX
         </div>
 
         <button

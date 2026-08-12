@@ -10,6 +10,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function IconColorsSection({
   state,
@@ -51,22 +52,12 @@ export default function IconColorsSection({
     <div className="space-y-6">
       <SectionCard title="Colors" subtitle="Stroke, fill, and gradient treatments.">
         <div className="space-y-5">
-          <div className="flex items-center gap-2">
-            <input
-              id="icon-grad-toggle"
-              type="checkbox"
-              checked={state.gradientEnabled}
-              onChange={(event) => setKey("gradientEnabled")(event.target.checked)}
-              className="uf-clickable"
-            />
-            <label
-              htmlFor="icon-grad-toggle"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Use Gradient Stroke
-            </label>
-          </div>
+          <Switch
+            label={<>Use Gradient Stroke</>}
+            id="icon-grad-toggle"
+            checked={state.gradientEnabled}
+            onChange={(checked) => setKey("gradientEnabled")(checked)}
+          />
 
           {state.gradientEnabled ? (
             <>

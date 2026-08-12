@@ -19,7 +19,6 @@ export type TextTransformKey =
   | "capitalize";
 import { type AlignKey } from "./_section/TextPositionSection";
 import { type PreviewBgMode } from "./_section/PreviewBackgroundSection";
-import { type DownloadFormat } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { type GroupAlign } from "./_section/GroupPreviewSection";
 
 export type SystemFontItem = { label: string; css: string };
@@ -311,7 +310,6 @@ export type ActionButtonState = {
   // Preview & Export
   previewBgMode: PreviewBgMode;
   previewBgInput: string;
-  downloadFormat: DownloadFormat;
   downloadName: string;
 };
 
@@ -572,9 +570,8 @@ export const INITIAL_STATE: ActionButtonState = {
   forceFocus: false,
 
   // Preview & Export
-  previewBgMode: "white",
+  previewBgMode: "custom",
   previewBgInput: "#0b1220",
-  downloadFormat: "react",
   downloadName: "action-button",
   // 3D & Effects
   use3DIcon: "none",

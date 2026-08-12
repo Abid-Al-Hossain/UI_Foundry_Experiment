@@ -7,6 +7,7 @@ import {
   LabeledField,
   ExportWarningBadge,
 } from "@/app/components/controls/ui";
+import Select from "@/app/components/controls/input/Select";
 
 export type MotionEntrance = "none" | "fade" | "scale" | "slide";
 export type MotionHover = "none" | "layout" | "scale" | "holo-card" | "float-y";
@@ -116,10 +117,10 @@ export default function MotionSection(props: {
               </div>
             }
           >
-            <select
-              className="w-full h-8 px-2 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+            <Select
+              options={[]}
               value={props.borderEffect}
-              onChange={(e) =>
+              onNativeChange={(e) =>
                 props.setBorderEffect(e.target.value as AvatarBorderEffect)
               }
             >
@@ -127,7 +128,7 @@ export default function MotionSection(props: {
               <option value="snake">Snake Line Chase</option>
               <option value="heartbeat">Heartbeat Pulse</option>
               <option value="glow-pulse">Glow Pulse</option>
-            </select>
+            </Select>
           </LabeledField>
         </div>
       </SectionCard>

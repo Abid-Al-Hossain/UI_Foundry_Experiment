@@ -6,6 +6,8 @@ import {
   LabeledField,
   Segmented,
 } from "@/app/components/controls/ui";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 import { type ToggleState, type ToggleKeyUpdater } from "../types";
 
 export default function BasicsSection({
@@ -18,47 +20,12 @@ export default function BasicsSection({
   return (
     <SectionCard title="Basics" subtitle="Core toggle properties.">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="tg-checked"
-            type="checkbox"
-            checked={state.checked}
-            onChange={(e) => setKey("checked")(e.target.checked)}
-          />
-          <label
-            htmlFor="tg-checked"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            On
-          </label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            id="tg-disabled"
-            type="checkbox"
-            checked={state.disabled}
-            onChange={(e) => setKey("disabled")(e.target.checked)}
-          />
-          <label
-            htmlFor="tg-disabled"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Disabled
-          </label>
-        </div>
+        <Switch label="On" checked={state.checked} onChange={setKey("checked")} />
+        <Switch label="Disabled" checked={state.disabled} onChange={setKey("disabled")} />
         <LabeledField label="Label Text">
-          <input
+          <Input
             value={state.labelText}
-            onChange={(e) => setKey("labelText")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
+            onChange={setKey("labelText")}
           />
         </LabeledField>
         <LabeledField label="Label Position">

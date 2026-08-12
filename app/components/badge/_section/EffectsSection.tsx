@@ -4,6 +4,7 @@ import React from "react";
 import { SectionCard } from "@/app/components/controls/ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#3b82f6",
@@ -41,17 +42,11 @@ export default function EffectsSection(props: {
       <div className="space-y-6">
         {/* Gradient */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-slate-300">
-              Gradient Fill
-            </label>
-            <input
-              type="checkbox"
-              checked={props.gradientEnabled}
-              onChange={(e) => props.setGradientEnabled(e.target.checked)}
-              className="accent-blue-500"
-            />
-          </div>
+          <Switch
+            label={<>Gradient Fill</>}
+            checked={props.gradientEnabled}
+            onChange={(checked) => props.setGradientEnabled(checked)}
+          />
           {props.gradientEnabled && (
             <div className="pl-4 border-l-2 border-slate-700/50 space-y-4 mt-4">
               <ColorControl
@@ -80,17 +75,11 @@ export default function EffectsSection(props: {
 
         {/* Shadow */}
         <div className="pt-4 border-t border-slate-700/50">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-slate-300">
-              Drop Shadow
-            </label>
-            <input
-              type="checkbox"
-              checked={props.dropShadow}
-              onChange={(e) => props.setDropShadow(e.target.checked)}
-              className="accent-blue-500"
-            />
-          </div>
+          <Switch
+            label={<>Drop Shadow</>}
+            checked={props.dropShadow}
+            onChange={(checked) => props.setDropShadow(checked)}
+          />
           {props.dropShadow && (
             <div className="pl-4 border-l-2 border-slate-700/50 space-y-4 mt-4">
               <ColorControl

@@ -1,17 +1,10 @@
 "use client";
 
-import React, {
-  type SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from "react";
+import { type SetStateAction, useEffect, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import AppShell from "@/components/layout/AppShell";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
-import useHydrated from "@/components/hooks/useHydrated";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
@@ -33,9 +26,7 @@ import GroupPreviewSection from "../_section/GroupPreviewSection";
 import HoverSection from "../_section/HoverSection";
 import ActiveStateSection from "../_section/ActiveStateSection";
 import FocusRingSection from "../_section/FocusRingSection";
-import PreviewDownloadPanel, {
-  type DownloadFormat,
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import LoadingSection from "../_section/LoadingSection";
 import DisabledSection from "../_section/DisabledSection";
@@ -48,29 +39,16 @@ const ThreeJSSection = dynamic(() => import("../_section/ThreeJSSection"), {
   ),
 });
 
-import {
-  PALETTE,
-  SYSTEM_FONTS,
-} from "../_data/buttonConstants";
+import { PALETTE, SYSTEM_FONTS } from "../_data/buttonConstants";
 import { BUTTON_PRESETS, type ButtonPreset } from "../_data/buttonPresets";
 import LivePreview from "../_section/LivePreview";
 import { resolveIconSvg } from "../_utils/iconMarkup";
-import {
-  buildGradient,
-  clamp,
-  contrastHex,
-  contrastRatio,
-  hexWithAlpha,
-  norm,
-} from "../_utils/colorUtils";
+import { buildGradient, clamp, contrastHex, contrastRatio, hexWithAlpha, norm } from "../_utils/colorUtils";
 import { buildExportPayload } from "../_utils/exportUtils";
-import { PREVIEW_SRC_DOC } from "../_utils/previewDoc";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 
-import {
-  type ActionButtonState,
-  INITIAL_STATE,
-} from "../types";
+import { type ActionButtonState, INITIAL_STATE } from "../types";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 
 export default function ActionButtonPage() {
   const sectionVariants = {
@@ -90,8 +68,6 @@ export default function ActionButtonPage() {
       position: "relative" as const,
     }),
   };
-
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("basics");
   const [sectionTransitionDir, setSectionTransitionDir] = useState(0);
   const [previewResetKey, setPreviewResetKey] = useState(0);
@@ -352,7 +328,6 @@ export default function ActionButtonPage() {
     forceFocus,
     previewBgMode,
     previewBgInput,
-    downloadFormat,
     downloadName,
   } = state;
 
@@ -490,11 +465,6 @@ export default function ActionButtonPage() {
 
   const setPreviewBgMode = setKey("previewBgMode");
   const setPreviewBgInput = setKey("previewBgInput");
-  const setDownloadFormat = (v: SetStateAction<DownloadFormat>) =>
-    updateState((s) => ({
-      ...s,
-      downloadFormat: v instanceof Function ? v(s.downloadFormat) : v,
-    }));
   const setDownloadName = (v: SetStateAction<string>) =>
     updateState((s) => ({
       ...s,
@@ -1101,7 +1071,6 @@ export default function ActionButtonPage() {
   const applyButtonPreset = (preset: ButtonPreset) => {
     updateState((current) => ({
       ...preset.state,
-      downloadFormat: current.downloadFormat,
       downloadName: current.downloadName,
     }));
     setPreviewResetKey((current) => current + 1);
@@ -1160,7 +1129,6 @@ export default function ActionButtonPage() {
   // --- Export Logic ---
   const exportPayload = useMemo(
     () => ({
-      downloadFormat,
       downloadName,
       confetti: clickEffect === "confetti",
       ripple: clickEffect === "ripple" || clickEffect === "shockwave",
@@ -1282,7 +1250,6 @@ export default function ActionButtonPage() {
       clickEffect,
     }),
     [
-      downloadFormat,
       downloadName,
       clickEffect,
       touchWidth,
@@ -1407,19 +1374,6 @@ export default function ActionButtonPage() {
     () => buildExportPayload(exportPayload),
     [exportPayload],
   );
-
-  const handleDownload = () => {
-    const { filename, content } = exportCode;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const iconColorNorm = norm(iconColorInput);
   const hoverBgNorm = norm(hoverBgInput);
@@ -1728,8 +1682,6 @@ export default function ActionButtonPage() {
     iframeRef.current.contentWindow.postMessage(previewPayload, "*");
   }, [previewPayload]);
 
-  const initialSrcDoc = PREVIEW_SRC_DOC;
-
   const iconSectionProps = {
     PALETTE,
     iconName,
@@ -1961,6 +1913,12 @@ export default function ActionButtonPage() {
       content: (
         <PresetsSection
           presets={BUTTON_PRESETS}
+          activePresetId={findActivePresetId(
+            state,
+            INITIAL_STATE,
+            BUTTON_PRESETS,
+            ["downloadName"],
+          )}
           onApplyPreset={applyButtonPreset}
         />
       ),
@@ -2225,8 +2183,8 @@ export default function ActionButtonPage() {
     <>
       <SectionSelector
         sections={sectionItems}
-        activeSection={activeSection}
-        onSectionChange={handleSectionChange}
+        active={activeSection}
+        onChange={handleSectionChange}
       />
 
       <div className="relative overflow-hidden">
@@ -2262,25 +2220,14 @@ export default function ActionButtonPage() {
   // --- Preview ---
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc={initialSrcDoc}
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {
-        if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.postMessage(previewPayload, "*");
-        }
-      }}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={setDownloadFormat}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
-      previewNode={livePreviewNode}
+      preview={livePreviewNode}
       code={exportCode.content}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
+      onPreviewBgInput={setPreviewBgInput}
     />
   );
 

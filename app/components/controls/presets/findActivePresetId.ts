@@ -20,11 +20,48 @@ function canonicalize(value: unknown): string {
     .join(",")}}`;
 }
 
+export function isPresetStateApplied(
+  currentState: object,
+  presetState: object,
+  ignoredKeys: readonly string[] = ["downloadName"],
+) {
+  const current = currentState as Record<string, unknown>;
+  return Object.entries(presetState).every(
+    ([key, value]) =>
+      ignoredKeys.includes(key) || canonicalize(current[key]) === canonicalize(value),
+  );
+}
+
+function omitTopLevelKeys<State extends object>(
+  value: State,
+  ignoredKeys: readonly (keyof State)[],
+) {
+  if (ignoredKeys.length === 0) return value;
+  const result = { ...value };
+  for (const key of ignoredKeys) delete result[key];
+  return result;
+}
+
 export function findActivePresetId<State extends object>(
   state: State,
   defaults: State,
   presets: readonly PresetLike<State>[],
+  ignoredKeys: readonly (keyof State)[] = [],
 ): string | null {
+  if (ignoredKeys.length > 0) {
+    const comparableState = omitTopLevelKeys(state, ignoredKeys);
+    for (const preset of presets) {
+      const comparablePreset = omitTopLevelKeys(
+        { ...defaults, ...preset.state },
+        ignoredKeys,
+      );
+      if (canonicalize(comparableState) === canonicalize(comparablePreset)) {
+        return preset.id;
+      }
+    }
+    return null;
+  }
+
   const presetKey = presets as readonly object[];
   let byDefaults = catalogCache.get(presetKey);
   if (!byDefaults) {

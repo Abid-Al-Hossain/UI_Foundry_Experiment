@@ -7,6 +7,7 @@ import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Select from "@/app/components/controls/input/Select";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import Switch from "@/app/components/controls/input/Switch";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 
 interface ImageMaskingSectionProps {
   state: ImageState;
@@ -31,7 +32,11 @@ export default function ImageMaskingSection({
   ];
 
   return (
-    <div className="space-y-8">
+    <SectionCard
+      title="Masking"
+      subtitle="Image masks, fades, and vignette treatment."
+    >
+      <div className="space-y-8">
       {/* Mask Type */}
       <LabeledField label="Mask Type">
         <Select
@@ -168,6 +173,7 @@ export default function ImageMaskingSection({
           )}
         </div>
       )}
-    </div>
+      </div>
+    </SectionCard>
   );
 }

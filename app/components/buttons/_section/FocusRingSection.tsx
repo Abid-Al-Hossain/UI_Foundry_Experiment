@@ -4,6 +4,7 @@ import React from "react";
 import { SectionCard } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function FocusRingSection(props: {
   PALETTE: readonly string[];
@@ -44,21 +45,12 @@ export default function FocusRingSection(props: {
   return (
     <SectionCard title="Focus Ring" subtitle="Accessibility focus styling.">
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-2">
-          <input
-            id={idRing}
-            type="checkbox"
-            checked={focusRingEnabled}
-            onChange={(e) => setFocusRingEnabled(e.target.checked)}
-          />
-          <label
-            htmlFor={idRing}
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Enable focus ring
-          </label>
-        </div>
+        <Switch
+          label={<>Enable focus ring</>}
+          id={idRing}
+          checked={focusRingEnabled}
+          onChange={(checked) => setFocusRingEnabled(checked)}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <SizeControl

@@ -72,160 +72,45 @@ const pushVariants = (direction: Direction) => {
 };
 
 const cubeVariants = (direction: Direction) => {
-  // 4-Way Cube
-  if (direction === "left") {
-    return {
-      initial: {
-        rotateY: 90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 1,
-      },
-      enter: {
-        rotateY: 0,
-        opacity: 1,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 2,
-      },
-      exit: {
-        rotateY: -90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 0,
-      },
-    };
-  }
-  if (direction === "right") {
-    return {
-      initial: {
-        rotateY: -90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 1,
-      },
-      enter: {
-        rotateY: 0,
-        opacity: 1,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 2,
-      },
-      exit: {
-        rotateY: 90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 0,
-      },
-    };
-  }
-  if (direction === "down") {
-    // Waterfall Down (Top enters)
-    return {
-      initial: {
-        rotateX: 90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 1,
-      },
-      enter: {
-        rotateX: 0,
-        opacity: 1,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 2,
-      },
-      exit: {
-        rotateX: -90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 0,
-      },
-    };
-  }
-  if (direction === "up") {
-    // Waterfall Up (Bottom enters)
-    return {
-      initial: {
-        rotateX: -90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 1,
-      },
-      enter: {
-        rotateX: 0,
-        opacity: 1,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 2,
-      },
-      exit: {
-        rotateX: 90,
-        opacity: 0,
-        transformOrigin: "50% 50% -400px",
-        x: 0,
-        y: 0,
-        backfaceVisibility: "hidden",
-        zIndex: 0,
-      },
-    };
-  }
+  const vertical = direction === "up" || direction === "down";
+  const axis = vertical ? "rotateX" : "rotateY";
+  const forward = direction === "left" || direction === "down";
+  const initialRotation = forward ? 90 : -90;
+  const exitRotation = -initialRotation;
+  const incomingShadow = vertical
+    ? `0 ${forward ? -54 : 54}px 90px rgba(2, 6, 23, 0.62)`
+    : `${forward ? -54 : 54}px 0 90px rgba(2, 6, 23, 0.62)`;
+  const outgoingShadow = vertical
+    ? `0 ${forward ? 54 : -54}px 90px rgba(2, 6, 23, 0.72)`
+    : `${forward ? 54 : -54}px 0 90px rgba(2, 6, 23, 0.72)`;
+  const face = {
+    x: 0,
+    y: 0,
+    opacity: 1,
+    transformOrigin: "50% 50% -400px",
+    backfaceVisibility: "hidden" as const,
+  };
+
+  // A cube turn needs two opaque faces rotating around the same recessed axis.
+  // PageTransition renders those faces concurrently inside a perspective scene.
   return {
     initial: {
-      rotateY: 90,
-      opacity: 0,
-      transformOrigin: "50% 50% -400px",
-      x: 0,
-      y: 0,
-      backfaceVisibility: "hidden",
-      zIndex: 1,
+      ...face,
+      [axis]: initialRotation,
+      filter: "brightness(0.58)",
+      boxShadow: incomingShadow,
     },
     enter: {
-      rotateY: 0,
-      opacity: 1,
-      transformOrigin: "50% 50% -400px",
-      x: 0,
-      y: 0,
-      backfaceVisibility: "hidden",
-      zIndex: 2,
+      ...face,
+      [axis]: 0,
+      filter: "brightness(1)",
+      boxShadow: "0 0 0 rgba(2, 6, 23, 0)",
     },
     exit: {
-      rotateY: -90,
-      opacity: 0,
-      transformOrigin: "50% 50% -400px",
-      x: 0,
-      y: 0,
-      backfaceVisibility: "hidden",
-      zIndex: 0,
+      ...face,
+      [axis]: exitRotation,
+      filter: "brightness(0.5)",
+      boxShadow: outgoingShadow,
     },
   };
 };

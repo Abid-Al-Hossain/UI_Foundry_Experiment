@@ -6,6 +6,8 @@ import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Slider from "@/app/components/controls/input/Slider";
 import Switch from "@/app/components/controls/input/Switch";
 import { TooltipState } from "../types";
+import Textarea from "@/app/components/controls/input/Textarea";
+import Input from "@/app/components/controls/input/Input";
 
 interface ContentSectionProps {
   state: TooltipState;
@@ -21,34 +23,21 @@ export default function ContentSection({ state, update }: ContentSectionProps) {
       <SectionCard title="Content" subtitle="Text displayed in the tooltip">
         <div className="space-y-4">
           <LabeledField label="Tooltip Content">
-            <textarea
+            <Textarea
               value={state.content}
-              onChange={(e) => update("content", e.target.value)}
+              onNativeChange={(e) => update("content", e.target.value)}
               rows={3}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none resize-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
               placeholder="Enter tooltip content..."
-            />
+             />
           </LabeledField>
 
           <LabeledField label="Trigger Button Text">
-            <input
+            <Input
               type="text"
               value={state.triggerText}
-              onChange={(e) => update("triggerText", e.target.value)}
+              onNativeChange={(e) => update("triggerText", e.target.value)}
               placeholder="Hover me"
-              className="w-full h-9 px-3 rounded-lg border text-sm outline-none focus:border-[var(--primary)] transition-colors"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--card) 65%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         </div>
       </SectionCard>

@@ -11,9 +11,10 @@ export interface SelectOption<Value extends string = string> {
 export interface SelectProps<Value extends string = string> {
   label?: string;
   value: Value;
-  onChange: (value: Value) => void;
-  options: readonly (SelectOption<Value> | Value)[]; // Pre-defined options
+  onChange?: (value: Value) => void;
+  options?: readonly (SelectOption<Value> | Value)[]; // Pre-defined options
   children?: React.ReactNode; // Or raw <option> children
+  onNativeChange?: React.ChangeEventHandler<HTMLSelectElement>;
   disabled?: boolean;
   className?: string;
   placeholder?: string;
@@ -29,6 +30,7 @@ export default function Select<Value extends string = string>(
     label,
     value,
     onChange,
+    onNativeChange,
     options,
     children,
     disabled,
@@ -37,7 +39,7 @@ export default function Select<Value extends string = string>(
     startContent,
   } = props;
 
-  const normalizedOptions = options.map((option): SelectOption<Value> =>
+  const normalizedOptions = (options ?? []).map((option): SelectOption<Value> =>
     typeof option === "string"
       ? { value: option as Value, label: option }
       : option,
@@ -55,7 +57,10 @@ export default function Select<Value extends string = string>(
         id={props.id}
         aria-label={props["aria-label"] ?? label}
         value={value}
-        onChange={(e) => onChange(e.target.value as Value)}
+        onChange={(event) => {
+          onChange?.(event.currentTarget.value as Value);
+          onNativeChange?.(event);
+        }}
         disabled={disabled}
         className={`w-full h-9 pr-8 appearance-none rounded-xl border text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed ${
           startContent ? "pl-9" : "pl-3"

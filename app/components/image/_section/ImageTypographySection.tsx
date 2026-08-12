@@ -2,10 +2,9 @@
 
 import React from "react";
 import type { ImageState } from "../types";
-import Slider from "@/app/components/controls/input/Slider";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
-import { LabeledField } from "@/app/components/controls/layout/LabeledField";
+import { TypographyStyleControl } from "@/app/components/controls/typography/TypographyControl";
 
 interface ImageTypographySectionProps {
   state: ImageState;
@@ -36,15 +35,14 @@ export default function ImageTypographySection({
               onChange={setKey("captionTextColor")}
             />
 
-            <LabeledField label="Caption Size" hint={`${state.captionFontSize}px`}>
-              <Slider
-                min={12}
-                max={48}
-                step={1}
-                value={state.captionFontSize}
-                onChange={(value) => setKey("captionFontSize")(String(value))}
-              />
-            </LabeledField>
+            <TypographyStyleControl
+              fontSize={Number(state.captionFontSize) || 12}
+              setFontSize={(value) =>
+                setKey("captionFontSize")(String(value))
+              }
+              fontSizeMin={12}
+              fontSizeMax={48}
+            />
           </div>
         ) : (
           <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>

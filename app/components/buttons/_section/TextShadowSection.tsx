@@ -4,6 +4,7 @@ import React from "react";
 import { SectionCard } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function TextShadowSection(props: {
   PALETTE: readonly string[];
@@ -38,18 +39,11 @@ export default function TextShadowSection(props: {
       title="Text shadow"
       subtitle="Add a shadow to the label for depth/contrast."
     >
-      <label
-        className="flex items-center gap-2 text-sm uf-clickable"
-        style={{ color: "var(--text)" }}
-      >
-        <input
-          type="checkbox"
-          checked={props.textShadowEnabled}
-          onChange={(e) => props.setTextShadowEnabled(e.target.checked)}
-          className="uf-clickable"
-        />
-        Enable text shadow
-      </label>
+      <Switch
+        label={<>Enable text shadow</>}
+        checked={props.textShadowEnabled}
+        onChange={(checked) => props.setTextShadowEnabled(checked)}
+      />
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <SizeControl

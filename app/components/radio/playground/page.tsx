@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -27,7 +26,6 @@ import PresetsSection from "../_section/PresetsSection";
 import { RADIO_PRESETS } from "../_data/presets";
 
 export default function RadioPlaygroundPage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -42,7 +40,6 @@ export default function RadioPlaygroundPage() {
     canUndo,
     canRedo,
   } = useHistoryState<RadioState>(INITIAL_STATE);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadName, setDownloadName] = useState("radio-group");
 
   const exportPayload = useMemo(
@@ -56,19 +53,6 @@ export default function RadioPlaygroundPage() {
     () => buildRadioExportPayload(exportPayload),
     [exportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildRadioExportPayload(exportPayload);
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const applyPreset = (presetState: RadioState) => {
     updateState((prev) => ({
@@ -123,8 +107,8 @@ export default function RadioPlaygroundPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <PresetsSection
@@ -144,20 +128,13 @@ export default function RadioPlaygroundPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={
+      onPreviewBgInput={setPreviewBgInput}
+      preview={
         <LivePreview
           key={previewResetKey}
           state={state}

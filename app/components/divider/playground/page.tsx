@@ -1,14 +1,8 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useDeferredValue,
-} from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -32,13 +26,11 @@ import DividerAccessibilitySection from "../_section/DividerAccessibilitySection
 import DividerStatesSection from "../_section/DividerStatesSection";
 import { buildDividerExportPayload } from "../_utils/exportUtils";
 
-import {
-  type DividerState,
-  INITIAL_DIVIDER_STATE,
-} from "../types";
+import { type DividerState, INITIAL_DIVIDER_STATE } from "../types";
+import { DIVIDER_PRESETS } from "../_data/dividerPresets";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 
 export default function DividerPage() {
-  const mounted = useHydrated();
   // Layout & Resize State
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
@@ -56,11 +48,6 @@ export default function DividerPage() {
     canUndo,
     canRedo,
   } = useHistoryState<DividerState>(INITIAL_DIVIDER_STATE);
-
-  // Resize Logic
-
-  // Download Props
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadName, setDownloadName] = useState("divider-component");
 
   // Refactored Export for Code View
@@ -77,20 +64,6 @@ export default function DividerPage() {
     () => buildDividerExportPayload(deferredExportPayload),
     [deferredExportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildDividerExportPayload(exportPayload);
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   // Section Mapping
   const sections = [
@@ -132,6 +105,7 @@ export default function DividerPage() {
     setKey: typeof setKey;
     setFloat: typeof setFloat;
     updateState: typeof updateState;
+    activePresetId?: string | null;
     applyPreset?: (preset: { state: Partial<DividerState> }) => void;
   }>;
 
@@ -152,8 +126,8 @@ export default function DividerPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
 
       <ActiveComponent
@@ -161,6 +135,11 @@ export default function DividerPage() {
         setKey={setKey}
         setFloat={setFloat}
         updateState={updateState}
+        activePresetId={findActivePresetId(
+          state,
+          INITIAL_DIVIDER_STATE,
+          DIVIDER_PRESETS,
+        )}
         applyPreset={(preset) => {
           updateState((current) => ({ ...current, ...preset.state }));
           setPreviewResetKey((value) => value + 1);
@@ -171,20 +150,13 @@ export default function DividerPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

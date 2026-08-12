@@ -7,6 +7,8 @@ import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Switch from "@/app/components/controls/input/Switch";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import Select from "@/app/components/controls/input/Select";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
+import Input from "@/app/components/controls/input/Input";
 
 interface ImageEffectsSectionProps {
   state: ImageState;
@@ -43,7 +45,11 @@ export default function ImageEffectsSection({
   ];
 
   return (
-    <div className="space-y-8">
+    <SectionCard
+      title="Effects"
+      subtitle="Blend, overlay, duotone, and caption surface treatments."
+    >
+      <div className="space-y-8">
       {/* Blend Mode */}
       <LabeledField label="Global Blend Mode">
         <Select
@@ -213,16 +219,11 @@ export default function ImageEffectsSection({
             style={{ borderColor: "var(--primary)" }}
           >
             <LabeledField label="Text">
-              <input
+              <Input
                 type="text"
                 value={state.captionText}
-                onChange={(e) => setKey("captionText")(e.target.value)}
-                className="w-full bg-transparent border rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--text)",
-                }}
-              />
+                onNativeChange={(e) => setKey("captionText")(e.target.value)}
+               />
             </LabeledField>
 
             <LabeledField label="Position">
@@ -263,6 +264,7 @@ export default function ImageEffectsSection({
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </SectionCard>
   );
 }

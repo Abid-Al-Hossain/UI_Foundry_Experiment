@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useDeferredValue } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
@@ -25,15 +24,10 @@ import WritingModesSection from "../_section/WritingModesSection";
 import AccessibilitySection from "../_section/AccessibilitySection";
 import { buildTextareaExportPayload } from "../_utils/exportUtils";
 
-import {
-  type TextareaSetter,
-  type TextareaState,
-  INITIAL_STATE,
-} from "../types";
+import { type TextareaSetter, type TextareaState, INITIAL_STATE } from "../types";
 import type { TextareaPreset } from "../_data/textareaPresets";
 
 export default function TextareaPlaygroundPage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -49,10 +43,7 @@ export default function TextareaPlaygroundPage() {
     canUndo,
     canRedo,
   } = useHistoryState<TextareaState>(INITIAL_STATE);
-
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [downloadName, setDownloadName] = useState("textarea");
-  const downloadFormat = "react" as const;
 
   const applyPreset = (preset: TextareaPreset) => {
     updateState(() => ({ ...preset.state }));
@@ -72,19 +63,6 @@ export default function TextareaPlaygroundPage() {
     () => buildTextareaExportPayload(deferredExportPayload),
     [deferredExportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildTextareaExportPayload(exportPayload);
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const sections = [
     { id: "presets", label: "Presets", component: PresetsSection },
@@ -128,8 +106,8 @@ export default function TextareaPlaygroundPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <PresetsSection state={state} presets={TEXTAREA_PRESETS} onApply={applyPreset} />
@@ -141,20 +119,13 @@ export default function TextareaPlaygroundPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat={downloadFormat}
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={
+      onPreviewBgInput={setPreviewBgInput}
+      preview={
         <LivePreview
           key={`${previewResetKey}:${state.defaultValue}`}
           state={state}

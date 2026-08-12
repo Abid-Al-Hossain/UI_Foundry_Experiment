@@ -4,6 +4,7 @@ import React from "react";
 import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function DisabledSection(props: {
   PALETTE: readonly string[];
@@ -81,50 +82,24 @@ export default function DisabledSection(props: {
           step={1}
         />
 
-        <div className="flex items-center gap-2">
-          <input
-            id="disabled-colors"
-            type="checkbox"
-            checked={props.disabledUseCustomColors}
-            onChange={(e) => props.setDisabledUseCustomColors(e.target.checked)}
-            className="uf-clickable"
-          />
-          <label
-            htmlFor="disabled-colors"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Custom disabled colors
-          </label>
-        </div>
+        <Switch
+          label={<>Custom disabled colors</>}
+          id="disabled-colors"
+          checked={props.disabledUseCustomColors}
+          onChange={(checked) => props.setDisabledUseCustomColors(checked)}
+        />
 
-        <label
-          className="flex items-center gap-2 text-sm uf-clickable"
-          style={{ color: "var(--text)" }}
-        >
-          <input
-            type="checkbox"
-            checked={props.disabledHoverSuppressed}
-            onChange={(e) => props.setDisabledHoverSuppressed(e.target.checked)}
-            className="uf-clickable"
-          />
-          Suppress hover styles while disabled
-        </label>
+        <Switch
+          label={<>Suppress hover styles while disabled</>}
+          checked={props.disabledHoverSuppressed}
+          onChange={(checked) => props.setDisabledHoverSuppressed(checked)}
+        />
 
-        <label
-          className="flex items-center gap-2 text-sm uf-clickable"
-          style={{ color: "var(--text)" }}
-        >
-          <input
-            type="checkbox"
-            checked={props.disabledTextShadowEnabled}
-            onChange={(e) =>
-              props.setDisabledTextShadowEnabled(e.target.checked)
-            }
-            className="uf-clickable"
-          />
-          Use text shadow when disabled
-        </label>
+        <Switch
+          label={<>Use text shadow when disabled</>}
+          checked={props.disabledTextShadowEnabled}
+          onChange={(checked) => props.setDisabledTextShadowEnabled(checked)}
+        />
         <div className="text-xs" style={{ color: "var(--muted)" }}>
           Uses the Text Shadow section values.
         </div>

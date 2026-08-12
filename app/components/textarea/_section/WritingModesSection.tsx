@@ -6,6 +6,7 @@ import Select from "@/app/components/controls/input/Select";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { type TextareaSetter, type TextareaState } from "../types";
+import Input from "@/app/components/controls/input/Input";
 
 const PRESET_COLORS = [
   "#334155",
@@ -186,17 +187,10 @@ export default function WritingModesSection({
         </div>
 
         <LabeledField label="Description Text">
-          <input
+          <Input
             value={state.descriptionText}
-            onChange={(e) => setKey("descriptionText")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("descriptionText")(e.target.value)}
+           />
         </LabeledField>
         <ColorControl
           label="Description Color"

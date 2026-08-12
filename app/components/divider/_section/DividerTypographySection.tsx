@@ -1,13 +1,11 @@
 "use client";
 import React from "react";
 import type { DividerState } from "../types";
+import { SectionCard } from "@/app/components/controls/ui";
 import {
-  SectionCard,
-  LabeledField,
-  Segmented,
-} from "@/app/components/controls/ui";
-import Select from "@/app/components/controls/input/Select";
-import SizeControl from "@/app/components/controls/input/SizeControl";
+  TypographySpacingControl,
+  TypographyStyleControl,
+} from "@/app/components/controls/typography/TypographyControl";
 
 type SetterValue<T> = T | ((prev: T) => T);
 type DividerSetter = <K extends keyof DividerState>(
@@ -23,51 +21,20 @@ export default function DividerTypographySection({
 }) {
   return (
     <SectionCard title="Typography" subtitle="Label text sizing and emphasis.">
-      <div className="space-y-6">
-        <SizeControl
-          label="Font Size"
-          value={state.fontSize}
-          onChange={setKey("fontSize")}
-          min={10}
-          max={32}
-          step={1}
+      <div className="space-y-4">
+        <TypographyStyleControl
+          fontSize={state.fontSize}
+          setFontSize={setKey("fontSize")}
+          fontSizeMin={10}
+          fontSizeMax={32}
+          fontWeight={Number(state.fontWeight) || 400}
+          setFontWeight={(value) => setKey("fontWeight")(String(value))}
+          textTransform={state.labelTransform}
+          setTextTransform={setKey("labelTransform")}
         />
-
-        <LabeledField label="Font Weight">
-          <Select
-            value={state.fontWeight}
-            onChange={setKey("fontWeight")}
-            options={[
-              { value: "300", label: "300 - Light" },
-              { value: "400", label: "400 - Regular" },
-              { value: "500", label: "500 - Medium" },
-              { value: "600", label: "600 - Semibold" },
-              { value: "700", label: "700 - Bold" },
-            ]}
-          />
-        </LabeledField>
-
-        <LabeledField label="Transform">
-          <Segmented
-            value={state.labelTransform}
-            onChange={(v) =>
-              setKey("labelTransform")(v as DividerState["labelTransform"])
-            }
-            items={[
-              { label: "None", value: "none" },
-              { label: "ABC", value: "uppercase" },
-              { label: "abc", value: "lowercase" },
-            ]}
-          />
-        </LabeledField>
-
-        <SizeControl
-          label="Letter Spacing"
-          value={state.letterSpacing}
-          onChange={setKey("letterSpacing")}
-          min={-2}
-          max={10}
-          step={0.5}
+        <TypographySpacingControl
+          letterSpacing={state.letterSpacing}
+          setLetterSpacing={setKey("letterSpacing")}
         />
       </div>
     </SectionCard>

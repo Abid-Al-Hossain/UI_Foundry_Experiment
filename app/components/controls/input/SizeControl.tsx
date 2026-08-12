@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LabeledField } from "../layout/LabeledField";
 
+import Input from "./Input";
 import Slider from "./Slider";
 
 function clamp(n: number, min: number, max: number) {
@@ -24,19 +25,15 @@ export default function SizeControl(props: {
 }) {
   const { value, onChange, min, max, step = 1, unit = "" } = props;
 
-  const [draft, setDraft] = useState({ source: value, text: String(value) });
-  const text =
-    draft.source !== value && parseFloat(draft.text) !== value
-      ? String(value)
-      : draft.text;
+  const [text, setText] = useState(String(value));
 
-  if (draft.source !== value) {
-    setDraft({ source: value, text });
-  }
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDraft({ source: value, text: e.target.value });
-    const parsed = parseFloat(e.target.value);
+  const handleTextChange = (nextText: string) => {
+    setText(nextText);
+    const parsed = parseFloat(nextText);
     if (!isNaN(parsed)) {
       // We don't clamp immediately on type, only on blur or effectively?
       // Start Button logic actually just parses.
@@ -58,19 +55,14 @@ export default function SizeControl(props: {
         step={step}
         value={clamped}
         onChange={(val) => {
-          setDraft({ source: value, text: String(val) });
+          setText(String(val));
           onChange(val);
         }}
       />
-      <input
+      <Input
         value={text}
         onChange={handleTextChange}
-        className="mt-2 w-full rounded-xl border px-3 py-2 text-sm outline-none"
-        style={{
-          borderColor: "var(--border)",
-          background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-          color: "var(--text)",
-        }}
+        className="mt-2"
         placeholder={`${min}-${max}${unit}`}
       />
       <div className="mt-1 text-xs" style={{ color: "var(--muted)" }}>

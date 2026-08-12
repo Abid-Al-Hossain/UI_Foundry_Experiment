@@ -10,6 +10,8 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#334155",
@@ -35,17 +37,10 @@ export default function LabelsSection({
     >
       <div className="space-y-4">
         <LabeledField label="Label Text">
-          <input
+          <Input
             value={state.labelText}
-            onChange={(e) => setKey("labelText")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("labelText")(e.target.value)}
+           />
         </LabeledField>
         <LabeledField label="Position">
           <Segmented
@@ -99,21 +94,12 @@ export default function LabelsSection({
           max={16}
           step={1}
         />
-        <div className="flex items-center gap-2">
-          <input
-            id="show-req"
-            type="checkbox"
-            checked={state.showRequired}
-            onChange={(e) => setKey("showRequired")(e.target.checked)}
-          />
-          <label
-            htmlFor="show-req"
-            className="text-xs uf-clickable"
-            style={{ color: "var(--muted)" }}
-          >
-            Show Required Indicator
-          </label>
-        </div>
+        <Switch
+          label={<>Show Required Indicator</>}
+          id="show-req"
+          checked={state.showRequired}
+          onChange={(checked) => setKey("showRequired")(checked)}
+        />
         {state.showRequired && (
           <ColorControl
             label="Required Color"
@@ -131,17 +117,10 @@ export default function LabelsSection({
             Messages
           </div>
           <LabeledField label="Helper Text">
-            <input
+            <Input
               value={state.helperText}
-              onChange={(e) => setKey("helperText")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("helperText")(e.target.value)}
+             />
           </LabeledField>
           <ColorControl
             label="Helper Color"
@@ -150,17 +129,10 @@ export default function LabelsSection({
             onChange={setKey("helperColor")}
           />
           <LabeledField label="Description Text">
-            <input
+            <Input
               value={state.descriptionText}
-              onChange={(e) => setKey("descriptionText")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("descriptionText")(e.target.value)}
+             />
           </LabeledField>
           <ColorControl
             label="Description Color"
@@ -169,17 +141,10 @@ export default function LabelsSection({
             onChange={setKey("descriptionColor")}
           />
           <LabeledField label="Error Text">
-            <input
+            <Input
               value={state.errorText}
-              onChange={(e) => setKey("errorText")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("errorText")(e.target.value)}
+             />
           </LabeledField>
           <ColorControl
             label="Error Color"
@@ -188,17 +153,10 @@ export default function LabelsSection({
             onChange={setKey("errorColor")}
           />
           <LabeledField label="Success Text">
-            <input
+            <Input
               value={state.successText}
-              onChange={(e) => setKey("successText")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("successText")(e.target.value)}
+             />
           </LabeledField>
           <ColorControl
             label="Success Color"

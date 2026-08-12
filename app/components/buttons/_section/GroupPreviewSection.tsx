@@ -3,6 +3,7 @@
 import React from "react";
 import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export type GroupAlign = "left" | "center" | "right";
 
@@ -20,18 +21,11 @@ export default function GroupPreviewSection(props: {
   return (
     <SectionCard title="Button Group" subtitle="Alignment and spacing preview.">
       <div className="space-y-4">
-        <label
-          className="flex items-center gap-2 text-sm uf-clickable"
-          style={{ color: "var(--text)" }}
-        >
-          <input
-            type="checkbox"
-            checked={props.groupEnabled}
-            onChange={(e) => props.setGroupEnabled(e.target.checked)}
-            className="uf-clickable"
-          />
-          Show group preview
-        </label>
+        <Switch
+          label={<>Show group preview</>}
+          checked={props.groupEnabled}
+          onChange={(checked) => props.setGroupEnabled(checked)}
+        />
 
         <div className="space-y-2">
           <div className="text-sm font-medium" style={{ color: "var(--text)" }}>

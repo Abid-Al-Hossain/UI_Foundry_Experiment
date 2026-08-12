@@ -4,8 +4,6 @@ import {
   type ClickEffectProfile,
 } from "./interactionEffects";
 
-export type DownloadFormat = "react";
-
 type TransitionEasing =
   | "linear"
   | "ease"
@@ -111,7 +109,6 @@ type NormalizedConfig = {
 };
 
 export type ExportPayloadInput = {
-  downloadFormat?: DownloadFormat;
   downloadName?: string;
   componentName?: string;
   label?: string;

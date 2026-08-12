@@ -4,6 +4,7 @@ import React from "react";
 
 import { SectionCard, LabeledField, Segmented } from "./ui";
 import InputControl from "@/app/components/controls/input/Input";
+import Input from "@/app/components/controls/input/Input";
 
 export default function BasicsSection(props: {
   src: string;
@@ -48,19 +49,12 @@ export default function BasicsSection(props: {
       >
         <div className="space-y-4">
           <LabeledField label="Initials">
-            <input
+            <Input
               type="text"
               value={props.initials}
-              onChange={(e) => props.setInitials(e.target.value)}
+              onNativeChange={(e) => props.setInitials(e.target.value)}
               maxLength={3}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         </div>
       </SectionCard>

@@ -1,6 +1,7 @@
 import React from "react";
 import { SectionCard } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 type GroupPreviewSectionProps = {
   showGroup: boolean;
@@ -57,11 +58,9 @@ export default function GroupPreviewSection({
         style={{ borderColor: "var(--border)", background: "var(--card)" }}
       >
         <span className="text-sm font-medium">Enable Group Mode</span>
-        <input
-          type="checkbox"
+        <Switch
           checked={showGroup}
-          onChange={(e) => setShowGroup(e.target.checked)}
-          className="h-5 w-5 accent-[var(--primary)]"
+          onChange={(checked) => setShowGroup(checked)}
         />
       </div>
 

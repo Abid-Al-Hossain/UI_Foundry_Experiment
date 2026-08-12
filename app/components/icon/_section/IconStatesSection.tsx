@@ -10,6 +10,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function IconStatesSection({
   state,
@@ -24,18 +25,12 @@ export default function IconStatesSection({
     <div className="space-y-6">
       <SectionCard title="Interaction" subtitle="Make the icon a clickable control.">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="icon-clickable-toggle"
-            type="checkbox"
-            checked={state.clickable}
-            onChange={(event) => setKey("clickable")(event.target.checked)}
-            className="uf-clickable"
-          />
-          <label htmlFor="icon-clickable-toggle" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
-            Clickable (enables tabIndex, hover/active, focus ring)
-          </label>
-        </div>
+        <Switch
+          label={<>Clickable (enables tabIndex, hover/active, focus ring)</>}
+          id="icon-clickable-toggle"
+          checked={state.clickable}
+          onChange={(checked) => setKey("clickable")(checked)}
+        />
         <SegmentedControl
           value={state.cursorType}
           onChange={(v) => setKey("cursorType")(v)}
@@ -61,18 +56,12 @@ export default function IconStatesSection({
 
       <SectionCard title="Focus Ring" subtitle="Keyboard focus indicator for clickable icons.">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="icon-focusring-toggle"
-            type="checkbox"
-            checked={state.focusRingEnabled}
-            onChange={(event) => setKey("focusRingEnabled")(event.target.checked)}
-            className="uf-clickable"
-          />
-          <label htmlFor="icon-focusring-toggle" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
-            Enable focus ring
-          </label>
-        </div>
+        <Switch
+          label={<>Enable focus ring</>}
+          id="icon-focusring-toggle"
+          checked={state.focusRingEnabled}
+          onChange={(checked) => setKey("focusRingEnabled")(checked)}
+        />
         <SizeControl label="Ring width" value={state.focusRingWidth} onChange={setFloat("focusRingWidth")} min={1} max={6} unit="px" />
         <SizeControl label="Ring offset" value={state.focusRingOffset} onChange={setFloat("focusRingOffset")} min={0} max={8} unit="px" />
         <ColorControl label="Ring color" value={state.focusRingColor} onChange={setKey("focusRingColor")} />
@@ -98,18 +87,12 @@ export default function IconStatesSection({
 
       <SectionCard title="Disabled State" subtitle="Greyed-out, non-interactive icon.">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="icon-disabled-toggle"
-            type="checkbox"
-            checked={state.disabled}
-            onChange={(event) => setKey("disabled")(event.target.checked)}
-            className="uf-clickable"
-          />
-          <label htmlFor="icon-disabled-toggle" className="text-sm uf-clickable" style={{ color: "var(--text)" }}>
-            Disabled
-          </label>
-        </div>
+        <Switch
+          label={<>Disabled</>}
+          id="icon-disabled-toggle"
+          checked={state.disabled}
+          onChange={(checked) => setKey("disabled")(checked)}
+        />
         <SizeControl label="Disabled opacity" value={state.disabledOpacity} onChange={setFloat("disabledOpacity")} min={0.1} max={1} step={0.05} unit="" />
         <ColorControl label="Disabled color" value={state.disabledColor} onChange={setKey("disabledColor")} />
         <SegmentedControl

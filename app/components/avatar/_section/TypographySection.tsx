@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { SectionCard, LabeledField } from "./ui";
+import { SectionCard } from "./ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
-import Select from "@/app/components/controls/input/Select";
+import FontFamilySelect from "@/app/components/controls/typography/FontFamilySelect";
 
 export default function TypographySection(props: {
   initialsBg: string;
@@ -29,18 +29,10 @@ export default function TypographySection(props: {
           value={props.initialsColor}
           onChange={props.setInitialsColor}
         />
-        <LabeledField label="Font Family">
-          <Select
-            value={props.fontFamily}
-            onChange={props.setFontFamily}
-            options={[
-              { value: "sans-serif", label: "System Sans" },
-              { value: "serif", label: "Serif" },
-              { value: "monospace", label: "Mono" },
-              { value: "ui-rounded, sans-serif", label: "Rounded" },
-            ]}
-          />
-        </LabeledField>
+        <FontFamilySelect
+          value={props.fontFamily}
+          onChange={props.setFontFamily}
+        />
       </div>
     </SectionCard>
   );

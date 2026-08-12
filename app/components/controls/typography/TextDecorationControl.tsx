@@ -2,18 +2,20 @@
 
 import React from "react";
 import { LabeledField } from "../layout/LabeledField";
+import Select from "../input/Select";
+import Switch from "../input/Switch";
 
 export type TextTransform = "none" | "uppercase" | "lowercase" | "capitalize";
 
 type TextDecorationControlProps = {
-  italic: boolean;
-  setItalic: (v: boolean) => void;
+  italic?: boolean;
+  setItalic?: (v: boolean) => void;
 
-  underline: boolean;
-  setUnderline: (v: boolean) => void;
+  underline?: boolean;
+  setUnderline?: (v: boolean) => void;
 
-  textTransform: TextTransform;
-  setTextTransform: (v: TextTransform) => void;
+  textTransform?: TextTransform;
+  setTextTransform?: (v: TextTransform) => void;
 };
 
 export default function TextDecorationControl({
@@ -24,51 +26,42 @@ export default function TextDecorationControl({
   textTransform,
   setTextTransform,
 }: TextDecorationControlProps) {
+  const showItalic = italic !== undefined && setItalic !== undefined;
+  const showUnderline = underline !== undefined && setUnderline !== undefined;
+  const showTransform =
+    textTransform !== undefined && setTextTransform !== undefined;
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={italic}
-            onChange={(e) => setItalic(e.target.checked)}
-            className="accent-[var(--primary)]"
-          />
-          <span className="text-sm" style={{ color: "var(--text)" }}>
-            Italic
-          </span>
-        </label>
+      {showItalic || showUnderline ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {showItalic ? (
+            <Switch label="Italic" checked={italic} onChange={setItalic} />
+          ) : null}
+          {showUnderline ? (
+            <Switch
+              label="Underline"
+              checked={underline}
+              onChange={setUnderline}
+            />
+          ) : null}
+        </div>
+      ) : null}
 
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={underline}
-            onChange={(e) => setUnderline(e.target.checked)}
-            className="accent-[var(--primary)]"
+      {showTransform ? (
+        <LabeledField label="Text transform">
+          <Select
+            value={textTransform}
+            onChange={setTextTransform}
+            options={[
+              { value: "none", label: "None" },
+              { value: "uppercase", label: "Uppercase" },
+              { value: "lowercase", label: "Lowercase" },
+              { value: "capitalize", label: "Capitalize" },
+            ]}
           />
-          <span className="text-sm" style={{ color: "var(--text)" }}>
-            Underline
-          </span>
-        </label>
-      </div>
-
-      <LabeledField label="Text transform">
-        <select
-          value={textTransform}
-          onChange={(e) => setTextTransform(e.target.value as TextTransform)}
-          className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-          style={{
-            borderColor: "var(--border)",
-            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-            color: "var(--text)",
-          }}
-        >
-          <option value="none">None</option>
-          <option value="uppercase">Uppercase</option>
-          <option value="lowercase">Lowercase</option>
-          <option value="capitalize">Capitalize</option>
-        </select>
-      </LabeledField>
+        </LabeledField>
+      ) : null}
     </div>
   );
 }

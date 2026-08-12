@@ -10,6 +10,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -177,23 +178,12 @@ export default function StatesSection({
               ]}
             />
           </LabeledField>
-          <div className="flex items-center gap-2">
-            <input
-              id="dis-custom"
-              type="checkbox"
-              checked={state.disabledUseCustomColors}
-              onChange={(e) =>
-                setKey("disabledUseCustomColors")(e.target.checked)
-              }
-            />
-            <label
-              htmlFor="dis-custom"
-              className="text-xs uf-clickable"
-              style={{ color: "var(--muted)" }}
-            >
-              Custom Disabled Colors
-            </label>
-          </div>
+          <Switch
+            label={<>Custom Disabled Colors</>}
+            id="dis-custom"
+            checked={state.disabledUseCustomColors}
+            onChange={(checked) => setKey("disabledUseCustomColors")(checked)}
+          />
           {state.disabledUseCustomColors && (
             <>
               <ColorControl

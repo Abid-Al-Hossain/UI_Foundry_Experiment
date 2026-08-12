@@ -1,5 +1,6 @@
 import React from "react";
 import { SectionCard, LabeledField, Segmented } from "./ui";
+import Input from "@/app/components/controls/input/Input";
 
 export default function StatusSection(props: {
   status: "none" | "online" | "offline" | "busy" | "away";
@@ -107,14 +108,12 @@ export default function StatusSection(props: {
 
           <LabeledField label="Badge Label">
             <div className="flex flex-col gap-2">
-              <input
+              <Input
                 type="text"
                 value={props.badgeCount}
-                onChange={(e) => props.setBadgeCount(e.target.value)}
+                onNativeChange={(e) => props.setBadgeCount(e.target.value)}
                 placeholder="e.g. 1, 99+, New"
-                className="w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:border-[var(--primary)] text-[var(--text)]"
-                style={{ borderColor: "var(--border)" }}
-              />
+               />
               <p className="text-xs text-[var(--muted)]">
                 Adding text turns the dot into a circular or pill badge.
               </p>

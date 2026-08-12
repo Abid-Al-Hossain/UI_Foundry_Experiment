@@ -3,6 +3,7 @@
 import React from "react";
 import { SectionCard, Segmented, LabeledField } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function EffectsSection(props: {
   opacity: number;
@@ -72,29 +73,17 @@ export default function EffectsSection(props: {
 
       <SectionCard title="Hover Behavior" subtitle="Pointer reactions while previewing.">
         <div className="space-y-4">
-          <label
-            className="flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm"
-            style={{ borderColor: "var(--border)", color: "var(--text)" }}
-          >
-            <span>Hover Zoom</span>
-            <input
-              type="checkbox"
-              checked={props.hoverZoom}
-              onChange={(e) => props.setHoverZoom(e.target.checked)}
-            />
-          </label>
+          <Switch
+            label={<><span>Hover Zoom</span></>}
+            checked={props.hoverZoom}
+            onChange={(checked) => props.setHoverZoom(checked)}
+          />
 
-          <label
-            className="flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm"
-            style={{ borderColor: "var(--border)", color: "var(--text)" }}
-          >
-            <span>Hover Grayscale</span>
-            <input
-              type="checkbox"
-              checked={props.hoverGrayscale}
-              onChange={(e) => props.setHoverGrayscale(e.target.checked)}
-            />
-          </label>
+          <Switch
+            label={<><span>Hover Grayscale</span></>}
+            checked={props.hoverGrayscale}
+            onChange={(checked) => props.setHoverGrayscale(checked)}
+          />
         </div>
       </SectionCard>
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { SectionCard } from "@/app/components/controls/ui";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function BadgeInteractionSection(props: {
   interactive: boolean;
@@ -15,29 +16,17 @@ export default function BadgeInteractionSection(props: {
       subtitle="Dismiss, hover, and press behavior for interactive badges."
     >
       <div className="space-y-4">
-        <label
-          className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: "var(--border)", color: "var(--text)" }}
-        >
-          <span>Interactive Hover</span>
-          <input
-            type="checkbox"
-            checked={props.interactive}
-            onChange={(e) => props.setInteractive(e.target.checked)}
-          />
-        </label>
+        <Switch
+          label={<><span>Interactive Hover</span></>}
+          checked={props.interactive}
+          onChange={(checked) => props.setInteractive(checked)}
+        />
 
-        <label
-          className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: "var(--border)", color: "var(--text)" }}
-        >
-          <span>Dismiss Button</span>
-          <input
-            type="checkbox"
-            checked={props.dismissible}
-            onChange={(e) => props.setDismissible(e.target.checked)}
-          />
-        </label>
+        <Switch
+          label={<><span>Dismiss Button</span></>}
+          checked={props.dismissible}
+          onChange={(checked) => props.setDismissible(checked)}
+        />
       </div>
     </SectionCard>
   );

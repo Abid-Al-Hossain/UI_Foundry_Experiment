@@ -7,6 +7,7 @@ import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 import { PALETTE } from "../_data/buttonConstants";
+import Switch from "@/app/components/controls/input/Switch";
 
 interface ShadowSectionProps {
   state: ActionButtonState;
@@ -277,18 +278,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.edgeGradientEnabled}
-              onChange={(e) => setKey("edgeGradientEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            3D border gradient
-          </label>
+          <Switch
+            label={<>3D border gradient</>}
+            checked={state.edgeGradientEnabled}
+            onChange={(checked) => setKey("edgeGradientEnabled")(checked)}
+          />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Gradient size (px)"
@@ -316,18 +310,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.topGradientEnabled}
-              onChange={(e) => setKey("topGradientEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            Top surface gradient
-          </label>
+          <Switch
+            label={<>Top surface gradient</>}
+            checked={state.topGradientEnabled}
+            onChange={(checked) => setKey("topGradientEnabled")(checked)}
+          />
           <div className="mt-3 space-y-3">
             <div className="grid gap-3 md:grid-cols-2">
               <SizeControl
@@ -353,18 +340,11 @@ export default function ShadowSection({
               value={state.topGradStartInput}
               onChange={setKey("topGradStartInput")}
             />
-            <label
-              className="flex items-center gap-2 text-xs uf-clickable"
-              style={{ color: "var(--muted)" }}
-            >
-              <input
-                type="checkbox"
-                checked={state.topGradMidEnabled}
-                onChange={(e) => setKey("topGradMidEnabled")(e.target.checked)}
-                className="uf-clickable"
-              />
-              Mid stop
-            </label>
+            <Switch
+              label={<>Mid stop</>}
+              checked={state.topGradMidEnabled}
+              onChange={(checked) => setKey("topGradMidEnabled")(checked)}
+            />
             {state.topGradMidEnabled ? (
               <ColorControl
                 label="Top gradient middle"
@@ -389,20 +369,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.parallaxHighlightEnabled}
-              onChange={(e) =>
-                setKey("parallaxHighlightEnabled")(e.target.checked)
-              }
-              className="uf-clickable"
-            />
-            Parallax highlight
-          </label>
+          <Switch
+            label={<>Parallax highlight</>}
+            checked={state.parallaxHighlightEnabled}
+            onChange={(checked) => setKey("parallaxHighlightEnabled")(checked)}
+          />
           <div className="mt-3">
             <SizeControl
               label="Parallax strength (0-1)"
@@ -422,18 +393,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.rimLightEnabled}
-              onChange={(e) => setKey("rimLightEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            Rim light
-          </label>
+          <Switch
+            label={<>Rim light</>}
+            checked={state.rimLightEnabled}
+            onChange={(checked) => setKey("rimLightEnabled")(checked)}
+          />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Glow size (px)"
@@ -494,18 +458,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.baseShadowEnabled}
-              onChange={(e) => setKey("baseShadowEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            Bottom edge shadow
-          </label>
+          <Switch
+            label={<>Bottom edge shadow</>}
+            checked={state.baseShadowEnabled}
+            onChange={(checked) => setKey("baseShadowEnabled")(checked)}
+          />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Base size (px)"
@@ -526,18 +483,11 @@ export default function ShadowSection({
           </div>
         </div>
 
-        <label
-          className="flex items-center gap-2 text-sm uf-clickable"
-          style={{ color: "var(--text)" }}
-        >
-          <input
-            type="checkbox"
-            checked={state.shadowStackEnabled}
-            onChange={(e) => setKey("shadowStackEnabled")(e.target.checked)}
-            className="uf-clickable"
-          />
-          Shadow stack (multiple layers)
-        </label>
+        <Switch
+          label={<>Shadow stack (multiple layers)</>}
+          checked={state.shadowStackEnabled}
+          onChange={(checked) => setKey("shadowStackEnabled")(checked)}
+        />
 
         {state.shadowStackEnabled ? (
           <div className="space-y-4">
@@ -611,18 +561,11 @@ export default function ShadowSection({
           </div>
         ) : null}
 
-        <label
-          className="flex items-center gap-2 text-sm uf-clickable"
-          style={{ color: "var(--text)" }}
-        >
-          <input
-            type="checkbox"
-            checked={state.innerShadowEnabled}
-            onChange={(e) => setKey("innerShadowEnabled")(e.target.checked)}
-            className="uf-clickable"
-          />
-          Inner shadow (pressed feel)
-        </label>
+        <Switch
+          label={<>Inner shadow (pressed feel)</>}
+          checked={state.innerShadowEnabled}
+          onChange={(checked) => setKey("innerShadowEnabled")(checked)}
+        />
 
         <SizeControl
           label="Ambient occlusion strength (0-1)"
@@ -640,18 +583,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.glossEnabled}
-              onChange={(e) => setKey("glossEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            Highlight / gloss
-          </label>
+          <Switch
+            label={<>Highlight / gloss</>}
+            checked={state.glossEnabled}
+            onChange={(checked) => setKey("glossEnabled")(checked)}
+          />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Gloss size (px)"
@@ -695,18 +631,11 @@ export default function ShadowSection({
             background: "color-mix(in oklab, var(--surface) 70%, transparent)",
           }}
         >
-          <label
-            className="flex items-center gap-2 text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            <input
-              type="checkbox"
-              checked={state.bevelEnabled}
-              onChange={(e) => setKey("bevelEnabled")(e.target.checked)}
-              className="uf-clickable"
-            />
-            Bevel / emboss
-          </label>
+          <Switch
+            label={<>Bevel / emboss</>}
+            checked={state.bevelEnabled}
+            onChange={(checked) => setKey("bevelEnabled")(checked)}
+          />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <SizeControl
               label="Bevel size (px)"

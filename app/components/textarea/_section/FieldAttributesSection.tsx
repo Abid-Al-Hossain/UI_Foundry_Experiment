@@ -5,6 +5,8 @@ import { SectionCard, LabeledField, Segmented } from "@/app/components/controls/
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import { type TextareaSetter, type TextareaState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function FieldAttributesSection({
   state,
@@ -21,61 +23,33 @@ export default function FieldAttributesSection({
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <LabeledField label="ID Attribute">
-            <input
+            <Input
               value={state.id}
-              onChange={(e) => setKey("id")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("id")(e.target.value)}
+             />
           </LabeledField>
           <LabeledField label="Name Attribute">
-            <input
+            <Input
               value={state.name}
-              onChange={(e) => setKey("name")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("name")(e.target.value)}
+             />
           </LabeledField>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <LabeledField label="Title">
-            <input
+            <Input
               value={state.title}
-              onChange={(e) => setKey("title")(e.target.value)}
+              onNativeChange={(e) => setKey("title")(e.target.value)}
               placeholder="Helpful browser tooltip"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
           <LabeledField label="Tab Index">
-            <input
+            <Input
               type="number"
               value={state.tabIndex}
-              onChange={(e) => setKey("tabIndex")(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("tabIndex")(Number(e.target.value))}
+             />
           </LabeledField>
         </div>
 
@@ -92,18 +66,11 @@ export default function FieldAttributesSection({
             />
           </LabeledField>
           <LabeledField label="Language">
-            <input
+            <Input
               value={state.lang}
-              onChange={(e) => setKey("lang")(e.target.value)}
+              onNativeChange={(e) => setKey("lang")(e.target.value)}
               placeholder="en-US"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         </div>
 
@@ -188,21 +155,12 @@ export default function FieldAttributesSection({
           </LabeledField>
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            id="textarea-spellcheck-field"
-            type="checkbox"
-            checked={state.spellcheck}
-            onChange={(e) => setKey("spellcheck")(e.target.checked)}
-          />
-          <label
-            htmlFor="textarea-spellcheck-field"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Spellcheck
-          </label>
-        </div>
+        <Switch
+          label={<>Spellcheck</>}
+          id="textarea-spellcheck-field"
+          checked={state.spellcheck}
+          onChange={(checked) => setKey("spellcheck")(checked)}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <SizeControl
@@ -247,37 +205,23 @@ export default function FieldAttributesSection({
             label="Max Length"
             hint={state.maxLength === 0 ? "off" : `${state.maxLength}`}
           >
-            <input
+            <Input
               type="number"
               min={0}
               value={state.maxLength}
-              onChange={(e) => setKey("maxLength")(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("maxLength")(Number(e.target.value))}
+             />
           </LabeledField>
           <LabeledField
             label="Min Length"
             hint={state.minLength === 0 ? "off" : `${state.minLength}`}
           >
-            <input
+            <Input
               type="number"
               min={0}
               value={state.minLength}
-              onChange={(e) => setKey("minLength")(Number(e.target.value))}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("minLength")(Number(e.target.value))}
+             />
           </LabeledField>
         </div>
 

@@ -5,6 +5,9 @@ import { SectionCard, LabeledField, Segmented } from "@/app/components/controls/
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Textarea from "@/app/components/controls/input/Textarea";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#334155",
@@ -29,21 +32,12 @@ export default function AdornmentsSection({
       subtitle="Icons, prefix and suffix content, clear action, and password reveal."
     >
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            id="input-icon-enabled"
-            type="checkbox"
-            checked={state.iconEnabled}
-            onChange={(e) => setKey("iconEnabled")(e.target.checked)}
-          />
-          <label
-            htmlFor="input-icon-enabled"
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Show Inline Icon
-          </label>
-        </div>
+        <Switch
+          label={<>Show Inline Icon</>}
+          id="input-icon-enabled"
+          checked={state.iconEnabled}
+          onChange={(checked) => setKey("iconEnabled")(checked)}
+        />
 
         {state.iconEnabled && (
           <>
@@ -74,50 +68,29 @@ export default function AdornmentsSection({
               onChange={setKey("iconColor")}
             />
             <LabeledField label="Icon SVG">
-              <textarea
+              <Textarea
                 rows={4}
                 value={state.iconSvg}
-                onChange={(e) => setKey("iconSvg")(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none font-mono"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
+                onNativeChange={(e) => setKey("iconSvg")(e.target.value)}
+               />
             </LabeledField>
           </>
         )}
 
         <div className="grid grid-cols-2 gap-3">
           <LabeledField label="Prefix Text">
-            <input
+            <Input
               value={state.prefixText}
-              onChange={(e) => setKey("prefixText")(e.target.value)}
+              onNativeChange={(e) => setKey("prefixText")(e.target.value)}
               placeholder="https://"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
           <LabeledField label="Suffix Text">
-            <input
+            <Input
               value={state.suffixText}
-              onChange={(e) => setKey("suffixText")(e.target.value)}
+              onNativeChange={(e) => setKey("suffixText")(e.target.value)}
               placeholder=".com"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         </div>
 
@@ -137,40 +110,19 @@ export default function AdornmentsSection({
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2">
-            <input
-              id="input-clear-button"
-              type="checkbox"
-              checked={state.showClearButton}
-              onChange={(e) => setKey("showClearButton")(e.target.checked)}
-            />
-            <label
-              htmlFor="input-clear-button"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Show Clear Action
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="input-password-toggle"
-              type="checkbox"
-              checked={state.showPasswordToggle}
-              onChange={(e) => setKey("showPasswordToggle")(e.target.checked)}
-              disabled={state.inputType !== "password"}
-            />
-            <label
-              htmlFor="input-password-toggle"
-              className="text-sm uf-clickable"
-              style={{
-                color:
-                  state.inputType === "password" ? "var(--text)" : "var(--muted)",
-              }}
-            >
-              Show Password Reveal
-            </label>
-          </div>
+          <Switch
+            label={<>Show Clear Action</>}
+            id="input-clear-button"
+            checked={state.showClearButton}
+            onChange={(checked) => setKey("showClearButton")(checked)}
+          />
+          <Switch
+            label={<>Show Password Reveal</>}
+            id="input-password-toggle"
+            checked={state.showPasswordToggle}
+            onChange={(checked) => setKey("showPasswordToggle")(checked)}
+            disabled={state.inputType !== "password"}
+          />
         </div>
       </div>
     </SectionCard>

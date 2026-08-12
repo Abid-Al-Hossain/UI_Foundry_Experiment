@@ -7,6 +7,7 @@ import GradientControl from "@/app/components/controls/effects/GradientControl";
 
 import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 import { PALETTE } from "../_data/buttonConstants";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function ColorsSection({
   state,
@@ -56,22 +57,12 @@ export default function ColorsSection({
       <div className="space-y-5">
         {/* Gradient Toggle (Solid Only) */}
         {!ghost && !outline && (
-          <div className="flex items-center gap-2">
-            <input
-              id="grad-toggle"
-              type="checkbox"
-              checked={state.useGradient}
-              onChange={(e) => setKey("useGradient")(e.target.checked)}
-              className="uf-clickable"
-            />
-            <label
-              htmlFor="grad-toggle"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Use Gradient
-            </label>
-          </div>
+          <Switch
+            label={<>Use Gradient</>}
+            id="grad-toggle"
+            checked={state.useGradient}
+            onChange={(checked) => setKey("useGradient")(checked)}
+          />
         )}
 
         <div className="flex flex-col gap-5">

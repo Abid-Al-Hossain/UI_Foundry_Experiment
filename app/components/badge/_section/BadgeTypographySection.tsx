@@ -3,11 +3,20 @@
 import React from "react";
 import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import {
+  TypographySpacingControl,
+  TypographyStyleControl,
+} from "@/app/components/controls/typography/TypographyControl";
+import type { TextTransform } from "@/app/components/controls/typography/TextDecorationControl";
 
 export default function BadgeTypographySection(props: {
   showIcon: boolean;
   fontSize: number;
   setFontSize: (v: number) => void;
+  letterSpacing: number;
+  setLetterSpacing: (v: number) => void;
+  textTransform: TextTransform;
+  setTextTransform: (v: TextTransform) => void;
   iconSize: number;
   setIconSize: (v: number) => void;
   iconGap: number;
@@ -19,16 +28,20 @@ export default function BadgeTypographySection(props: {
       subtitle="Label scale and icon rhythm for the badge content."
     >
       <div className="space-y-4">
-        <SizeControl
-          label="Font Size (px)"
-          value={props.fontSize}
-          onChange={props.setFontSize}
-          min={8}
-          max={48}
-          step={1}
+        <TypographyStyleControl
+          fontSize={props.fontSize}
+          setFontSize={props.setFontSize}
+          fontSizeMin={8}
+          fontSizeMax={48}
+          textTransform={props.textTransform}
+          setTextTransform={props.setTextTransform}
+        />
+        <TypographySpacingControl
+          letterSpacing={props.letterSpacing}
+          setLetterSpacing={props.setLetterSpacing}
         />
 
-        <LabeledField label="Icon Rhythm">
+        <LabeledField label="Icon rhythm">
           <div className="grid grid-cols-2 gap-4">
             <SizeControl
               label="Icon Size (%)"

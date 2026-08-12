@@ -10,6 +10,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import BorderControl from "@/app/components/controls/layout/BorderControl";
 import { type CheckboxState, type CheckboxSetter } from "../types";
+import Textarea from "@/app/components/controls/input/Textarea";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -131,19 +132,12 @@ export default function StylingSection({
               label="Custom SVG"
               hint="Inline SVG markup for the checkmark"
             >
-              <textarea
+              <Textarea
                 value={state.customCheckmarkSvg}
-                onChange={(e) => setKey("customCheckmarkSvg")(e.target.value)}
+                onNativeChange={(e) => setKey("customCheckmarkSvg")(e.target.value)}
                 rows={5}
-                className="w-full rounded-xl border px-3 py-2 font-mono text-xs outline-none"
                 placeholder="<svg viewBox=&quot;0 0 16 16&quot;>...</svg>"
-                style={{
-                  borderColor: "var(--border)",
-                  background:
-                    "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
+               />
             </LabeledField>
           ) : null}
         </div>

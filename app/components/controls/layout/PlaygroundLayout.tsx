@@ -16,7 +16,7 @@ interface PlaygroundLayoutProps {
 const RESIZER_WIDTH = 8;
 const COLUMN_GAP = 24;
 const RIGHT_MIN_WIDTH = 360;
-const DESKTOP_MIN_WIDTH = 1024;
+const DESKTOP_MIN_WIDTH = 760;
 
 export function PlaygroundLayout({
   title,
@@ -100,11 +100,19 @@ export function PlaygroundLayout({
   return (
     <div
       ref={splitRef}
-      className="flex h-full flex-col gap-6 overflow-y-auto lg:min-h-0 lg:flex-row lg:overflow-hidden"
+      className={`flex h-full gap-6 ${
+        isDesktop
+          ? "min-h-0 flex-row overflow-hidden"
+          : "flex-col overflow-y-auto"
+      }`}
       style={{ "--left-panel-width": `${leftPanelWidth}px` } as React.CSSProperties}
     >
       <ScrollArea
-        className="flex-1 space-y-6 px-4 lg:h-full lg:min-h-0 lg:overscroll-contain lg:px-6 lg:pb-10"
+        className={`flex-1 space-y-6 px-4 ${
+          isDesktop
+            ? "h-full min-h-0 overscroll-contain px-6 pb-10"
+            : "pb-6"
+        }`}
         style={{
           scrollbarGutter: "stable",
           width: isDesktop ? "var(--left-panel-width, 520px)" : "100%",
@@ -119,7 +127,7 @@ export function PlaygroundLayout({
         {controls}
       </ScrollArea>
 
-      <div className="hidden lg:flex lg:items-stretch">
+      {isDesktop ? <div className="flex items-stretch">
         <div
           role="separator"
           aria-label="Resize editor and preview panels"
@@ -137,9 +145,12 @@ export function PlaygroundLayout({
           style={{ background: "color-mix(in oklab, var(--border) 80%, transparent)" }}
           title="Drag or use arrow keys to resize panels"
         />
-      </div>
+      </div> : null}
 
-      <div className="flex-1 lg:h-full lg:min-h-0 lg:pb-0" style={{ minWidth: isDesktop ? RIGHT_MIN_WIDTH : 0 }}>
+      <div
+        className={`flex-1 ${isDesktop ? "h-full min-h-0 pb-0" : "min-h-[680px]"}`}
+        style={{ minWidth: isDesktop ? RIGHT_MIN_WIDTH : 0 }}
+      >
         <div className="h-full w-full">{preview}</div>
       </div>
     </div>

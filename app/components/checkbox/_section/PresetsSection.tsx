@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { SectionCard } from "@/app/components/controls/ui";
+import { FilterSelect, SectionCard } from "@/app/components/controls/ui";
 import type { CheckboxPreset } from "../_data/presets";
+import Input from "@/app/components/controls/input/Input";
+import { isPresetStateApplied } from "@/app/components/controls/presets/findActivePresetId";
 
 type Props = {
   state: { downloadName: string };
@@ -65,7 +67,6 @@ export default function PresetsSection({ state, presets, onApply }: Props) {
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const visible = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
-  const activePresetName = state.downloadName;
   const resultLabel = `${filtered.length} ${filtered.length === 1 ? "match" : "matches"}`;
 
   const reset = () => {
@@ -93,20 +94,14 @@ export default function PresetsSection({ state, presets, onApply }: Props) {
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted-text)" }}>
               Search presets
             </span>
-            <input
+            <Input
               value={query}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setQuery(event.target.value);
                 setPage(0);
               }}
               placeholder="Name, family, archetype, variant, tag"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </label>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -212,7 +207,7 @@ export default function PresetsSection({ state, presets, onApply }: Props) {
             </div>
           ) : (
             visible.map((preset) => {
-              const active = activePresetName === preset.state.downloadName;
+              const active = isPresetStateApplied(state, preset.state);
               return (
                 <article
                   key={preset.id}
@@ -261,59 +256,6 @@ export default function PresetsSection({ state, presets, onApply }: Props) {
         </div>
       </div>
     </SectionCard>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-  onReset,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: string[];
-  onReset: () => void;
-}) {
-  return (
-    <label className="space-y-2">
-      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted-text)" }}>
-        {label}
-      </span>
-      <div className="flex gap-2">
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-          style={{
-            borderColor: "var(--border)",
-            background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-            color: "var(--text)",
-          }}
-        >
-          <option value="all">All</option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={onReset}
-          className="rounded-xl border px-3 py-2 text-xs font-semibold uf-clickable"
-          style={{
-            borderColor: "var(--border)",
-            background: "var(--surface)",
-            color: "var(--text)",
-          }}
-        >
-          All
-        </button>
-      </div>
-    </label>
   );
 }
 

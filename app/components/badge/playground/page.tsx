@@ -1,14 +1,7 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useDeferredValue,
-} from "react";
+import { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import LivePreview from "../_section/LivePreview";
 // Fix IDE staleness
@@ -38,13 +31,11 @@ import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 
 // --- Types ---
 // --- Types ---
-import {
-  type BadgeState,
-  INITIAL_BADGE_STATE,
-} from "../types";
+import { type BadgeState, INITIAL_BADGE_STATE } from "../types";
+import { BADGE_PRESETS } from "../_data/badgePresets";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 
 export default function BadgePage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -273,20 +264,6 @@ export default function BadgePage() {
     [deferredExportPayload],
   );
 
-  const handleDownload = () => {
-    const { content, filename } = buildBadgeExportPayload(exportPayload);
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const sectionItems = [
     {
       id: "presets",
@@ -294,6 +271,11 @@ export default function BadgePage() {
       content: (
         <PresetsSection
           state={state}
+          activePresetId={findActivePresetId(
+            state,
+            INITIAL_BADGE_STATE,
+            BADGE_PRESETS,
+          )}
           applyPreset={(preset) => {
             updateState((current) => ({ ...current, ...preset.state }));
             setPreviewResetKey((value) => value + 1);
@@ -371,6 +353,10 @@ export default function BadgePage() {
           showIcon={showIcon}
           fontSize={fontSize}
           setFontSize={makeSetter("fontSize")}
+          letterSpacing={letterSpacing}
+          setLetterSpacing={makeSetter("letterSpacing")}
+          textTransform={textTransform}
+          setTextTransform={makeSetter("textTransform")}
           iconSize={iconSize}
           setIconSize={makeSetter("iconSize")}
           iconGap={iconGap}
@@ -505,8 +491,8 @@ export default function BadgePage() {
     <>
       <SectionSelector
         sections={sectionItems}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
 
       {activePanel?.content}
@@ -515,20 +501,13 @@ export default function BadgePage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

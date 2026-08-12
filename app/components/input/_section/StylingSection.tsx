@@ -10,6 +10,7 @@ import ColorControl from "@/app/components/controls/color/ColorControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import BorderControl from "@/app/components/controls/layout/BorderControl";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Switch from "@/app/components/controls/input/Switch";
 
 const PRESET_COLORS = [
   "#cbd5e1",
@@ -99,21 +100,12 @@ export default function StylingSection({
             max={50}
             step={1}
           />
-          <div className="flex items-center gap-2">
-            <input
-              id="link-radius"
-              type="checkbox"
-              checked={state.linkRadius}
-              onChange={(e) => setKey("linkRadius")(e.target.checked)}
-            />
-            <label
-              htmlFor="link-radius"
-              className="text-xs uf-clickable"
-              style={{ color: "var(--muted)" }}
-            >
-              Link all corners
-            </label>
-          </div>
+          <Switch
+            label={<>Link all corners</>}
+            id="link-radius"
+            checked={state.linkRadius}
+            onChange={(checked) => setKey("linkRadius")(checked)}
+          />
           {!state.linkRadius && (
             <div className="grid grid-cols-3 gap-2">
               <SizeControl
@@ -158,21 +150,12 @@ export default function StylingSection({
             value={state.backgroundColor}
             onChange={setKey("backgroundColor")}
           />
-          <div className="flex items-center gap-2">
-            <input
-              id="use-gradient"
-              type="checkbox"
-              checked={state.useGradient}
-              onChange={(e) => setKey("useGradient")(e.target.checked)}
-            />
-            <label
-              htmlFor="use-gradient"
-              className="text-xs uf-clickable"
-              style={{ color: "var(--muted)" }}
-            >
-              Gradient
-            </label>
-          </div>
+          <Switch
+            label={<>Gradient</>}
+            id="use-gradient"
+            checked={state.useGradient}
+            onChange={(checked) => setKey("useGradient")(checked)}
+          />
           {state.useGradient && (
             <>
               <SizeControl

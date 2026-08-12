@@ -1,19 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
-import {
-  INITIAL_PROGRESS_STATE,
-  type ProgressLabelsUpdater,
-  type ProgressState,
-  type ProgressUpdater,
-} from "../types";
+import { INITIAL_PROGRESS_STATE, type ProgressLabelsUpdater, type ProgressState, type ProgressUpdater } from "../types";
 import { buildProgressExport } from "../_utils/exportUtils";
 import { ProgressPreview } from "../_components/ProgressPreview";
 import { PROGRESS_PRESETS } from "../_data/progressPresets";
@@ -37,7 +31,6 @@ import ThreeDSection from "../_section/ThreeDSection";
 import StatePreviewSection from "../_section/StatePreviewSection";
 import StatesSection from "../_section/StatesSection";
 export default function ProgressBarPlayground() {
-  const mounted = useHydrated();
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
   const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
@@ -158,8 +151,8 @@ export default function ProgressBarPlayground() {
     <div className="p-6 space-y-8">
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {renderActiveSection()}
     </div>
@@ -176,33 +169,15 @@ export default function ProgressBarPlayground() {
 
   const exportCode = useMemo(() => buildProgressExport(exportPayload), [exportPayload]);
 
-  const handleDownload = () => {
-    const { content, filename } = buildProgressExport(exportPayload);
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc="" // We use inline React preview for progress bar
-      iframeRef={{ current: null }}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
       downloadName={state.downloadName || "progress"}
-      setDownloadFormat={() => {}}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<ProgressPreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<ProgressPreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

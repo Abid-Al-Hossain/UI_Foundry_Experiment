@@ -12,6 +12,7 @@ import {
   type IconName as LocalIconName,
   type IconSource as LocalIconSource,
 } from "../_data/buttonConstants";
+import Switch from "@/app/components/controls/input/Switch";
 
 // Re-export for compatibility if needed, or just align types
 export type { IconName, IconSource };
@@ -138,19 +139,12 @@ export default function IconSection(props: {
       className="rounded-xl border p-3"
       style={{ borderColor: "var(--border)" }}
     >
-      <label
-        className="flex items-center gap-2 text-sm uf-clickable"
-        style={{ color: "var(--text)" }}
-      >
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(e) => setEnabled(e.target.checked)}
-          className="uf-clickable"
-          aria-label={`${label} icon override`}
-        />
-        {label} icon override
-      </label>
+      <Switch
+        label={<>{label} icon override</>}
+        checked={enabled}
+        onChange={(checked) => setEnabled(checked)}
+        aria-label={`${label} icon override`}
+      />
       {note ? (
         <div className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
           {note}

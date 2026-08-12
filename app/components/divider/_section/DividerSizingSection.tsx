@@ -7,6 +7,7 @@ import {
   Segmented,
 } from "@/app/components/controls/ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Input from "@/app/components/controls/input/Input";
 
 type SetterValue<T> = T | ((prev: T) => T);
 type DividerSetter = <K extends keyof DividerState>(
@@ -39,13 +40,12 @@ export default function DividerSizingSection({
         </LabeledField>
 
         <LabeledField label="Width / Height">
-          <input
+          <Input
             type="text"
             value={width}
-            onChange={(e) => setKey("width")(e.target.value)}
-            className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-slate-300 outline-none transition-colors focus:border-blue-500"
+            onNativeChange={(e) => setKey("width")(e.target.value)}
             placeholder="e.g. 100%, 300px"
-          />
+           />
         </LabeledField>
 
         <SizeControl

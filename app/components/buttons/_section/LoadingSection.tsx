@@ -2,6 +2,8 @@
 
 import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
+import Input from "@/app/components/controls/input/Input";
+import Textarea from "@/app/components/controls/input/Textarea";
 
 export type LoadingSpinnerMode = "default" | "custom" | "none";
 export type LoadingSpinnerPosition = "left" | "right";
@@ -23,16 +25,10 @@ export default function LoadingSection(props: {
     <SectionCard title="Loading" subtitle="Label and spinner overrides.">
       <div className="space-y-4">
         <LabeledField label="Loading label">
-          <input
+          <Input
             value={props.loadingLabel}
-            onChange={(e) => props.setLoadingLabel(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => props.setLoadingLabel(e.target.value)}
+           />
         </LabeledField>
 
         <LabeledField label="Spinner position">
@@ -60,18 +56,12 @@ export default function LoadingSection(props: {
 
         {props.loadingSpinnerMode === "custom" ? (
           <LabeledField label="Custom spinner SVG">
-            <textarea
+            <Textarea
               value={props.loadingSpinnerSvg}
-              onChange={(e) => props.setLoadingSpinnerSvg(e.target.value)}
+              onNativeChange={(e) => props.setLoadingSpinnerSvg(e.target.value)}
               placeholder="<svg ...>...</svg>"
               rows={4}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         ) : null}
       </div>

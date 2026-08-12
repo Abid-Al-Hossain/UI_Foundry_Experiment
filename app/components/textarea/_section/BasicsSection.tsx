@@ -3,6 +3,9 @@
 import React from "react";
 import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import { type TextareaSetter, type TextareaState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Textarea from "@/app/components/controls/input/Textarea";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function BasicsSection({
   state,
@@ -18,81 +21,39 @@ export default function BasicsSection({
     >
       <div className="space-y-4">
         <LabeledField label="Placeholder">
-          <input
+          <Input
             value={state.placeholder}
-            onChange={(e) => setKey("placeholder")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("placeholder")(e.target.value)}
+           />
         </LabeledField>
 
         <LabeledField label="Default Value">
-          <textarea
+          <Textarea
             value={state.defaultValue}
-            onChange={(e) => setKey("defaultValue")(e.target.value)}
+            onNativeChange={(e) => setKey("defaultValue")(e.target.value)}
             rows={2}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-              resize: "vertical",
-            }}
-          />
+           />
         </LabeledField>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="ta-req"
-              type="checkbox"
-              checked={state.required}
-              onChange={(e) => setKey("required")(e.target.checked)}
-            />
-            <label
-              htmlFor="ta-req"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Required
-            </label>
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="ta-disabled"
-              type="checkbox"
-              checked={state.disabled}
-              onChange={(e) => setKey("disabled")(e.target.checked)}
-            />
-            <label
-              htmlFor="ta-disabled"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Disabled
-            </label>
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="ta-readonly"
-              type="checkbox"
-              checked={state.readOnly}
-              onChange={(e) => setKey("readOnly")(e.target.checked)}
-            />
-            <label
-              htmlFor="ta-readonly"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Read Only
-            </label>
-          </div>
+          <Switch
+            label={<>Required</>}
+            id="ta-req"
+            checked={state.required}
+            onChange={(checked) => setKey("required")(checked)}
+          />
+          <Switch
+            label={<>Disabled</>}
+            id="ta-disabled"
+            checked={state.disabled}
+            onChange={(checked) => setKey("disabled")(checked)}
+          />
+          <Switch
+            label={<>Read Only</>}
+            id="ta-readonly"
+            checked={state.readOnly}
+            onChange={(checked) => setKey("readOnly")(checked)}
+          />
         </div>
       </div>
     </SectionCard>

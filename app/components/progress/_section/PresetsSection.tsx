@@ -6,6 +6,8 @@ import { SectionCard, LabeledField, FilterSelect } from "@/app/components/contro
 import Select from "@/app/components/controls/input/Select";
 import type { ProgressPreset } from "../_data/progressPresets";
 import type { ProgressState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import { isPresetStateApplied } from "@/app/components/controls/presets/findActivePresetId";
 
 const PAGE_SIZE = 12;
 
@@ -220,7 +222,6 @@ export default function PresetsSection({
     setPage(targetPage);
   };
 
-  const activeName = state.downloadName || "";
 
   return (
     <SectionCard
@@ -230,22 +231,15 @@ export default function PresetsSection({
       <div className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <LabeledField label="Search presets" hint={resultLabel}>
-            <input
+            <Input
               value={query}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setPageDirection(0);
                 setQuery(event.target.value);
                 setPage(0);
               }}
               placeholder="Search by name, family, mode, or tag"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
 
           <LabeledField label="Mode">
@@ -392,7 +386,7 @@ export default function PresetsSection({
                 </div>
               ) : (
                 visible.map((preset, index) => {
-                  const active = activeName === preset.state.downloadName;
+                  const active = isPresetStateApplied(state, preset.state);
 
                   return (
                     <motion.div

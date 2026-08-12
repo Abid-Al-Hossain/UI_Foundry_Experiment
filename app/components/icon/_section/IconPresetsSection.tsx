@@ -2,6 +2,9 @@ import React, { useMemo, useState } from "react";
 import { SectionCard as Section } from "@/app/components/controls/layout/SectionCard";
 import { ICON_PRESETS } from "../_data/iconPresets";
 import type { IconState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
+import { isPresetStateApplied } from "@/app/components/controls/presets/findActivePresetId";
 
 type Props = {
   state: IconState;
@@ -100,37 +103,26 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
                 Search presets
               </span>
-              <input
+              <Input
                 value={query}
-                onChange={(event) => {
+                onNativeChange={(event) => {
                   setPage(0);
                   setQuery(event.target.value);
                 }}
                 placeholder="Search by label, description, or tag"
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
-                }}
-              />
+               />
             </label>
 
             <label className="space-y-2">
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
                 Filter by family
               </span>
-              <select
+              <Select
+                options={[]}
                 value={family}
-                onChange={(event) => {
+                onNativeChange={(event) => {
                   setPage(0);
                   setFamily(event.target.value);
-                }}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
                 }}
               >
                 <option value="all">All families</option>
@@ -139,7 +131,7 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
 
@@ -148,17 +140,12 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
                 Filter by archetype
               </span>
-              <select
+              <Select
+                options={[]}
                 value={archetype}
-                onChange={(event) => {
+                onNativeChange={(event) => {
                   setPage(0);
                   setArchetype(event.target.value);
-                }}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
                 }}
               >
                 <option value="all">All archetypes</option>
@@ -167,24 +154,19 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
 
             <label className="space-y-2">
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
                 Filter by size
               </span>
-              <select
+              <Select
+                options={[]}
                 value={size}
-                onChange={(event) => {
+                onNativeChange={(event) => {
                   setPage(0);
                   setSize(event.target.value);
-                }}
-                className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                  color: "var(--text)",
                 }}
               >
                 <option value="all">All sizes</option>
@@ -193,7 +175,7 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
 
@@ -242,7 +224,7 @@ export default function IconPresetsSection({ state, applyPreset }: Props) {
               </div>
             ) : (
               visible.map((preset, index) => {
-                const active = state.ariaLabel === (preset.state.ariaLabel ?? "");
+                const active = isPresetStateApplied(state, preset.state);
                 return (
                   <div
                     key={preset.id}

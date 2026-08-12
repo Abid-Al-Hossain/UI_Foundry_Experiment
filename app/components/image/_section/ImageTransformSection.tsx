@@ -5,6 +5,8 @@ import type { ImageState } from "../types";
 import Slider from "@/app/components/controls/input/Slider";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 import Switch from "@/app/components/controls/input/Switch";
+import Select from "@/app/components/controls/input/Select";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 
 interface ImageTransformSectionProps {
   state: ImageState;
@@ -73,7 +75,11 @@ export default function ImageTransformSection({
     };
 
   return (
-    <div className="space-y-8">
+    <SectionCard
+      title="Transform"
+      subtitle="Scale, position, rotation, perspective, and transform origin."
+    >
+      <div className="space-y-8">
       {/* 2D Transforms */}
       <div className="space-y-4">
         <h3
@@ -218,18 +224,24 @@ export default function ImageTransformSection({
           Transform Origin
         </h3>
         <LabeledField label="Origin">
-          <select
+          <Select
             value={state.transformOrigin}
-            onChange={(e) => setKey("transformOrigin")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{ borderColor: "var(--border)", background: "color-mix(in oklab, var(--surface) 70%, transparent)", color: "var(--text)" }}
-          >
-            {["center", "top left", "top center", "top right", "center left", "center right", "bottom left", "bottom center", "bottom right"].map((o) => (
-              <option key={o} value={o}>{o}</option>
-            ))}
-          </select>
+            onChange={setKey("transformOrigin")}
+            options={[
+              "center",
+              "top left",
+              "top center",
+              "top right",
+              "center left",
+              "center right",
+              "bottom left",
+              "bottom center",
+              "bottom right",
+            ]}
+          />
         </LabeledField>
       </div>
-    </div>
+      </div>
+    </SectionCard>
   );
 }

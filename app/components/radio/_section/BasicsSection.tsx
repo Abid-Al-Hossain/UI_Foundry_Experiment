@@ -7,6 +7,8 @@ import {
   Segmented,
 } from "@/app/components/controls/ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 import { RadioState, RadioOption, RadioSetter } from "../types";
 
 export default function BasicsSection({
@@ -136,45 +138,28 @@ export default function BasicsSection({
             >
               <input
                 type="radio"
+                data-native-anatomy="radio-option-selector"
                 name="opts-preview"
                 checked={state.selectedValue === opt.value}
                 onChange={() => setKey("selectedValue")(opt.value)}
               />
-              <input
+              <Input
                 value={opt.value}
-                onChange={(e) => updateOption(idx, "value", e.target.value)}
+                onChange={(value) => updateOption(idx, "value", value)}
                 className="w-24 rounded border px-2 py-1 text-xs outline-none font-mono"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "transparent",
-                  color: "var(--text)",
-                }}
                 placeholder="value"
               />
-              <input
+              <Input
                 value={opt.label}
-                onChange={(e) => updateOption(idx, "label", e.target.value)}
+                onChange={(value) => updateOption(idx, "label", value)}
                 className="flex-1 rounded border px-2 py-1 text-xs outline-none"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "transparent",
-                  color: "var(--text)",
-                }}
                 placeholder="label"
               />
-              <label
-                className="flex items-center gap-1 text-xs"
-                style={{ color: "var(--muted)" }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!opt.disabled}
-                  onChange={(e) =>
-                    updateOption(idx, "disabled", e.target.checked)
-                  }
-                />{" "}
-                off
-              </label>
+              <Switch
+                aria-label={`Disable ${opt.label || `option ${idx + 1}`}`}
+                checked={!!opt.disabled}
+                onChange={(checked) => updateOption(idx, "disabled", checked)}
+              />
               {state.options.length > 2 && (
                 <button
                   type="button"

@@ -6,6 +6,7 @@ import SizeControl from "@/app/components/controls/input/SizeControl";
 import Select from "@/app/components/controls/input/Select";
 import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
 import { type TextareaSetter, type TextareaState } from "../types";
+import Input from "@/app/components/controls/input/Input";
 
 export default function EffectsSection({
   state,
@@ -68,17 +69,10 @@ export default function EffectsSection({
             />
           </LabeledField>
           <LabeledField label="Property">
-            <input
+            <Input
               value={state.transitionProperty}
-              onChange={(e) => setKey("transitionProperty")(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none font-mono"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+              onNativeChange={(e) => setKey("transitionProperty")(e.target.value)}
+             />
           </LabeledField>
         </div>
       </div>

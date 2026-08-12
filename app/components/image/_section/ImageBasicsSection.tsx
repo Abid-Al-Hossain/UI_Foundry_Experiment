@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import type { ImageState } from "../types";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
+import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import Input from "@/app/components/controls/input/Input";
 import { IMAGE_PRESETS as presets } from "../types";
@@ -24,7 +25,11 @@ export default function ImageBasicsSection({
     };
 
   return (
-    <div className="space-y-6">
+    <SectionCard
+      title="Basics"
+      subtitle="Image source, dimensions, aspect ratio, and object fit."
+    >
+      <div className="space-y-6">
       {/* Target Source */}
       <LabeledField label="Image Source" hint="">
         <div className="space-y-3">
@@ -162,7 +167,7 @@ export default function ImageBasicsSection({
           ]}
         />
       </LabeledField>
-
-    </div>
+      </div>
+    </SectionCard>
   );
 }

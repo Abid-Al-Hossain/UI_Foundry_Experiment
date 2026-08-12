@@ -3,6 +3,7 @@
 import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
+import Input from "@/app/components/controls/input/Input";
 
 export type MinTouchMode = "off" | "warn" | "enforce";
 
@@ -37,18 +38,11 @@ export default function AccessibilitySection(props: {
           follows Loading.
         </div>
         <LabeledField label="Aria label">
-          <input
+          <Input
             value={props.ariaLabel}
-            onChange={(e) => props.setAriaLabel(e.target.value)}
+            onNativeChange={(e) => props.setAriaLabel(e.target.value)}
             placeholder="Optional (for icon-only buttons)"
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+           />
         </LabeledField>
 
         <LabeledField label="Aria pressed">

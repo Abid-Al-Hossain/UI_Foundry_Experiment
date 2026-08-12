@@ -2,6 +2,7 @@
 
 import React from "react";
 import { LabeledField } from "@/app/components/controls/ui";
+import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
 import { SegmentedControl } from "../input/SegmentedControl";
 // Types extracted from Typography section
@@ -32,15 +33,19 @@ type SimpleFontFamilySelectProps = {
 };
 
 const SIMPLE_FONT_OPTIONS = [
-  "Inter",
-  "Geist",
-  "Manrope",
-  "Sora",
-  "Space Grotesk",
-  "JetBrains Mono",
-  "Georgia",
-  "Times New Roman",
-];
+  { value: "sans-serif", label: "System Sans" },
+  { value: "serif", label: "System Serif" },
+  { value: "monospace", label: "System Mono" },
+  { value: "ui-rounded, sans-serif", label: "System Rounded" },
+  { value: "Inter", label: "Inter" },
+  { value: "Geist", label: "Geist" },
+  { value: "Manrope", label: "Manrope" },
+  { value: "Sora", label: "Sora" },
+  { value: "Space Grotesk", label: "Space Grotesk" },
+  { value: "JetBrains Mono", label: "JetBrains Mono" },
+  { value: "Georgia", label: "Georgia" },
+  { value: "Times New Roman", label: "Times New Roman" },
+] as const;
 
 const isSimpleFontSelect = (
   props: FullFontFamilySelectProps | SimpleFontFamilySelectProps,
@@ -79,25 +84,15 @@ export default function FontFamilySelect(
       />
 
       <div className="grid gap-3">
-        {/* Search Input */}
         <LabeledField label="Search font">
-          <input
+          <Input
             value={props.fontSearch}
-            onChange={(e) => props.setFontSearch(e.target.value)}
+            onChange={props.setFontSearch}
             placeholder="Type to search (A-Z)"
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
           />
         </LabeledField>
-        {/* Font List */}
-        {/* Font List */}
         <LabeledField
-          label="Font family (A–Z)"
+          label="Font family (A-Z)"
           hint={
             props.fontBucket === "system"
               ? `${props.filteredSystemFonts.length} fonts`

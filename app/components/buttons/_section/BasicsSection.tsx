@@ -4,6 +4,8 @@ import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
 
 import { ActionButtonState, ActionButtonFieldSetter } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 export type ButtonVariant = "solid" | "outline" | "ghost";
 
@@ -18,17 +20,10 @@ export default function BasicsSection({
     <SectionCard title="Basics" subtitle="Label, variant, and states.">
       <div className="space-y-4">
         <LabeledField label="Label">
-          <input
+          <Input
             value={state.label}
-            onChange={(e) => setKey("label")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("label")(e.target.value)}
+           />
         </LabeledField>
 
         <LabeledField label="Variant">
@@ -44,37 +39,19 @@ export default function BasicsSection({
         </LabeledField>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="disabled-check"
-              type="checkbox"
-              checked={state.disabled}
-              onChange={(e) => setKey("disabled")(e.target.checked)}
-            />
-            <label
-              htmlFor="disabled-check"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Disabled
-            </label>
-          </div>
+          <Switch
+            label={<>Disabled</>}
+            id="disabled-check"
+            checked={state.disabled}
+            onChange={(checked) => setKey("disabled")(checked)}
+          />
 
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="loading-check"
-              type="checkbox"
-              checked={state.loading}
-              onChange={(e) => setKey("loading")(e.target.checked)}
-            />
-            <label
-              htmlFor="loading-check"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Loading
-            </label>
-          </div>
+          <Switch
+            label={<>Loading</>}
+            id="loading-check"
+            checked={state.loading}
+            onChange={(checked) => setKey("loading")(checked)}
+          />
         </div>
 
       </div>

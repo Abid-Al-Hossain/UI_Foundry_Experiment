@@ -1,39 +1,9 @@
 "use client";
 
 import React from "react";
+import Select, { type SelectOption } from "./input/Select";
 
-export function SectionCard(props: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="rounded-2xl border p-4"
-      style={{
-        borderColor: "var(--border)",
-        background: "color-mix(in oklab, var(--card) 70%, transparent)",
-      }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div
-            className="text-sm font-semibold"
-            style={{ color: "var(--text)" }}
-          >
-            {props.title}
-          </div>
-          {props.subtitle ? (
-            <div className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
-              {props.subtitle}
-            </div>
-          ) : null}
-        </div>
-      </div>
-      <div className="mt-4">{props.children}</div>
-    </div>
-  );
-}
+export { SectionCard } from "./layout/SectionCard";
 
 export { LabeledField } from "./layout/LabeledField";
 
@@ -51,30 +21,51 @@ export function FilterSelect(props: {
   value: string;
   onChange: (value: string) => void;
   items?: { value: string; label: string }[];
-  options?: { value: string; label: string }[];
+  options?: ({ value: string; label: string } | string)[];
+  label?: string;
+  onReset?: () => void;
   id?: string;
   "aria-label"?: string;
 }) {
-  const opts = props.items ?? props.options ?? [];
-  return (
-    <select
+  const source = props.items ?? props.options ?? [];
+  const options: SelectOption[] = source.map((option) =>
+    typeof option === "string" ? { value: option, label: option } : option,
+  );
+  if (!options.some((option) => option.value === "all")) {
+    options.unshift({ value: "all", label: "All" });
+  }
+  const select = (
+    <Select
       id={props.id}
-      aria-label={props["aria-label"]}
+      aria-label={props["aria-label"] ?? props.label}
       value={props.value}
-      onChange={(e) => props.onChange(e.target.value)}
-      className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-      style={{
-        borderColor: "var(--border)",
-        background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-        color: "var(--text)",
-      }}
-    >
-      {opts.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+      onChange={props.onChange}
+      options={options}
+    />
+  );
+  if (!props.label && !props.onReset) return select;
+
+  return (
+    <label className="grid gap-2 text-sm font-medium" style={{ color: "var(--text)" }}>
+      {props.label ? <span>{props.label}</span> : null}
+      <div className="flex items-end gap-2">
+        {select}
+        {props.onReset ? (
+          <button
+            type="button"
+            onClick={props.onReset}
+            className="h-9 rounded-xl border px-3 text-xs font-semibold uf-clickable"
+            style={{
+              borderColor: "var(--border)",
+              background: "var(--surface)",
+              color: "var(--text)",
+            }}
+          >
+            All
+          </button>
+        ) : null}
+      </div>
+    </label>
   );
 }
 

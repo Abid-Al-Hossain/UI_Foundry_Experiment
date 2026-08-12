@@ -5,6 +5,7 @@ import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import { LabeledField } from "@/app/components/controls/layout/LabeledField";
 
 import { TooltipState } from "../types";
+import Input from "@/app/components/controls/input/Input";
 
 interface AccessibilitySectionProps {
   state: TooltipState;
@@ -26,33 +27,21 @@ export default function AccessibilitySection({
       >
         <div className="space-y-4">
           <LabeledField label="ARIA Label">
-            <input
+            <Input
               type="text"
               value={state.ariaLabel}
-              onChange={(e) => update("ariaLabel", e.target.value)}
+              onNativeChange={(e) => update("ariaLabel", e.target.value)}
               placeholder="Optional accessible label"
-              className="w-full h-9 px-3 rounded-lg border text-sm outline-none focus:border-[var(--primary)] transition-colors"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--card) 65%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
 
           <LabeledField label="ARIA DescribedBy">
-            <input
+            <Input
               type="text"
               value={state.ariaDescribedBy}
-              onChange={(e) => update("ariaDescribedBy", e.target.value)}
+              onNativeChange={(e) => update("ariaDescribedBy", e.target.value)}
               placeholder="ID of describing element"
-              className="w-full h-9 px-3 rounded-lg border text-sm outline-none focus:border-[var(--primary)] transition-colors"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--card) 65%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
         </div>
       </SectionCard>

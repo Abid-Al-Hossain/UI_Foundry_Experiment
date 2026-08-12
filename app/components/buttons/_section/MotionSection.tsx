@@ -9,6 +9,7 @@ import {
   ActionButtonFieldSetter,
   TransitionEasing,
 } from "../types";
+import Select from "@/app/components/controls/input/Select";
 
 export type AnimationPreset =
   | "none"
@@ -58,18 +59,12 @@ export default function MotionSection({
             label="Button animation"
             hint="Looping surface motion only"
           >
-            <select
+            <Select
+              options={[]}
               value={state.animation}
-              onChange={(e) =>
+              onNativeChange={(e) =>
                 setKey("animation")(e.target.value as AnimationPreset)
               }
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
             >
               <option value="none">None</option>
               <option value="breathe">Breathe</option>
@@ -79,7 +74,7 @@ export default function MotionSection({
               <option value="aurora">Aurora Drift</option>
               <option value="neon-pulse">Neon Pulse</option>
               <option value="cyber-glitch">Cyberpunk Glitch</option>
-            </select>
+            </Select>
           </LabeledField>
 
           <SizeControl
@@ -136,18 +131,12 @@ export default function MotionSection({
 
         <div className="space-y-4">
           <LabeledField label="Text motion" hint="Animates the button label">
-            <select
+            <Select
+              options={[]}
               value={state.textAnimation}
-              onChange={(e) =>
+              onNativeChange={(e) =>
                 setKey("textAnimation")(e.target.value as TextMotionPreset)
               }
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
             >
               <option value="none">None</option>
               <option value="wave">Wave</option>
@@ -155,7 +144,7 @@ export default function MotionSection({
               <option value="flicker">Flicker</option>
               <option value="shimmer">Shimmer</option>
               <option value="glitch">Glitch</option>
-            </select>
+            </Select>
           </LabeledField>
 
           <SizeControl
@@ -179,25 +168,19 @@ export default function MotionSection({
             label="3D button motion"
             hint="Loops the shell transform separately from Button animation"
           >
-            <select
+            <Select
+              options={[]}
               value={state.depthAnimation}
-              onChange={(e) =>
+              onNativeChange={(e) =>
                 setKey("depthAnimation")(e.target.value as DepthMotionPreset)
               }
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background:
-                  "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
             >
               <option value="none">None</option>
               <option value="rock">Rock</option>
               <option value="orbit">Orbit</option>
               <option value="gyro">Gyro</option>
               <option value="tilt-cycle">Tilt Cycle</option>
-            </select>
+            </Select>
           </LabeledField>
 
           <div className="text-xs leading-5" style={{ color: "var(--muted)" }}>

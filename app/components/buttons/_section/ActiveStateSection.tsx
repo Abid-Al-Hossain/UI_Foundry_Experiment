@@ -5,6 +5,7 @@ import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import GradientControl from "@/app/components/controls/effects/GradientControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function ActiveStateSection(props: {
   idActive: string;
@@ -102,21 +103,12 @@ export default function ActiveStateSection(props: {
           Tip: Use State Preview to force active, and tune the transform timing
           here.
         </div>
-        <div className="inline-flex items-center gap-2">
-          <input
-            id={idActive}
-            type="checkbox"
-            checked={activeEnabled}
-            onChange={(e) => setActiveEnabled(e.target.checked)}
-          />
-          <label
-            htmlFor={idActive}
-            className="text-sm uf-clickable"
-            style={{ color: "var(--text)" }}
-          >
-            Enable active press effect
-          </label>
-        </div>
+        <Switch
+          label={<>Enable active press effect</>}
+          id={idActive}
+          checked={activeEnabled}
+          onChange={(checked) => setActiveEnabled(checked)}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <SizeControl

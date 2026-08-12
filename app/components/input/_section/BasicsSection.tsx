@@ -4,6 +4,8 @@ import React from "react";
 import { SectionCard, LabeledField } from "@/app/components/controls/ui";
 import Select from "@/app/components/controls/input/Select";
 import { type TextInputSetter, type TextInputState } from "../types";
+import Input from "@/app/components/controls/input/Input";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function BasicsSection({
   state,
@@ -42,79 +44,38 @@ export default function BasicsSection({
         </LabeledField>
 
         <LabeledField label="Placeholder">
-          <input
+          <Input
             value={state.placeholder}
-            onChange={(e) => setKey("placeholder")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("placeholder")(e.target.value)}
+           />
         </LabeledField>
 
         <LabeledField label="Default Value">
-          <input
+          <Input
             value={state.defaultValue}
-            onChange={(e) => setKey("defaultValue")(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "color-mix(in oklab, var(--surface) 70%, transparent)",
-              color: "var(--text)",
-            }}
-          />
+            onNativeChange={(e) => setKey("defaultValue")(e.target.value)}
+           />
         </LabeledField>
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="input-required"
-              type="checkbox"
-              checked={state.required}
-              onChange={(e) => setKey("required")(e.target.checked)}
-            />
-            <label
-              htmlFor="input-required"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Required
-            </label>
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="input-disabled"
-              type="checkbox"
-              checked={state.disabled}
-              onChange={(e) => setKey("disabled")(e.target.checked)}
-            />
-            <label
-              htmlFor="input-disabled"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Disabled
-            </label>
-          </div>
-          <div className="inline-flex items-center gap-2">
-            <input
-              id="input-readonly"
-              type="checkbox"
-              checked={state.readOnly}
-              onChange={(e) => setKey("readOnly")(e.target.checked)}
-            />
-            <label
-              htmlFor="input-readonly"
-              className="text-sm uf-clickable"
-              style={{ color: "var(--text)" }}
-            >
-              Read Only
-            </label>
-          </div>
+          <Switch
+            label={<>Required</>}
+            id="input-required"
+            checked={state.required}
+            onChange={(checked) => setKey("required")(checked)}
+          />
+          <Switch
+            label={<>Disabled</>}
+            id="input-disabled"
+            checked={state.disabled}
+            onChange={(checked) => setKey("disabled")(checked)}
+          />
+          <Switch
+            label={<>Read Only</>}
+            id="input-readonly"
+            checked={state.readOnly}
+            onChange={(checked) => setKey("readOnly")(checked)}
+          />
         </div>
 
       </div>

@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type ButtonPreset, BUTTON_PRESET_COUNT } from "../_data/buttonPresets";
 import PresetButtonPreview from "./PresetButtonPreview";
 import { LabeledField, SectionCard, FilterSelect } from "./ui";
+import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
 
 const PAGE_SIZE = 24;
 
@@ -29,9 +31,11 @@ function Badge({ label }: { label: string }) {
 
 export default function PresetsSection({
   presets,
+  activePresetId,
   onApplyPreset,
 }: {
   presets: ButtonPreset[];
+  activePresetId: string | null;
   onApplyPreset: (preset: ButtonPreset) => void;
 }) {
   const pageVariants = {
@@ -116,21 +120,15 @@ export default function PresetsSection({
       <div className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <LabeledField label="Search presets" hint={resultLabel}>
-            <input
+            <Input
               value={query}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setPageDirection(0);
                 setQuery(event.target.value);
                 setPage(0);
               }}
               placeholder="Search by name, family, mood, or tag"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
 
           <LabeledField label="Variant">
@@ -153,18 +151,13 @@ export default function PresetsSection({
 
         <div className="grid gap-3 md:grid-cols-3">
           <LabeledField label="Family">
-            <select
+            <Select
+              options={[]}
               value={familyFilter}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setPageDirection(0);
                 setFamilyFilter(event.target.value);
                 setPage(0);
-              }}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
               }}
             >
               <option value="all">All families</option>
@@ -173,22 +166,17 @@ export default function PresetsSection({
                   {family}
                 </option>
               ))}
-            </select>
+            </Select>
           </LabeledField>
 
           <LabeledField label="Mood">
-            <select
+            <Select
+              options={[]}
               value={moodFilter}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setPageDirection(0);
                 setMoodFilter(event.target.value);
                 setPage(0);
-              }}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
               }}
             >
               <option value="all">All moods</option>
@@ -197,22 +185,17 @@ export default function PresetsSection({
                   {mood}
                 </option>
               ))}
-            </select>
+            </Select>
           </LabeledField>
 
           <LabeledField label="Size">
-            <select
+            <Select
+              options={[]}
               value={sizeFilter}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setPageDirection(0);
                 setSizeFilter(event.target.value);
                 setPage(0);
-              }}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
               }}
             >
               <option value="all">All sizes</option>
@@ -221,7 +204,7 @@ export default function PresetsSection({
                   {size}
                 </option>
               ))}
-            </select>
+            </Select>
           </LabeledField>
         </div>
 
@@ -318,10 +301,13 @@ export default function PresetsSection({
                 className="rounded-2xl border p-3"
                 data-audit="preset-card"
                 data-preset-id={preset.id}
+                data-applied={activePresetId === preset.id ? "true" : "false"}
                 data-testid={`preset-card-${preset.id}`}
                 style={{
-                  borderColor: "var(--border)",
-                  background: "color-mix(in oklab, var(--card) 68%, transparent)",
+                  borderColor: activePresetId === preset.id ? "var(--primary)" : "var(--border)",
+                  background: activePresetId === preset.id
+                    ? "color-mix(in oklab, var(--primary) 20%, transparent)"
+                    : "color-mix(in oklab, var(--card) 68%, transparent)",
                 }}
               >
                   <div className="flex items-start justify-between gap-3">
@@ -337,6 +323,7 @@ export default function PresetsSection({
                     <button
                       type="button"
                       onClick={() => onApplyPreset(preset)}
+                      aria-pressed={activePresetId === preset.id}
                       className="rounded-xl px-3 py-2 text-xs font-semibold uf-clickable"
                       data-audit="preset-apply-button"
                       data-preset-id={preset.id}
@@ -346,7 +333,7 @@ export default function PresetsSection({
                         color: "#ffffff",
                       }}
                     >
-                      Apply
+                      {activePresetId === preset.id ? "Applied" : "Apply"}
                     </button>
                   </div>
                   <PresetButtonPreview preset={preset} />

@@ -5,12 +5,21 @@ import React from "react";
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   label?: string;
+  startContent?: React.ReactNode;
   onChange?: (value: string) => void;
   onNativeChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
 export default function Input(props: InputProps) {
-  const { className, label, onChange, onNativeChange, id, ...rest } = props;
+  const {
+    className,
+    label,
+    startContent,
+    onChange,
+    onNativeChange,
+    id,
+    ...rest
+  } = props;
   const generatedId = React.useId();
   const inputId = id ?? generatedId;
 
@@ -20,18 +29,28 @@ export default function Input(props: InputProps) {
   };
 
   const input = (
-    <input
-      {...rest}
-      id={inputId}
-      onChange={handleChange}
-      className={`w-full h-9 px-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 outline-none focus:border-[var(--primary)] transition-colors placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
-      style={{
-        borderColor: "var(--border)",
-        background: "color-mix(in oklab, var(--card) 65%, transparent)",
-        color: "var(--text)",
-        ...props.style,
-      }}
-    />
+    <span className="relative block w-full">
+      {startContent ? (
+        <span
+          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 opacity-50"
+          style={{ color: "var(--text)" }}
+        >
+          {startContent}
+        </span>
+      ) : null}
+      <input
+        {...rest}
+        id={inputId}
+        onChange={handleChange}
+        className={`w-full h-9 px-3 ${startContent ? "pl-9" : ""} bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 outline-none focus:border-[var(--primary)] transition-colors placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
+        style={{
+          borderColor: "var(--border)",
+          background: "color-mix(in oklab, var(--card) 65%, transparent)",
+          color: "var(--text)",
+          ...props.style,
+        }}
+      />
+    </span>
   );
 
   if (!label) return input;

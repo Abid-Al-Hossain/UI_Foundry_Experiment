@@ -1,14 +1,8 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useDeferredValue,
-} from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
@@ -38,7 +32,6 @@ import { type ImageState, INITIAL_IMAGE_STATE } from "../types";
 import { buildImageExportPayload } from "../_utils/exportUtils";
 
 export default function ImagePlaygroundPage() {
-  const mounted = useHydrated();
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
     useState<PreviewCanvasMode>("custom");
@@ -60,7 +53,6 @@ export default function ImagePlaygroundPage() {
 
   // Download/Export
   const [downloadName, setDownloadName] = useState("styled-image");
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Refactored Export for Code View
   const exportPayload = useMemo(() => {
@@ -76,20 +68,6 @@ export default function ImagePlaygroundPage() {
     () => buildImageExportPayload(deferredExportPayload),
     [deferredExportPayload],
   );
-
-  const handleDownload = () => {
-    const { content, filename } = buildImageExportPayload(exportPayload);
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   // Section Configuration
   const sections = [
@@ -136,8 +114,8 @@ export default function ImagePlaygroundPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <ImagePresetsSection state={state} applyPreset={applyPreset} />
@@ -156,20 +134,13 @@ export default function ImagePlaygroundPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<LivePreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

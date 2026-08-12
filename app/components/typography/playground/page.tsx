@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import { DEFAULT_TYPOGRAPHY_STATE, type TypographyState } from "../types";
 import { type TypographyUpdater } from "../types";
@@ -30,6 +29,8 @@ import EffectsSection from "../_section/EffectsSection";
 import DecorationSection from "../_section/DecorationSection";
 import ShadowSection from "../_section/ShadowSection";
 import AccessibilitySection from "../_section/AccessibilitySection";
+import { TYPOGRAPHY_PRESETS } from "../_data/typographyPresets";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 
 type ActiveSection =
   | "presets"
@@ -49,7 +50,6 @@ type ActiveSection =
   | "accessibility";
 
 export default function TypographyPlayground() {
-  const mounted = useHydrated();
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
     useState<PreviewCanvasMode>("custom");
@@ -99,6 +99,12 @@ export default function TypographyPlayground() {
         return (
           <PresetsSection
             state={state}
+            activePresetId={findActivePresetId(
+              state,
+              DEFAULT_TYPOGRAPHY_STATE,
+              TYPOGRAPHY_PRESETS,
+              ["downloadName"],
+            )}
             applyPreset={(preset) => {
               updateState((prev) => ({ ...prev, ...preset.state }));
               if (preset.selectedHeading) setSelectedHeading(preset.selectedHeading);
@@ -176,8 +182,8 @@ export default function TypographyPlayground() {
     <div className="p-6 space-y-8">
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {renderActiveSection()}
     </div>
@@ -194,29 +200,13 @@ export default function TypographyPlayground() {
   // --- Preview ---
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={{ current: null }}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
       downloadName={state.downloadName || "typography"}
-      setDownloadFormat={() => {}}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
-      handleDownload={() => {
-        const { content, filename } = buildTypographyExport(exportPayload);
-        const blob = new Blob([content], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-      }}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={
+      onPreviewBgInput={setPreviewBgInput}
+      preview={
         <TypographyPreview
           key={previewResetKey}
           state={state}

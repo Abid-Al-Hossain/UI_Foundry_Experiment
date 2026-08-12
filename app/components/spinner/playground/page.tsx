@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import useHydrated from "@/components/hooks/useHydrated";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import { DEFAULT_SPINNER_STATE, type SpinnerState } from "../types";
 import { buildSpinnerExport } from "../_utils/exportUtils";
@@ -30,8 +29,9 @@ import AccessibilitySection from "../_section/AccessibilitySection";
 import StatesSection from "../_section/StatesSection";
 import LabelsSection from "../_section/LabelsSection";
 import StatusSection from "../_section/StatusSection";
+import { SPINNER_PRESETS } from "../_data/spinnerPresets";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 export default function SpinnerPlayground() {
-  const mounted = useHydrated();
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
     useState<PreviewCanvasMode>("custom");
@@ -76,6 +76,12 @@ export default function SpinnerPlayground() {
         return (
           <PresetsSection
             state={state}
+            activePresetId={findActivePresetId(
+              state,
+              DEFAULT_SPINNER_STATE,
+              SPINNER_PRESETS,
+              ["downloadName"],
+            )}
             applyPreset={(preset) => {
               updateState((current) => ({ ...current, ...preset.state }));
               setPreviewResetKey((value) => value + 1);
@@ -145,8 +151,8 @@ export default function SpinnerPlayground() {
     <div className="p-6 space-y-8">
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {renderActiveSection()}
     </div>
@@ -163,29 +169,13 @@ export default function SpinnerPlayground() {
   // --- Preview ---
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc=""
-      iframeRef={{ current: null }}
-      handleIframeLoad={() => {}}
-      downloadFormat="react"
       downloadName={state.downloadName || "spinner"}
-      setDownloadFormat={() => {}}
       setDownloadName={(v) => handleUpdate("downloadName", v)}
-      handleDownload={() => {
-        const { content, filename } = buildSpinnerExport(exportPayload);
-        const blob = new Blob([content], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-      }}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={<SpinnerPreview key={previewResetKey} state={state} />}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={<SpinnerPreview key={previewResetKey} state={state} />}
       code={exportCode.content}
     />
   );

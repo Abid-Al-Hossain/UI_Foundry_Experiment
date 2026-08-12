@@ -4,7 +4,7 @@ import React, { useId } from "react";
 import { Switch as HeadlessSwitch } from "@headlessui/react";
 
 export interface SwitchProps {
-  label?: string;
+  label?: React.ReactNode;
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;

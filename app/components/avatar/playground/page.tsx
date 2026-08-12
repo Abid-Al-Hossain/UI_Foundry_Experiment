@@ -1,22 +1,14 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useDeferredValue,
-} from "react";
+import { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
-import PreviewDownloadPanel, {
-} from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
+import PreviewDownloadPanel from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
 
 import { buildAvatarExport } from "../_utils/exportUtils";
-import { PREVIEW_SRC_DOC } from "../_utils/avatarPreviewDoc";
 import { useHistoryState } from "@/app/hooks/useHistoryState";
 import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
@@ -39,18 +31,8 @@ const MotionSection = dynamic(() => import("../_section/MotionSection"), {
 });
 
 import AvatarLivePreview from "../_section/AvatarLivePreview";
-import {
-  resolveAvatarBoxShadow,
-  resolveAvatarFilterString,
-  resolveAvatarImageStyle,
-  resolveAvatarRadiusStyle,
-  resolveAvatarRootStyle,
-  resolveAvatarTransform,
-} from "../_utils/avatarRenderUtils";
-import {
-  INITIAL_STATE,
-  type AvatarState,
-} from "../types";
+import { resolveAvatarBoxShadow, resolveAvatarFilterString, resolveAvatarImageStyle, resolveAvatarRadiusStyle, resolveAvatarRootStyle, resolveAvatarTransform } from "../_utils/avatarRenderUtils";
+import { INITIAL_STATE, type AvatarState } from "../types";
 import BasicsSection from "../_section/BasicsSection";
 import MetadataSection from "../_section/MetadataSection";
 import FramingSection from "../_section/FramingSection";
@@ -65,10 +47,7 @@ import AccessibilitySection from "../_section/AccessibilitySection";
 import StatesSection from "../_section/StatesSection";
 import PresetsSection from "../_section/PresetsSection";
 
-import useHydrated from "@/components/hooks/useHydrated";
-
 export default function AvatarPage() {
-  const mounted = useHydrated();
   const [activeSection, setActiveSection] = useState("presets");
   const [previewResetKey, setPreviewResetKey] = useState(0);
   const [previewBgMode, setPreviewBgMode] =
@@ -321,9 +300,6 @@ export default function AvatarPage() {
 
   const previewPayload = getPreviewPayload();
 
-  // Initial Load Only
-  const initialSrcDoc = PREVIEW_SRC_DOC;
-
   // Live Updates via PostMessage
   useEffect(() => {
     if (iframeRef.current?.contentWindow) {
@@ -476,17 +452,6 @@ export default function AvatarPage() {
     () => buildAvatarExport(deferredExportPayload),
     [deferredExportPayload],
   );
-
-  const handleDownload = () => {
-    const { filename, content } = buildAvatarExport(exportPayload);
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const radiusStyle = resolveAvatarRadiusStyle(radiusMode, radiusValue);
   const filters = resolveAvatarFilterString({
@@ -845,8 +810,8 @@ export default function AvatarPage() {
     <>
       <SectionSelector
         sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        active={activeSection}
+        onChange={setActiveSection}
       />
       {activeSection === "presets" ? (
         <PresetsSection state={state} applyPreset={applyPreset} />
@@ -858,25 +823,13 @@ export default function AvatarPage() {
 
   const preview = (
     <PreviewDownloadPanel
-      mounted={mounted}
-      iframeSrcDoc={initialSrcDoc}
-      iframeRef={iframeRef}
-      handleIframeLoad={() => {
-        // Send initial sync when iframe loads
-        if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.postMessage(previewPayload, "*");
-        }
-      }}
-      downloadFormat="react"
-      setDownloadFormat={() => {}}
       downloadName={downloadName}
       setDownloadName={setDownloadName}
-      handleDownload={handleDownload}
       previewBgMode={previewBgMode}
-      setPreviewBgMode={setPreviewBgMode}
+      onPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
-      setPreviewBgInput={setPreviewBgInput}
-      previewNode={livePreviewNode}
+      onPreviewBgInput={setPreviewBgInput}
+      preview={livePreviewNode}
       code={exportCode.content}
     />
   );

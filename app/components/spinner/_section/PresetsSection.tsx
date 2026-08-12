@@ -6,9 +6,12 @@ import { SectionCard, LabeledField, FilterSelect } from "@/app/components/contro
 import { SPINNER_PRESETS, SPINNER_PRESET_COUNT, type SpinnerPreset } from "../_data/spinnerPresets";
 import type { SpinnerState } from "../types";
 import { SpinnerPreview } from "../_components/SpinnerPreview";
+import Input from "@/app/components/controls/input/Input";
+import Select from "@/app/components/controls/input/Select";
 
 type Props = {
   state: SpinnerState;
+  activePresetId: string | null;
   applyPreset: (preset: SpinnerPreset) => void;
 };
 
@@ -18,7 +21,7 @@ function pickRandomPreset<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-export default function PresetsSection({ state, applyPreset }: Props) {
+export default function PresetsSection({ state, activePresetId, applyPreset }: Props) {
   const [query, setQuery] = useState("");
   const [variantFilter, setVariantFilter] = useState("all");
   const [modeFilter, setModeFilter] = useState("all");
@@ -84,21 +87,15 @@ export default function PresetsSection({ state, applyPreset }: Props) {
       <div className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <LabeledField label="Search presets" hint={resultLabel}>
-            <input
+            <Input
               value={query}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setQuery(event.target.value);
                 setPage(0);
                 setPageDirection(0);
               }}
               placeholder="Search by name, family, archetype, or tag"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
-              }}
-            />
+             />
           </LabeledField>
 
           <LabeledField label="Variant">
@@ -134,18 +131,13 @@ export default function PresetsSection({ state, applyPreset }: Props) {
           </LabeledField>
 
           <LabeledField label="Family">
-            <select
+            <Select
+              options={[]}
               value={familyFilter}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setFamilyFilter(event.target.value);
                 setPage(0);
                 setPageDirection(0);
-              }}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
               }}
             >
               <option value="all">All families</option>
@@ -154,22 +146,17 @@ export default function PresetsSection({ state, applyPreset }: Props) {
                   {family}
                 </option>
               ))}
-            </select>
+            </Select>
           </LabeledField>
 
           <LabeledField label="Size">
-            <select
+            <Select
+              options={[]}
               value={sizeFilter}
-              onChange={(event) => {
+              onNativeChange={(event) => {
                 setSizeFilter(event.target.value);
                 setPage(0);
                 setPageDirection(0);
-              }}
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
-              style={{
-                borderColor: "var(--border)",
-                background: "color-mix(in oklab, var(--surface) 70%, transparent)",
-                color: "var(--text)",
               }}
             >
               <option value="all">All sizes</option>
@@ -178,7 +165,7 @@ export default function PresetsSection({ state, applyPreset }: Props) {
                   {size}
                 </option>
               ))}
-            </select>
+            </Select>
           </LabeledField>
         </div>
 
@@ -241,6 +228,7 @@ export default function PresetsSection({ state, applyPreset }: Props) {
               ) : (
                 visible.map((preset, index) => {
                   const previewState = { ...state, ...preset.state };
+                  const isApplied = activePresetId === preset.id;
                   return (
                     <motion.div
                       key={preset.id}
@@ -253,9 +241,12 @@ export default function PresetsSection({ state, applyPreset }: Props) {
                       className="rounded-2xl border p-3"
                       data-audit="preset-card"
                       data-preset-id={preset.id}
+                      data-applied={isApplied ? "true" : "false"}
                       style={{
-                        borderColor: "var(--border)",
-                        background: "color-mix(in oklab, var(--card) 70%, transparent)",
+                        borderColor: isApplied ? "var(--primary)" : "var(--border)",
+                        background: isApplied
+                          ? "color-mix(in oklab, var(--primary) 20%, transparent)"
+                          : "color-mix(in oklab, var(--card) 70%, transparent)",
                       }}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -271,10 +262,11 @@ export default function PresetsSection({ state, applyPreset }: Props) {
                         <button
                           type="button"
                           onClick={() => applyPreset(preset)}
+                          aria-pressed={isApplied}
                           className="rounded-xl px-3 py-1.5 text-xs font-semibold uf-clickable"
                           style={{ background: "var(--primary)", color: "#ffffff" }}
                         >
-                          Apply
+                          {isApplied ? "Applied" : "Apply"}
                         </button>
                       </div>
 

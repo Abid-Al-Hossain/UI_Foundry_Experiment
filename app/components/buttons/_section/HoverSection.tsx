@@ -5,6 +5,7 @@ import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import GradientControl from "@/app/components/controls/effects/GradientControl";
+import Switch from "@/app/components/controls/input/Switch";
 
 export default function HoverSection(props: {
   PALETTE: readonly string[];
@@ -72,18 +73,11 @@ export default function HoverSection(props: {
         timing here.
       </div>
 
-      <label
-        className="flex items-center gap-2 text-sm uf-clickable"
-        style={{ color: "var(--text)" }}
-      >
-        <input
-          type="checkbox"
-          checked={props.hoverEnabled}
-          onChange={(e) => props.setHoverEnabled(e.target.checked)}
-          className="uf-clickable"
-        />
-        Enable hover state
-      </label>
+      <Switch
+        label={<>Enable hover state</>}
+        checked={props.hoverEnabled}
+        onChange={(checked) => props.setHoverEnabled(checked)}
+      />
 
       <div className="mt-4 space-y-5">
         <div className="space-y-3">
