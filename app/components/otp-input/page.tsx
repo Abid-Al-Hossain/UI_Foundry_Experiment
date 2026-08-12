@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">OTP / PIN Input</div></body></html>`;
 }
 
-export default function otpinputGalleryPage() {
+export default function OtpinputGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

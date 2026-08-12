@@ -1,4 +1,4 @@
-export type SectionId = "presets" | "basics" | "metadata" | "field" | "validation" | "behavior" | "layout" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "focus" | "states" | "disabled" | "accessibility";
+export type SectionId = "presets" | "basics" | "metadata" | "field" | "validation" | "layout" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "focus" | "states" | "disabled" | "accessibility";
 
 export type SliderState = {
   showHelper: boolean;
@@ -131,10 +131,6 @@ export const SECTIONS: Array<{ id: SectionId; label: string }> = [
   {
     "id": "validation",
     "label": "Validation"
-  },
-  {
-    "id": "behavior",
-    "label": "Behavior"
   },
   {
     "id": "layout",

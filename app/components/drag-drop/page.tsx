@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Drag & Drop</div></body></html>`;
 }
 
-export default function dragdropGalleryPage() {
+export default function DragdropGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

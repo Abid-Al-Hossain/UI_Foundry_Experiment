@@ -1,41 +1,19 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useTransition } from "./TransitionProvider";
 import { ANIMATIONS } from "./animations";
-// Force rebuild
-import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { useContext, useRef } from "react";
 import ThreeDWrapper from "./ThreeDWrapper";
 
-// Helper to freeze the route for exit animations
-function FrozenRoute({ children }: { children: React.ReactNode }) {
-  const context = useContext(LayoutRouterContext);
-  const frozen = useRef(context).current;
-
-  return (
-    <LayoutRouterContext.Provider value={frozen}>
-      {children}
-    </LayoutRouterContext.Provider>
-  );
-}
-
-export default function PageTransition({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
   const { animation, speed, direction } = useTransition();
-
-  // Get variants object (not calling function here unless it's dynamic)
-  // Actually, ANIMATIONS is now an object of Variants directly.
   const variants = ANIMATIONS[animation];
-
-  // Custom durations
-  const duration =
-    speed === "slow"
+  const duration = reduceMotion
+    ? 0
+    : speed === "slow"
       ? 0.8
       : speed === "fast"
         ? 0.2
@@ -44,40 +22,20 @@ export default function PageTransition({
           : 0.4;
 
   return (
-    <div
-      className="grid h-full w-full overflow-hidden"
-      style={{
-        gridTemplateRows: "minmax(0, 1fr)",
-        gridTemplateColumns: "minmax(0, 1fr)",
-      }}
-    >
-      <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+    <div className="grid h-full w-full overflow-hidden" style={{ gridTemplateRows: "minmax(0, 1fr)", gridTemplateColumns: "minmax(0, 1fr)" }}>
+      <AnimatePresence mode="wait" initial={false} custom={direction}>
         <motion.div
           key={pathname}
           custom={direction}
-          variants={variants}
-          initial="initial"
-          animate="enter"
-          exit="exit"
-          transition={{
-            ease: "easeInOut",
-            duration: duration,
-          }}
+          variants={reduceMotion ? undefined : variants}
+          initial={reduceMotion ? false : "initial"}
+          animate={reduceMotion ? undefined : "enter"}
+          exit={reduceMotion ? undefined : "exit"}
+          transition={{ ease: "easeInOut", duration }}
           className="grid h-full w-full overflow-hidden bg-[var(--surface)]"
-          style={{
-            width: "100%",
-            height: "100%",
-            gridArea: "1 / 1", // Force overlap in grid
-            // Constrain the single row/column to the container size (not content)
-            // so the scroll container can bound + scroll, and a wide fixed-width
-            // editor panel can't expand the layout past the viewport.
-            gridTemplateRows: "minmax(0, 1fr)",
-            gridTemplateColumns: "minmax(0, 1fr)",
-          }}
+          style={{ width: "100%", height: "100%", gridArea: "1 / 1", gridTemplateRows: "minmax(0, 1fr)", gridTemplateColumns: "minmax(0, 1fr)" }}
         >
-          <ThreeDWrapper>
-            <FrozenRoute>{children}</FrozenRoute>
-          </ThreeDWrapper>
+          <ThreeDWrapper>{children}</ThreeDWrapper>
         </motion.div>
       </AnimatePresence>
     </div>

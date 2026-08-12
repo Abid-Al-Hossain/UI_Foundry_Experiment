@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Radio Button</div></body></html>`;
 }
 
-export default function radioGalleryPage() {
+export default function RadioGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

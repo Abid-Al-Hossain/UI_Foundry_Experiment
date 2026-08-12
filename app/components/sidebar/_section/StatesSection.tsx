@@ -2,7 +2,6 @@
 
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import Select from "@/app/components/controls/input/Select";
-import Switch from "@/app/components/controls/input/Switch";
 import type { SidebarState } from "../types";
 
 type Props = { state: SidebarState; update: <K extends keyof SidebarState>(key: K, value: SidebarState[K]) => void };

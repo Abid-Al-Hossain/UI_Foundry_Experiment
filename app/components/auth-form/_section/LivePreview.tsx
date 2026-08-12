@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import type { AuthFormState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -50,14 +50,25 @@ export default function LivePreview({ state }: { state: AuthFormState }) {
   const isError = state.previewState === "error";
   const isSuccess = state.previewState === "success";
   const disabled = state.disabled || isLoading;
-  const includeName = state.mode !== "sign-in" || state.fieldCount >= 3;
-  const includePassword = state.fieldCount >= 2;
+  const includeName = (state.mode === "sign-up" || state.mode === "invite") && state.fieldCount >= 3;
+  const includePassword = state.mode !== "reset-password" && state.fieldCount >= 2;
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [previewMessage, setPreviewMessage] = useState("");
   const helperId = `${state.id}-helper`;
   const messageId = `${state.id}-message`;
   const inputStyle: CSSProperties = { width: "100%", border: `1px solid ${isError ? state.errorColor : state.border}`, borderRadius: Math.max(10, state.radius - 12), background: "rgba(255,255,255,.08)", color: state.foreground, padding: "11px 13px", outline: "none", transition: state.transitionDuration > 0 ? "border-color 0.2s ease, box-shadow 0.2s ease" : "none" };
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!event.currentTarget.checkValidity()) {
+      event.currentTarget.reportValidity();
+      setPreviewMessage("Complete the required fields with valid values.");
+      return;
+    }
+    setPreviewMessage("Preview submission captured locally. Exported code passes FormData to onSubmit.");
+  };
 
   return (
-    <form id={state.id} aria-label={state.ariaLabel} aria-describedby={`${helperId} ${messageId}`} onSubmit={(event) => event.preventDefault()} style={shell(state)}>
+    <form id={state.id} aria-label={state.ariaLabel} aria-describedby={`${helperId} ${messageId}`} onSubmit={handleSubmit} style={shell(state)}>
       <header style={{ display: "grid", gap: 6 }}>
         <span style={{ color: state.accent, fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>{state.mode} form</span>
         <h3 style={{ margin: 0, fontSize: state.titleSize, fontWeight: state.fontWeight }}>{state.title}</h3>
@@ -78,7 +89,10 @@ export default function LivePreview({ state }: { state: AuthFormState }) {
         {includePassword && (
           <label style={{ display: "grid", gap: 6, fontSize: 13, fontWeight: 700 }}>
             Password
-            <input name="password" type={state.revealPassword ? "text" : "password"} autoComplete={state.mode === "sign-up" ? "new-password" : "current-password"} required disabled={disabled} aria-invalid={isError} placeholder="********" style={inputStyle} />
+            <span style={{ position: "relative", display: "block" }}>
+              <input name="password" type={passwordVisible ? "text" : "password"} autoComplete={state.mode === "sign-up" ? "new-password" : "current-password"} required disabled={disabled} aria-invalid={isError} placeholder="********" style={{ ...inputStyle, paddingRight: state.revealPassword ? 72 : inputStyle.padding }} />
+              {state.revealPassword && <button type="button" disabled={disabled} aria-pressed={passwordVisible} aria-label={passwordVisible ? "Hide password" : "Show password"} onClick={() => setPasswordVisible((visible) => !visible)} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", border: 0, background: "transparent", color: state.accent, fontSize: 12, fontWeight: 700 }}>{passwordVisible ? "Hide" : "Show"}</button>}
+            </span>
           </label>
         )}
       </div>
@@ -94,10 +108,10 @@ export default function LivePreview({ state }: { state: AuthFormState }) {
         {isLoading ? "Submitting..." : state.label}
       </button>
 
-      {state.showSocialLogin && <button type="button" disabled={disabled} style={{ border: `1px solid ${state.border}`, borderRadius: Math.max(12, state.radius - 8), background: "transparent", color: state.foreground, padding: "11px 16px", fontWeight: 700 }}>Continue with SSO</button>}
+      {state.showSocialLogin && <button type="button" disabled={disabled} onClick={() => setPreviewMessage("SSO preview action captured. Exported code calls onSocialLogin with the provider ID.")} style={{ border: `1px solid ${state.border}`, borderRadius: Math.max(12, state.radius - 8), background: "transparent", color: state.foreground, padding: "11px 16px", fontWeight: 700 }}>Continue with SSO</button>}
 
       <p id={messageId} role={isError ? "alert" : "status"} style={{ margin: 0, color: isError ? "#fca5a5" : isSuccess ? "#86efac" : state.muted, fontSize: 13 }}>
-        {isError ? "Check your email and password before submitting." : isSuccess ? "Success. Your credentials are ready to submit." : state.helper}
+        {isError ? "Check your email and password before submitting." : isSuccess ? "Success. Your credentials are ready to submit." : previewMessage || state.helper}
       </p>
     </form>
   );

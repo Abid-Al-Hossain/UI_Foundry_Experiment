@@ -1,166 +1,153 @@
 "use client";
 
-// Self-contained WCAG contrast guard for the live preview.
-// Renders nothing. While mounted it watches the preview area and, for any text
-// element whose color fails WCAG AA against its ACTUAL rendered background,
-// overrides the color to the nearest readable value. It only touches text that
-// genuinely fails (good colors are left untouched), and it measures the real
-// effective background (walking up the DOM), so it correctly accounts for the
-// studio canvas behind components that don't draw their own surface.
-//
-// This guarantees "Surprise me" / any preset / any live edit never displays
-// unreadable garbage, for every component, without per-component color wiring.
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { contrastRatio, ensureReadable } from "./wcag";
 
-function parseRgba(s: string): { r: number; g: number; b: number; a: number } | null {
-  const m = (s || "").match(/rgba?\(([^)]+)\)/i);
-  if (!m) return null;
-  const p = m[1].split(",").map((x) => parseFloat(x));
-  return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] };
+type Rgba = { r: number; g: number; b: number; a: number };
+
+type ContrastViolation = {
+  text: string;
+  ratio: number;
+  required: number;
+  suggestedColor: string;
+};
+
+function parseRgba(value: string): Rgba | null {
+  const match = value.match(/rgba?\(([^)]+)\)/i);
+  if (!match) return null;
+  const parts = match[1].split(/[,\s/]+/).filter(Boolean).map(Number);
+  if (parts.length < 3 || parts.slice(0, 3).some((part) => !Number.isFinite(part))) return null;
+  return {
+    r: parts[0],
+    g: parts[1],
+    b: parts[2],
+    a: Number.isFinite(parts[3]) ? Math.min(1, Math.max(0, parts[3])) : 1,
+  };
 }
 
-function effectiveBg(el: Element): string {
-  let node: Element | null = el;
-  while (node && node !== document.documentElement) {
-    const c = getComputedStyle(node).backgroundColor;
-    const p = parseRgba(c);
-    if (p && p.a >= 0.6) return `rgb(${Math.round(p.r)}, ${Math.round(p.g)}, ${Math.round(p.b)})`;
-    node = node.parentElement;
-  }
-  return "rgb(11, 18, 32)"; // studio default canvas fallback
+function composite(foreground: Rgba, background: Rgba): Rgba {
+  const alpha = foreground.a + background.a * (1 - foreground.a);
+  if (alpha <= 0) return { r: 0, g: 0, b: 0, a: 0 };
+  return {
+    r: (foreground.r * foreground.a + background.r * background.a * (1 - foreground.a)) / alpha,
+    g: (foreground.g * foreground.a + background.g * background.a * (1 - foreground.a)) / alpha,
+    b: (foreground.b * foreground.a + background.b * background.a * (1 - foreground.a)) / alpha,
+    a: alpha,
+  };
 }
 
-function hasOwnText(el: Element): boolean {
-  for (const n of Array.from(el.childNodes)) {
-    if (n.nodeType === 3 && (n.textContent || "").trim().length > 0) return true;
+function toRgb(color: Rgba) {
+  return `rgb(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)})`;
+}
+
+function renderedBackground(element: Element, root: Element): string | null {
+  const chain: Element[] = [];
+  let current: Element | null = element;
+  while (current) {
+    chain.push(current);
+    if (current === root) break;
+    current = current.parentElement;
   }
-  return false;
+
+  let result: Rgba = { r: 11, g: 18, b: 32, a: 1 };
+  for (const node of chain.reverse()) {
+    const style = getComputedStyle(node);
+    if (style.backgroundImage !== "none" || style.mixBlendMode !== "normal") return null;
+    const layer = parseRgba(style.backgroundColor);
+    if (layer && layer.a > 0) result = composite(layer, result);
+  }
+  return toRgb(result);
+}
+
+function hasOwnText(element: Element) {
+  return Array.from(element.childNodes).some(
+    (node) => node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim()),
+  );
+}
+
+function sameViolations(a: ContrastViolation[], b: ContrastViolation[]) {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 export default function ContrastGuard({ min = 4.5 }: { min?: number }) {
+  const [violations, setViolations] = useState<ContrastViolation[]>([]);
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const root =
+      document.querySelector('[data-testid="preview-node-container"]') ??
+      document.querySelector('[data-testid="preview-stage-preview"]');
+    if (!root) return;
 
-    // Remember the override WE applied per element, so each pass can peel it back
-    // and re-evaluate from the element's ORIGINAL (author) color against the
-    // CURRENT background. Without this the guard is one-way: once it darkens text
-    // for a light background, that text may stay "readable enough" on a later dark
-    // background and never revert — e.g. outline(white canvas) -> solid(dark) keeps
-    // the grey instead of restoring white. WeakMap so we never touch a color the
-    // component itself set (only our own past override is peeled back).
-    const applied = new WeakMap<
-      HTMLElement,
-      { source: string; applied: string }
-    >();
+    let frame = 0;
+    const scan = () => {
+      frame = 0;
+      const next: ContrastViolation[] = [];
+      for (const element of Array.from(root.querySelectorAll<HTMLElement>("*"))) {
+        if (next.length >= 8) break;
+        if (element.closest('[aria-hidden="true"]') || !hasOwnText(element)) continue;
 
-    const fix = () => {
-      const root =
-        document.querySelector('[data-testid="preview-node-container"]') ||
-        document.querySelector('[data-testid="preview-stage-preview"]');
-      if (!root) return;
-      const els = root.querySelectorAll<HTMLElement>("*");
-      for (const el of Array.from(els)) {
-        if (el.closest('[aria-hidden="true"]')) continue; // decorative — WCAG exempt
-        if (!hasOwnText(el)) continue;
+        const style = getComputedStyle(element);
+        const foreground = parseRgba(style.color);
+        const background = renderedBackground(element, root);
+        if (!foreground || !background) continue;
 
-        // Recover the author's INTENDED color. Components set their text color
-        // inline via React, so we can't just removeProperty (React won't re-apply
-        // a value it thinks is unchanged). Instead we remember the source color we
-        // overrode and restore it, then re-decide against the CURRENT background.
-        // This makes the guard reversible: e.g. outline(white canvas) darkens the
-        // text for readability, and switching back to solid(dark) restores white.
-        const prev = applied.get(el);
-        let authorColor: string;
-        if (prev && el.style.color === prev.applied) {
-          // Our override is still in the DOM — restore the author's source color.
-          authorColor = prev.source;
-          el.style.setProperty("color", prev.source);
-        } else {
-          // No override of ours in place (or the component set a new color itself).
-          authorColor = getComputedStyle(el).color;
-          applied.delete(el);
-        }
+        const compositedForeground = foreground.a < 1
+          ? toRgb(composite(foreground, parseRgba(background) ?? { r: 11, g: 18, b: 32, a: 1 }))
+          : style.color;
+        const fontSize = Number.parseFloat(style.fontSize) || 16;
+        const bold = (Number.parseInt(style.fontWeight, 10) || 400) >= 700;
+        const required = fontSize >= 24 || (fontSize >= 18.66 && bold) ? 3 : min;
+        const ratio = contrastRatio(compositedForeground, background);
+        if (ratio >= required) continue;
 
-        const cs = getComputedStyle(el);
-        const fgA = parseRgba(authorColor);
-        if (!fgA) {
-          applied.delete(el);
-          continue;
-        }
-        // Text sits on its OWN background if it has one, else the nearest opaque ancestor.
-        const bg = effectiveBg(el);
-        // WCAG AA threshold: 3.0 for large text (>=24px, or >=18.66px bold), else 4.5.
-        const fontSize = parseFloat(cs.fontSize) || 16;
-        const bold = (parseInt(cs.fontWeight, 10) || 400) >= 700;
-        const threshold = fontSize >= 24 || (fontSize >= 18.66 && bold) ? 3 : min;
-        const ratio = fgA.a < 0.5 ? 0 : contrastRatio(authorColor, bg);
-        if (ratio >= threshold) {
-          // Author color is readable on the current background — leave it (restored above).
-          applied.delete(el);
-          continue;
-        }
-        const fixed = ensureReadable(
-          fgA.a < 1
-            ? `rgb(${Math.round(fgA.r)}, ${Math.round(fgA.g)}, ${Math.round(fgA.b)})`
-            : authorColor,
-          bg,
-          threshold,
-        );
-        el.style.setProperty("color", fixed, "important");
-        applied.set(el, { source: authorColor, applied: el.style.color });
+        next.push({
+          text: element.textContent?.trim().slice(0, 48) || "Text",
+          ratio: Number(ratio.toFixed(2)),
+          required,
+          suggestedColor: ensureReadable(compositedForeground, background, required),
+        });
       }
+      setViolations((current) => (sameViolations(current, next) ? current : next));
+    };
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(scan);
     };
 
-    const observeOpts: MutationObserverInit = {
+    const observer = new MutationObserver(schedule);
+    observer.observe(root, {
       subtree: true,
       childList: true,
       attributes: true,
       attributeFilter: ["style", "class"],
       characterData: true,
-    };
-    const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+    });
+    root.addEventListener("transitionend", schedule, true);
+    root.addEventListener("animationend", schedule, true);
+    frame = requestAnimationFrame(scan);
 
-    // Leading + trailing throttle. Critically, we do NOT cancel a pending run on
-    // every mutation — otherwise a continuous animation (framer-motion preview
-    // transitions, skeleton shimmer) would starve the fix forever. Instead we run
-    // at most once per ~120ms, but we DO keep running during animations.
-    let last = 0;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let observer: MutationObserver;
-    const runFix = () => {
-      if (observer) observer.disconnect();
-      try { fix(); } finally { if (observer) observer.observe(document.body, observeOpts); }
-      last = now();
-    };
-    const schedule = () => {
-      const dt = now() - last;
-      if (dt >= 120) { runFix(); }
-      else if (!timer) { timer = setTimeout(() => { timer = null; runFix(); }, 120 - dt); }
-    };
-    observer = new MutationObserver(schedule);
-
-    // CSS transitions (e.g. a button's background animating from a light outline
-    // to a dark solid fill) change the rendered background WITHOUT a DOM mutation,
-    // so the observer never re-fires and a mid-transition override would stick to
-    // the final background. Re-evaluate when transitions start/end so the guard
-    // settles against the FINAL background (and reverts a no-longer-needed fix).
-    const onTransition = () => schedule();
-
-    runFix();
-    observer.observe(document.body, observeOpts);
-    document.addEventListener("transitionend", onTransition, true);
-    document.addEventListener("transitionstart", onTransition, true);
-    document.addEventListener("animationend", onTransition, true);
     return () => {
       observer.disconnect();
-      document.removeEventListener("transitionend", onTransition, true);
-      document.removeEventListener("transitionstart", onTransition, true);
-      document.removeEventListener("animationend", onTransition, true);
-      if (timer) clearTimeout(timer);
+      root.removeEventListener("transitionend", schedule, true);
+      root.removeEventListener("animationend", schedule, true);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, [min]);
 
-  return null;
+  if (!violations.length) return null;
+
+  const first = violations[0];
+  return (
+    <aside
+      data-testid="contrast-diagnostics"
+      role="status"
+      className="fixed bottom-4 right-4 z-[100] max-w-sm rounded-xl border border-amber-400/50 bg-slate-950/95 px-4 py-3 text-xs text-amber-100 shadow-2xl"
+    >
+      <strong className="block text-sm">Contrast warning</strong>
+      <span>
+        {violations.length} preview text {violations.length === 1 ? "item" : "items"} may fail WCAG.
+        {` “${first.text}” measures ${first.ratio}:1 (requires ${first.required}:1). Suggested ${first.suggestedColor}.`}
+      </span>
+    </aside>
+  );
 }

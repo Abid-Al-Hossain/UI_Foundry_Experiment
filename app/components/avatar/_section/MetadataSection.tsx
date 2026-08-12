@@ -45,7 +45,7 @@ export default function MetadataSection({
           <ControlGroup label="Title">
             <InputControl
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e)}
               placeholder="Tooltip / title text"
             />
           </ControlGroup>
@@ -53,7 +53,7 @@ export default function MetadataSection({
           <ControlGroup label="Alt Text">
             <InputControl
               value={alt}
-              onChange={(e) => setAlt(e.target.value)}
+              onChange={(e) => setAlt(e)}
               placeholder="Describe the avatar"
             />
           </ControlGroup>
@@ -61,7 +61,7 @@ export default function MetadataSection({
           <ControlGroup label="ARIA Label">
             <InputControl
               value={ariaLabel}
-              onChange={(e) => setAriaLabel(e.target.value)}
+              onChange={(e) => setAriaLabel(e)}
               placeholder="e.g. User profile picture"
             />
           </ControlGroup>
@@ -69,7 +69,7 @@ export default function MetadataSection({
           <ControlGroup label="ARIA Described By">
             <InputControl
               value={ariaDescribedBy}
-              onChange={(e) => setAriaDescribedBy(e.target.value)}
+              onChange={(e) => setAriaDescribedBy(e)}
               placeholder="id of an element with extra description"
             />
           </ControlGroup>

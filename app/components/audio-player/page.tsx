@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Audio Player</div></body></html>`;
 }
 
-export default function audioplayerGalleryPage() {
+export default function AudioplayerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

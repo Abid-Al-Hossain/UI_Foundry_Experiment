@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Carousel</div></body></html>`;
 }
 
-export default function carouselGalleryPage() {
+export default function CarouselGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

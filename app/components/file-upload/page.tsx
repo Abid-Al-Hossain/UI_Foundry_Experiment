@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">File Upload</div></body></html>`;
 }
 
-export default function fileuploadGalleryPage() {
+export default function FileuploadGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

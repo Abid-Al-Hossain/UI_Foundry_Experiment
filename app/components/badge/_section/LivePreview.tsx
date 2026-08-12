@@ -113,8 +113,9 @@ export default function LivePreview({ state }: { state: BadgeState }) {
   const [isBadgeFocused, setIsBadgeFocused] = useState(false);
 
   useEffect(() => {
+    const rippleTimers = rippleTimersRef.current;
     return () => {
-      rippleTimersRef.current.forEach(clearTimeout);
+      rippleTimers.forEach(clearTimeout);
     };
   }, []);
 

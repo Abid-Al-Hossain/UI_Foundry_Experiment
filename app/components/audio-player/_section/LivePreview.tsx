@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AudioPlayerState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -33,12 +33,30 @@ function shell(state: AudioPlayerState): CSSProperties {
 
 export default function LivePreview({ state }: { state: AudioPlayerState }) {
   const panel = shell(state);
-  const progressByState: Record<AudioPlayerState["previewState"], number> = { default: 36, hover: 44, focus: 48, active: 62, open: 36, closed: 0, selected: 72, loading: 12, empty: 0, error: 0, success: 100 };
-  const progress = progressByState[state.previewState];
-  const duration = 258;
-  const current = Math.round((duration * progress) / 100);
-  const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  const volume = state.muted ? 0 : 72;
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [media, setMedia] = useState({ current: 0, duration: 0, volume: state.muted ? 0 : 1, status: "idle" });
+  const rate = Number.parseFloat(state.playbackRate);
+  const playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 1;
+  const progress = media.duration > 0 ? Math.min(100, (media.current / media.duration) * 100) : 0;
+  const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = playbackRate;
+  }, [playbackRate, state.src]);
+
+  const syncMedia = (status?: string) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setMedia({
+      current: Number.isFinite(audio.currentTime) ? audio.currentTime : 0,
+      duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+      volume: audio.muted ? 0 : audio.volume,
+      status: status ?? (audio.paused ? "paused" : "playing"),
+    });
+  };
 
   return <section id={state.id} role={state.role} aria-label={state.ariaLabel} tabIndex={state.tabIndex} style={panel} className="grid content-center gap-4">
     <div className="grid gap-2">
@@ -46,20 +64,42 @@ export default function LivePreview({ state }: { state: AudioPlayerState }) {
       <h3 style={{ fontSize: state.titleSize, fontWeight: state.fontWeight }}>{state.title}</h3>
       <p style={{ color: "color-mix(in oklab, currentColor 70%, transparent)", fontSize: state.bodySize }}>{state.description}</p>
     </div>
-    <audio controls src={state.src || undefined} muted={state.muted} loop={state.loop} preload={state.preload} aria-label={state.ariaLabel} className="w-full" style={{ accentColor: state.accent }} />
+    <audio
+      ref={audioRef}
+      controls={!state.disabled}
+      src={state.src || undefined}
+      muted={state.muted}
+      loop={state.loop}
+      preload={state.preload}
+      aria-label={state.ariaLabel}
+      aria-disabled={state.disabled || undefined}
+      tabIndex={state.disabled ? -1 : 0}
+      className="w-full"
+      style={{ accentColor: state.accent, pointerEvents: state.disabled ? "none" : undefined }}
+      onLoadedMetadata={() => syncMedia("ready")}
+      onDurationChange={() => syncMedia()}
+      onTimeUpdate={() => syncMedia()}
+      onVolumeChange={() => syncMedia()}
+      onPlay={() => syncMedia("playing")}
+      onPause={() => syncMedia("paused")}
+      onWaiting={() => syncMedia("buffering")}
+      onPlaying={() => syncMedia("playing")}
+      onEnded={() => syncMedia("ended")}
+      onError={() => syncMedia("error")}
+    />
     {state.showTimeline && <div className="grid gap-2" aria-label={`${state.title} timeline preview`}>
       <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "color-mix(in oklab, currentColor 14%, transparent)" }} role="progressbar" aria-label="Playback progress" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div className="h-full rounded-full" style={{ width: `${progress}%`, background: state.accent, transition: state.transitionDuration > 0 ? "width 0.1s linear" : "none" }} />
       </div>
       <div className="flex justify-between text-xs" style={{ color: "color-mix(in oklab, currentColor 72%, transparent)" }}>
-        <span>{formatTime(current)}</span>
-        <span>{formatTime(duration)}</span>
+        <span>{formatTime(media.current)}</span>
+        <span>{formatTime(media.duration)}</span>
       </div>
     </div>}
     <div className="flex flex-wrap items-center justify-between gap-3 text-xs" style={{ color: "color-mix(in oklab, currentColor 74%, transparent)" }}>
-      <span>{state.previewState === "loading" ? "Buffering preview" : state.previewState === "error" ? "Source unavailable" : state.previewState === "success" ? "Finished playback" : `Playback: ${state.previewState}`}</span>
-      <span>Rate {state.playbackRate}x</span>
-      {state.showVolume && <span>Volume {volume}% {state.muted ? "(muted)" : ""}</span>}
+      <span>{media.status === "buffering" ? "Buffering" : media.status === "error" ? "Source unavailable" : media.status === "ended" ? "Finished playback" : `Playback: ${media.status}`}</span>
+      <span>Rate {playbackRate}x</span>
+      {state.showVolume && <span>Volume {Math.round(media.volume * 100)}% {media.volume === 0 ? "(muted)" : ""}</span>}
       <a href="#transcript" style={{ color: state.accent }}>{state.transcriptLink}</a>
     </div>
   </section>;

@@ -45,18 +45,6 @@ function resolveFont(state: { fontBucket: "system" | "google"; googleFontFamily:
     : (SYSTEM_FONTS[state.systemFontIdx]?.css ?? "inherit");
 }
 
-function buildShadow(state: { shadowEnabled: boolean; shadowX: number; shadowY: number; shadowBlur: number; shadowSpread: number; shadowColor: string; shadowOpacity: number }): string {
-  if (!state.shadowEnabled) return "none";
-  const hex = Math.round(state.shadowOpacity * 255).toString(16).padStart(2, "0");
-  return `${state.shadowX}px ${state.shadowY}px ${state.shadowBlur}px ${state.shadowSpread}px ${state.shadowColor}${hex}`;
-}
-
-function buildRadius(state: { radiusLinked: boolean; radius: number; radiusTL: number; radiusTR: number; radiusBR: number; radiusBL: number }): string {
-  return state.radiusLinked
-    ? `${state.radius}px`
-    : `${state.radiusTL}px ${state.radiusTR}px ${state.radiusBR}px ${state.radiusBL}px`;
-}
-
 function severityColor(state: ToastState, kind: "bg" | "border"): string {
   const map: Record<string, { bg: string; border: string }> = {
     info: { bg: state.infoBg, border: state.infoBorderColor },

@@ -16,7 +16,7 @@ import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 
 // --- Section Imports ---
-import BasicsSection, { type ButtonVariant } from "../_section/BasicsSection";
+import BasicsSection from "../_section/BasicsSection";
 import PresetsSection from "../_section/PresetsSection";
 import MotionSection from "../_section/MotionSection";
 import SizingSection from "../_section/SizingSection";
@@ -25,35 +25,21 @@ import BorderSection from "../_section/BorderSection";
 import RadiusSection from "../_section/RadiusSection";
 import ShadowSection from "../_section/ShadowSection";
 import TypographySection from "../_section/TypographySection";
-import TextPositionSection, {
-  type AlignKey,
-} from "../_section/TextPositionSection";
+import TextPositionSection from "../_section/TextPositionSection";
 import TextShadowSection from "../_section/TextShadowSection";
-import IconSection, {
-  type IconName,
-  type IconSource,
-} from "../_section/IconSection";
+import IconSection from "../_section/IconSection";
 import OutlineGhostPresetsSection from "../_section/OutlineGhostPresetsSection";
-import GroupPreviewSection, {
-  type GroupAlign,
-} from "../_section/GroupPreviewSection";
+import GroupPreviewSection from "../_section/GroupPreviewSection";
 import HoverSection from "../_section/HoverSection";
 import ActiveStateSection from "../_section/ActiveStateSection";
 import FocusRingSection from "../_section/FocusRingSection";
-import { type PreviewBgMode } from "../_section/PreviewBackgroundSection";
 import PreviewDownloadPanel, {
   type DownloadFormat,
 } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
-import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
-import LoadingSection, {
-  type LoadingSpinnerMode,
-  type LoadingSpinnerPosition,
-} from "../_section/LoadingSection";
+import LoadingSection from "../_section/LoadingSection";
 import DisabledSection from "../_section/DisabledSection";
-import AccessibilitySection, {
-  type MinTouchMode,
-} from "../_section/AccessibilitySection";
+import AccessibilitySection from "../_section/AccessibilitySection";
 import StatePreviewSection from "../_section/StatePreviewSection";
 const ThreeJSSection = dynamic(() => import("../_section/ThreeJSSection"), {
   ssr: false,
@@ -63,15 +49,8 @@ const ThreeJSSection = dynamic(() => import("../_section/ThreeJSSection"), {
 });
 
 import {
-  type ThreeDIconMode,
-  type ThreeDAnimation,
-  type ClickEffect,
-} from "../_section/ThreeJSSection";
-
-import {
   PALETTE,
   SYSTEM_FONTS,
-  GOOGLE_FONTS,
 } from "../_data/buttonConstants";
 import { BUTTON_PRESETS, type ButtonPreset } from "../_data/buttonPresets";
 import LivePreview from "../_section/LivePreview";
@@ -91,7 +70,6 @@ import { useHistoryState } from "@/app/hooks/useHistoryState";
 import {
   type ActionButtonState,
   INITIAL_STATE,
-  type TransitionEasing,
 } from "../types";
 
 export default function ActionButtonPage() {
@@ -129,9 +107,21 @@ export default function ActionButtonPage() {
   } = useHistoryState<ActionButtonState>(INITIAL_STATE);
 
   // Destructure for easy access (read-only)
-  const setKey = (key: keyof ActionButtonState) => (v: any) => {
-    updateState((s) => ({ ...s, [key]: v }));
-  };
+  const setKey = <Key extends keyof ActionButtonState>(key: Key) =>
+    (value: SetStateAction<ActionButtonState[Key]>) => {
+      updateState((previous) => {
+        const nextValue =
+          typeof value === "function"
+            ? (
+                value as (
+                  current: ActionButtonState[Key],
+                ) => ActionButtonState[Key]
+              )(previous[key])
+            : value;
+
+        return { ...previous, [key]: nextValue };
+      });
+    };
 
   const {
     label,
@@ -190,7 +180,6 @@ export default function ActionButtonPage() {
     shOpacityText,
     shColorInput,
     shadowTemp,
-    elevationPreset,
     depthText,
     lightDirection,
     lightAngleText,
@@ -220,7 +209,6 @@ export default function ActionButtonPage() {
     bevelEnabled,
     bevelSizeText,
     bevelSoftnessText,
-    materialPreset,
     edgeThicknessText,
     edgeGradientEnabled,
     edgeGradientSizeText,
@@ -258,7 +246,6 @@ export default function ActionButtonPage() {
     hoverTiltYText,
     hoverPerspectiveText,
     fontBucket,
-    fontSearch,
     systemFontIdx,
     googleFontFamily,
     fontSizeText,
@@ -370,1168 +357,139 @@ export default function ActionButtonPage() {
   } = state;
 
   // --- Proxy Setters ---
-  const setLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      label: v instanceof Function ? v(s.label) : v,
-    }));
-  const setVariant = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      variant: v instanceof Function ? v(s.variant) : v,
-    }));
-  const setDisabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabled: v instanceof Function ? v(s.disabled) : v,
-    }));
-  const setLoading = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loading: v instanceof Function ? v(s.loading) : v,
-    }));
-  const setAnimation = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      animation: v instanceof Function ? v(s.animation) : v,
-    }));
-  const setLoadingLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingLabel: v instanceof Function ? v(s.loadingLabel) : v,
-    }));
-  const setLoadingSpinnerMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingSpinnerMode: v instanceof Function ? v(s.loadingSpinnerMode) : v,
-    }));
-  const setLoadingSpinnerPosition = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingSpinnerPosition:
-        v instanceof Function ? v(s.loadingSpinnerPosition) : v,
-    }));
-  const setLoadingSpinnerSvg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingSpinnerSvg: v instanceof Function ? v(s.loadingSpinnerSvg) : v,
-    }));
+  const setLoadingLabel = setKey("loadingLabel");
+  const setLoadingSpinnerMode = setKey("loadingSpinnerMode");
+  const setLoadingSpinnerPosition = setKey("loadingSpinnerPosition");
+  const setLoadingSpinnerSvg = setKey("loadingSpinnerSvg");
 
-  const setWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      widthText: v instanceof Function ? v(s.widthText) : v,
-    }));
-  const setHeightText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      heightText: v instanceof Function ? v(s.heightText) : v,
-    }));
-  const setPaddingXText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      paddingXText: v instanceof Function ? v(s.paddingXText) : v,
-    }));
-  const setPaddingYText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      paddingYText: v instanceof Function ? v(s.paddingYText) : v,
-    }));
+  const setWidthText = setKey("widthText");
+  const setHeightText = setKey("heightText");
+  const setPaddingXText = setKey("paddingXText");
+  const setPaddingYText = setKey("paddingYText");
 
-  const setUseGradient = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      useGradient: v instanceof Function ? v(s.useGradient) : v,
-    }));
-  const setGradAngleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradAngleText: v instanceof Function ? v(s.gradAngleText) : v,
-    }));
-  const setGradStartInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradStartInput: v instanceof Function ? v(s.gradStartInput) : v,
-    }));
-  const setGradEndInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradEndInput: v instanceof Function ? v(s.gradEndInput) : v,
-    }));
-  const setGradMidEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradMidEnabled: v instanceof Function ? v(s.gradMidEnabled) : v,
-    }));
-  const setGradMidInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      gradMidInput: v instanceof Function ? v(s.gradMidInput) : v,
-    }));
-  const setBgInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      bgInput: v instanceof Function ? v(s.bgInput) : v,
-    }));
-  const setTextInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      textInput: v instanceof Function ? v(s.textInput) : v,
-    }));
+  const setUseGradient = setKey("useGradient");
+  const setTextInput = setKey("textInput");
 
-  const setBorderWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderWidthText: v instanceof Function ? v(s.borderWidthText) : v,
-    }));
-  const setBorderStyle = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderStyle: v instanceof Function ? v(s.borderStyle) : v,
-    }));
-  const setBorderInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderInput: v instanceof Function ? v(s.borderInput) : v,
-    }));
-  const setBorderHoverWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderHoverWidthText:
-        v instanceof Function ? v(s.borderHoverWidthText) : v,
-    }));
-  const setBorderActiveWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderActiveWidthText:
-        v instanceof Function ? v(s.borderActiveWidthText) : v,
-    }));
+  const setBorderWidthText = setKey("borderWidthText");
+  const setBorderInput = setKey("borderInput");
 
-  const setDisabledOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledOpacityText: v instanceof Function ? v(s.disabledOpacityText) : v,
-    }));
-  const setDisabledCursor = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledCursor: v instanceof Function ? v(s.disabledCursor) : v,
-    }));
-  const setDisabledUseCustomColors = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledUseCustomColors:
-        v instanceof Function ? v(s.disabledUseCustomColors) : v,
-    }));
-  const setDisabledBgInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledBgInput: v instanceof Function ? v(s.disabledBgInput) : v,
-    }));
-  const setDisabledTextInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledTextInput: v instanceof Function ? v(s.disabledTextInput) : v,
-    }));
-  const setDisabledBorderInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledBorderInput: v instanceof Function ? v(s.disabledBorderInput) : v,
-    }));
-  const setDisabledBorderWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledBorderWidthText:
-        v instanceof Function ? v(s.disabledBorderWidthText) : v,
-    }));
-  const setDisabledHoverSuppressed = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledHoverSuppressed:
-        v instanceof Function ? v(s.disabledHoverSuppressed) : v,
-    }));
-  const setDisabledTextShadowEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      disabledTextShadowEnabled:
-        v instanceof Function ? v(s.disabledTextShadowEnabled) : v,
-    }));
+  const setDisabledOpacityText = setKey("disabledOpacityText");
+  const setDisabledCursor = setKey("disabledCursor");
+  const setDisabledUseCustomColors = setKey("disabledUseCustomColors");
+  const setDisabledBgInput = setKey("disabledBgInput");
+  const setDisabledTextInput = setKey("disabledTextInput");
+  const setDisabledBorderInput = setKey("disabledBorderInput");
+  const setDisabledBorderWidthText = setKey("disabledBorderWidthText");
+  const setDisabledHoverSuppressed = setKey("disabledHoverSuppressed");
+  const setDisabledTextShadowEnabled = setKey("disabledTextShadowEnabled");
 
-  const setLinkRadius = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      linkRadius: v instanceof Function ? v(s.linkRadius) : v,
-    }));
-  const setRadiusText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusText: v instanceof Function ? v(s.radiusText) : v,
-    }));
-  const setRadiusTLText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusTLText: v instanceof Function ? v(s.radiusTLText) : v,
-    }));
-  const setRadiusTRText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusTRText: v instanceof Function ? v(s.radiusTRText) : v,
-    }));
-  const setRadiusBRText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusBRText: v instanceof Function ? v(s.radiusBRText) : v,
-    }));
-  const setRadiusBLText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      radiusBLText: v instanceof Function ? v(s.radiusBLText) : v,
-    }));
+  const setUse3DIcon = setKey("use3DIcon");
+  const setIcon3DAnimation = setKey("icon3DAnimation");
+  const setClickEffect = setKey("clickEffect");
+  const setIcon3DGeometry = setKey("icon3DGeometry");
+  const setIcon3DMaterial = setKey("icon3DMaterial");
+  const setIconRoughness = setKey("iconRoughness");
+  const setIconMetalness = setKey("iconMetalness");
+  const setIconTransmission = setKey("iconTransmission");
+  const setIconEmissive = setKey("iconEmissive");
+  const setIcon3DColorMode = setKey("icon3DColorMode");
+  const setIcon3DColorInput = setKey("icon3DColorInput");
+  const setIcon3DText = setKey("icon3DText");
+  const setIconDistortion = setKey("iconDistortion");
+  const setIconThickness = setKey("iconThickness");
+  const setIconChromaticAberration = setKey("iconChromaticAberration");
+  const setClickParticleCount = setKey("clickParticleCount");
+  const setHoverEffect = setKey("hoverEffect");
+  const setHoverSpringStiffness = setKey("hoverSpringStiffness");
+  const setHoverSpringDamping = setKey("hoverSpringDamping");
+  const setAlign = setKey("align");
 
-  const setShadowEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shadowEnabled: v instanceof Function ? v(s.shadowEnabled) : v,
-    }));
-  const setShXText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shXText: v instanceof Function ? v(s.shXText) : v,
-    }));
-  const setShYText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shYText: v instanceof Function ? v(s.shYText) : v,
-    }));
-  const setShBlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shBlurText: v instanceof Function ? v(s.shBlurText) : v,
-    }));
-  const setShSpreadText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shSpreadText: v instanceof Function ? v(s.shSpreadText) : v,
-    }));
-  const setShOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shOpacityText: v instanceof Function ? v(s.shOpacityText) : v,
-    }));
-  const setShColorInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shColorInput: v instanceof Function ? v(s.shColorInput) : v,
-    }));
-  const setShadowTemp = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shadowTemp: v instanceof Function ? v(s.shadowTemp) : v,
-    }));
+  const setTextShadowEnabled = setKey("textShadowEnabled");
+  const setTsColorMode = setKey("tsColorMode");
+  const setTsXText = setKey("tsXText");
+  const setTsYText = setKey("tsYText");
+  const setTsBlurText = setKey("tsBlurText");
+  const setTsOpacityText = setKey("tsOpacityText");
+  const setTsColorInput = setKey("tsColorInput");
 
-  const setElevationPreset = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      elevationPreset: v instanceof Function ? v(s.elevationPreset) : v,
-    }));
-  const setDepthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      depthText: v instanceof Function ? v(s.depthText) : v,
-    }));
-  const setLightDirection = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      lightDirection: v instanceof Function ? v(s.lightDirection) : v,
-    }));
-  const setLightAngleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      lightAngleText: v instanceof Function ? v(s.lightAngleText) : v,
-    }));
-  const setShadowStackEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      shadowStackEnabled: v instanceof Function ? v(s.shadowStackEnabled) : v,
-    }));
-  const setStack1Enabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1Enabled: v instanceof Function ? v(s.stack1Enabled) : v,
-    }));
-  const setStack1XText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1XText: v instanceof Function ? v(s.stack1XText) : v,
-    }));
-  const setStack1YText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1YText: v instanceof Function ? v(s.stack1YText) : v,
-    }));
-  const setStack1BlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1BlurText: v instanceof Function ? v(s.stack1BlurText) : v,
-    }));
-  const setStack1SpreadText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1SpreadText: v instanceof Function ? v(s.stack1SpreadText) : v,
-    }));
-  const setStack1OpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack1OpacityText: v instanceof Function ? v(s.stack1OpacityText) : v,
-    }));
-  const setStack2Enabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2Enabled: v instanceof Function ? v(s.stack2Enabled) : v,
-    }));
-  const setStack2XText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2XText: v instanceof Function ? v(s.stack2XText) : v,
-    }));
-  const setStack2YText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2YText: v instanceof Function ? v(s.stack2YText) : v,
-    }));
-  const setStack2BlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2BlurText: v instanceof Function ? v(s.stack2BlurText) : v,
-    }));
-  const setStack2SpreadText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2SpreadText: v instanceof Function ? v(s.stack2SpreadText) : v,
-    }));
-  const setStack2OpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack2OpacityText: v instanceof Function ? v(s.stack2OpacityText) : v,
-    }));
-  const setStack3Enabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3Enabled: v instanceof Function ? v(s.stack3Enabled) : v,
-    }));
-  const setStack3XText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3XText: v instanceof Function ? v(s.stack3XText) : v,
-    }));
-  const setStack3YText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3YText: v instanceof Function ? v(s.stack3YText) : v,
-    }));
-  const setStack3BlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3BlurText: v instanceof Function ? v(s.stack3BlurText) : v,
-    }));
-  const setStack3SpreadText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3SpreadText: v instanceof Function ? v(s.stack3SpreadText) : v,
-    }));
-  const setStack3OpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      stack3OpacityText: v instanceof Function ? v(s.stack3OpacityText) : v,
-    }));
-  const setInnerShadowEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      innerShadowEnabled: v instanceof Function ? v(s.innerShadowEnabled) : v,
-    }));
-  const setGlossEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      glossEnabled: v instanceof Function ? v(s.glossEnabled) : v,
-    }));
-  const setGlossSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      glossSizeText: v instanceof Function ? v(s.glossSizeText) : v,
-    }));
-  const setGlossOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      glossOpacityText: v instanceof Function ? v(s.glossOpacityText) : v,
-    }));
-  const setBevelEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      bevelEnabled: v instanceof Function ? v(s.bevelEnabled) : v,
-    }));
-  const setBevelSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      bevelSizeText: v instanceof Function ? v(s.bevelSizeText) : v,
-    }));
-  const setBevelSoftnessText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      bevelSoftnessText: v instanceof Function ? v(s.bevelSoftnessText) : v,
-    }));
-  const setMaterialPreset = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      materialPreset: v instanceof Function ? v(s.materialPreset) : v,
-    }));
+  const setIconName = setKey("iconName");
+  const setIconSource = setKey("iconSource");
+  const setIconCustomSvg = setKey("iconCustomSvg");
+  const setIconPosition = setKey("iconPosition");
+  const setIconSizeText = setKey("iconSizeText");
+  const setIconGapText = setKey("iconGapText");
+  const setIconColorMode = setKey("iconColorMode");
+  const setIconColorInput = setKey("iconColorInput");
 
-  const setEdgeThicknessText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      edgeThicknessText: v instanceof Function ? v(s.edgeThicknessText) : v,
-    }));
-  const setEdgeGradientEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      edgeGradientEnabled: v instanceof Function ? v(s.edgeGradientEnabled) : v,
-    }));
-  const setEdgeGradientSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      edgeGradientSizeText:
-        v instanceof Function ? v(s.edgeGradientSizeText) : v,
-    }));
-  const setEdgeGradientStrengthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      edgeGradientStrengthText:
-        v instanceof Function ? v(s.edgeGradientStrengthText) : v,
-    }));
-  const setBackdropBlurEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      backdropBlurEnabled: v instanceof Function ? v(s.backdropBlurEnabled) : v,
-    }));
-  const setBackdropBlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      backdropBlurText: v instanceof Function ? v(s.backdropBlurText) : v,
-    }));
-  const setTopGradientEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradientEnabled: v instanceof Function ? v(s.topGradientEnabled) : v,
-    }));
-  const setTopGradAngleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradAngleText: v instanceof Function ? v(s.topGradAngleText) : v,
-    }));
-  const setTopGradStartInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradStartInput: v instanceof Function ? v(s.topGradStartInput) : v,
-    }));
-  const setTopGradMidEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradMidEnabled: v instanceof Function ? v(s.topGradMidEnabled) : v,
-    }));
-  const setTopGradMidInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradMidInput: v instanceof Function ? v(s.topGradMidInput) : v,
-    }));
-  const setTopGradEndInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradEndInput: v instanceof Function ? v(s.topGradEndInput) : v,
-    }));
-  const setTopGradOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      topGradOpacityText: v instanceof Function ? v(s.topGradOpacityText) : v,
-    }));
-  const setParallaxHighlightEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      parallaxHighlightEnabled:
-        v instanceof Function ? v(s.parallaxHighlightEnabled) : v,
-    }));
-  const setParallaxStrengthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      parallaxStrengthText:
-        v instanceof Function ? v(s.parallaxStrengthText) : v,
-    }));
-  const setRimLightEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      rimLightEnabled: v instanceof Function ? v(s.rimLightEnabled) : v,
-    }));
-  const setRimLightColorInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      rimLightColorInput: v instanceof Function ? v(s.rimLightColorInput) : v,
-    }));
-  const setRimLightSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      rimLightSizeText: v instanceof Function ? v(s.rimLightSizeText) : v,
-    }));
-  const setRimLightOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      rimLightOpacityText: v instanceof Function ? v(s.rimLightOpacityText) : v,
-    }));
-  const setIconEmbossMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconEmbossMode: v instanceof Function ? v(s.iconEmbossMode) : v,
-    }));
-  const setIconEmbossDepthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconEmbossDepthText: v instanceof Function ? v(s.iconEmbossDepthText) : v,
-    }));
-  const setIconEmbossStrengthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconEmbossStrengthText:
-        v instanceof Function ? v(s.iconEmbossStrengthText) : v,
-    }));
-  const setBorderDepthMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderDepthMode: v instanceof Function ? v(s.borderDepthMode) : v,
-    }));
-  const setBorderDepthSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      borderDepthSizeText: v instanceof Function ? v(s.borderDepthSizeText) : v,
-    }));
-  const setBaseShadowEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      baseShadowEnabled: v instanceof Function ? v(s.baseShadowEnabled) : v,
-    }));
-  const setBaseShadowSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      baseShadowSizeText: v instanceof Function ? v(s.baseShadowSizeText) : v,
-    }));
-  const setBaseShadowOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      baseShadowOpacityText:
-        v instanceof Function ? v(s.baseShadowOpacityText) : v,
-    }));
-  const setPressedDepthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      pressedDepthText: v instanceof Function ? v(s.pressedDepthText) : v,
-    }));
-  const setPressedInsetEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      pressedInsetEnabled: v instanceof Function ? v(s.pressedInsetEnabled) : v,
-    }));
-  const setHoverLiftText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverLiftText: v instanceof Function ? v(s.hoverLiftText) : v,
-    }));
-  const setSpecularStrengthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      specularStrengthText:
-        v instanceof Function ? v(s.specularStrengthText) : v,
-    }));
-  const setRoughnessText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      roughnessText: v instanceof Function ? v(s.roughnessText) : v,
-    }));
-  const setUse3DIcon = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      use3DIcon: v instanceof Function ? v(s.use3DIcon) : v,
-    }));
-  const setIcon3DAnimation = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DAnimation: v instanceof Function ? v(s.icon3DAnimation) : v,
-    }));
-  const setClickEffect = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      clickEffect: v instanceof Function ? v(s.clickEffect) : v,
-    }));
-  const setIcon3DGeometry = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DGeometry: v instanceof Function ? v(s.icon3DGeometry) : v,
-    }));
-  const setIcon3DMaterial = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DMaterial: v instanceof Function ? v(s.icon3DMaterial) : v,
-    }));
-  const setIconRoughness = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconRoughness: v instanceof Function ? v(s.iconRoughness) : v,
-    }));
-  const setIconMetalness = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconMetalness: v instanceof Function ? v(s.iconMetalness) : v,
-    }));
-  const setIconTransmission = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconTransmission: v instanceof Function ? v(s.iconTransmission) : v,
-    }));
-  const setIconEmissive = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconEmissive: v instanceof Function ? v(s.iconEmissive) : v,
-    }));
-  const setIcon3DColorMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DColorMode: v instanceof Function ? v(s.icon3DColorMode) : v,
-    }));
-  const setIcon3DColorInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DColorInput: v instanceof Function ? v(s.icon3DColorInput) : v,
-    }));
-  const setIcon3DText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      icon3DText: v instanceof Function ? v(s.icon3DText) : v,
-    }));
-  const setIconDistortion = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconDistortion: v instanceof Function ? v(s.iconDistortion) : v,
-    }));
-  const setIconThickness = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconThickness: v instanceof Function ? v(s.iconThickness) : v,
-    }));
-  const setIconChromaticAberration = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconChromaticAberration:
-        v instanceof Function ? v(s.iconChromaticAberration) : v,
-    }));
-  const setClickParticleCount = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      clickParticleCount: v instanceof Function ? v(s.clickParticleCount) : v,
-    }));
-  const setHoverEffect = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverEffect: v instanceof Function ? v(s.hoverEffect) : v,
-    }));
-  const setHoverSpringStiffness = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverSpringStiffness:
-        v instanceof Function ? v(s.hoverSpringStiffness) : v,
-    }));
-  const setHoverSpringDamping = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverSpringDamping: v instanceof Function ? v(s.hoverSpringDamping) : v,
-    }));
-  const setAoStrengthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      aoStrengthText: v instanceof Function ? v(s.aoStrengthText) : v,
-    }));
-  const setHoverTiltXText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverTiltXText: v instanceof Function ? v(s.hoverTiltXText) : v,
-    }));
-  const setHoverTiltYText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverTiltYText: v instanceof Function ? v(s.hoverTiltYText) : v,
-    }));
-  const setHoverPerspectiveText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverPerspectiveText:
-        v instanceof Function ? v(s.hoverPerspectiveText) : v,
-    }));
+  const setHoverIconEnabled = setKey("hoverIconEnabled");
+  const setHoverIconSource = setKey("hoverIconSource");
+  const setHoverIconName = setKey("hoverIconName");
+  const setHoverIconCustomSvg = setKey("hoverIconCustomSvg");
 
-  const setFontBucket = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontBucket: v instanceof Function ? v(s.fontBucket) : v,
-    }));
-  const setFontSearch = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontSearch: v instanceof Function ? v(s.fontSearch) : v,
-    }));
-  const setSystemFontIdx = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      systemFontIdx: v instanceof Function ? v(s.systemFontIdx) : v,
-    }));
-  const setGoogleFontFamily = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      googleFontFamily: v instanceof Function ? v(s.googleFontFamily) : v,
-    }));
-  const setFontSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontSizeText: v instanceof Function ? v(s.fontSizeText) : v,
-    }));
-  const setFontSizeUnit = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontSizeUnit: v instanceof Function ? v(s.fontSizeUnit) : v,
-    }));
-  const setFontWeight = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontWeight: v instanceof Function ? v(s.fontWeight) : v,
-    }));
-  const setLetterSpacingText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      letterSpacingText: v instanceof Function ? v(s.letterSpacingText) : v,
-    }));
-  const setLetterSpacingUnit = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      letterSpacingUnit: v instanceof Function ? v(s.letterSpacingUnit) : v,
-    }));
-  const setLineHeightText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      lineHeightText: v instanceof Function ? v(s.lineHeightText) : v,
-    }));
-  const setFontStyle = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      fontStyle: v instanceof Function ? v(s.fontStyle) : v,
-    }));
-  const setTextTransform = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      textTransform: v instanceof Function ? v(s.textTransform) : v,
-    }));
-  const setUnderline = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      underline: v instanceof Function ? v(s.underline) : v,
-    }));
-  const setAlign = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      align: v instanceof Function ? v(s.align) : v,
-    }));
+  const setActiveIconEnabled = setKey("activeIconEnabled");
+  const setActiveIconSource = setKey("activeIconSource");
+  const setActiveIconName = setKey("activeIconName");
+  const setActiveIconCustomSvg = setKey("activeIconCustomSvg");
 
-  const setTextShadowEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      textShadowEnabled: v instanceof Function ? v(s.textShadowEnabled) : v,
-    }));
-  const setTsColorMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsColorMode: v instanceof Function ? v(s.tsColorMode) : v,
-    }));
-  const setTsXText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsXText: v instanceof Function ? v(s.tsXText) : v,
-    }));
-  const setTsYText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsYText: v instanceof Function ? v(s.tsYText) : v,
-    }));
-  const setTsBlurText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsBlurText: v instanceof Function ? v(s.tsBlurText) : v,
-    }));
-  const setTsOpacityText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsOpacityText: v instanceof Function ? v(s.tsOpacityText) : v,
-    }));
-  const setTsColorInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      tsColorInput: v instanceof Function ? v(s.tsColorInput) : v,
-    }));
+  const setLoadingIconEnabled = setKey("loadingIconEnabled");
+  const setLoadingIconSource = setKey("loadingIconSource");
+  const setLoadingIconName = setKey("loadingIconName");
+  const setLoadingIconCustomSvg = setKey("loadingIconCustomSvg");
 
-  const setIconName = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconName: v instanceof Function ? v(s.iconName) : v,
-    }));
-  const setIconSource = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconSource: v instanceof Function ? v(s.iconSource) : v,
-    }));
-  const setIconCustomSvg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconCustomSvg: v instanceof Function ? v(s.iconCustomSvg) : v,
-    }));
-  const setIconPosition = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconPosition: v instanceof Function ? v(s.iconPosition) : v,
-    }));
-  const setIconSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconSizeText: v instanceof Function ? v(s.iconSizeText) : v,
-    }));
-  const setIconGapText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconGapText: v instanceof Function ? v(s.iconGapText) : v,
-    }));
-  const setIconColorMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconColorMode: v instanceof Function ? v(s.iconColorMode) : v,
-    }));
-  const setIconColorInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      iconColorInput: v instanceof Function ? v(s.iconColorInput) : v,
-    }));
+  const setGroupEnabled = setKey("groupEnabled");
+  const setGroupAlign = setKey("groupAlign");
+  const setGroupGapText = setKey("groupGapText");
 
-  const setHoverIconEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverIconEnabled: v instanceof Function ? v(s.hoverIconEnabled) : v,
-    }));
-  const setHoverIconSource = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverIconSource: v instanceof Function ? v(s.hoverIconSource) : v,
-    }));
-  const setHoverIconName = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverIconName: v instanceof Function ? v(s.hoverIconName) : v,
-    }));
-  const setHoverIconCustomSvg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverIconCustomSvg: v instanceof Function ? v(s.hoverIconCustomSvg) : v,
-    }));
+  const setHoverEnabled = setKey("hoverEnabled");
+  const setHoverBgMode = setKey("hoverBgMode");
+  const setHoverBgInput = setKey("hoverBgInput");
+  const setHoverGradAngleText = setKey("hoverGradAngleText");
+  const setHoverGradStartInput = setKey("hoverGradStartInput");
+  const setHoverGradMidEnabled = setKey("hoverGradMidEnabled");
+  const setHoverGradMidInput = setKey("hoverGradMidInput");
+  const setHoverGradEndInput = setKey("hoverGradEndInput");
+  const setHoverTextMode = setKey("hoverTextMode");
+  const setHoverTextInput = setKey("hoverTextInput");
+  const setHoverBorderMode = setKey("hoverBorderMode");
+  const setHoverBorderInput = setKey("hoverBorderInput");
 
-  const setActiveIconEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeIconEnabled: v instanceof Function ? v(s.activeIconEnabled) : v,
-    }));
-  const setActiveIconSource = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeIconSource: v instanceof Function ? v(s.activeIconSource) : v,
-    }));
-  const setActiveIconName = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeIconName: v instanceof Function ? v(s.activeIconName) : v,
-    }));
-  const setActiveIconCustomSvg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeIconCustomSvg: v instanceof Function ? v(s.activeIconCustomSvg) : v,
-    }));
+  const setActiveEnabled = setKey("activeEnabled");
+  const setActiveTranslateYText = setKey("activeTranslateYText");
+  const setActiveScaleText = setKey("activeScaleText");
+  const setActiveBgMode = setKey("activeBgMode");
+  const setActiveBgInput = setKey("activeBgInput");
+  const setActiveGradAngleText = setKey("activeGradAngleText");
+  const setActiveGradStartInput = setKey("activeGradStartInput");
+  const setActiveGradMidEnabled = setKey("activeGradMidEnabled");
+  const setActiveGradMidInput = setKey("activeGradMidInput");
+  const setActiveGradEndInput = setKey("activeGradEndInput");
+  const setActiveTextMode = setKey("activeTextMode");
+  const setActiveTextInput = setKey("activeTextInput");
+  const setActiveBorderMode = setKey("activeBorderMode");
+  const setActiveBorderInput = setKey("activeBorderInput");
 
-  const setLoadingIconEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingIconEnabled: v instanceof Function ? v(s.loadingIconEnabled) : v,
-    }));
-  const setLoadingIconSource = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingIconSource: v instanceof Function ? v(s.loadingIconSource) : v,
-    }));
-  const setLoadingIconName = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingIconName: v instanceof Function ? v(s.loadingIconName) : v,
-    }));
-  const setLoadingIconCustomSvg = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      loadingIconCustomSvg:
-        v instanceof Function ? v(s.loadingIconCustomSvg) : v,
-    }));
+  const setFocusRingEnabled = setKey("focusRingEnabled");
+  const setFocusRingWidthText = setKey("focusRingWidthText");
+  const setFocusRingOffsetText = setKey("focusRingOffsetText");
+  const setFocusRingInput = setKey("focusRingInput");
 
-  const setGroupEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupEnabled: v instanceof Function ? v(s.groupEnabled) : v,
-    }));
-  const setGroupAlign = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupAlign: v instanceof Function ? v(s.groupAlign) : v,
-    }));
-  const setGroupGapText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      groupGapText: v instanceof Function ? v(s.groupGapText) : v,
-    }));
+  const setTransitionColorDurationText = setKey("transitionColorDurationText");
+  const setTransitionColorEasing = setKey("transitionColorEasing");
+  const setTransitionTransformDurationText = setKey("transitionTransformDurationText");
+  const setTransitionTransformEasing = setKey("transitionTransformEasing");
 
-  const setHoverEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverEnabled: v instanceof Function ? v(s.hoverEnabled) : v,
-    }));
-  const setHoverBgMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverBgMode: v instanceof Function ? v(s.hoverBgMode) : v,
-    }));
-  const setHoverBgInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverBgInput: v instanceof Function ? v(s.hoverBgInput) : v,
-    }));
-  const setHoverGradAngleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGradAngleText: v instanceof Function ? v(s.hoverGradAngleText) : v,
-    }));
-  const setHoverGradStartInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGradStartInput: v instanceof Function ? v(s.hoverGradStartInput) : v,
-    }));
-  const setHoverGradMidEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGradMidEnabled: v instanceof Function ? v(s.hoverGradMidEnabled) : v,
-    }));
-  const setHoverGradMidInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGradMidInput: v instanceof Function ? v(s.hoverGradMidInput) : v,
-    }));
-  const setHoverGradEndInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverGradEndInput: v instanceof Function ? v(s.hoverGradEndInput) : v,
-    }));
-  const setHoverTextMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverTextMode: v instanceof Function ? v(s.hoverTextMode) : v,
-    }));
-  const setHoverTextInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverTextInput: v instanceof Function ? v(s.hoverTextInput) : v,
-    }));
-  const setHoverBorderMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverBorderMode: v instanceof Function ? v(s.hoverBorderMode) : v,
-    }));
-  const setHoverBorderInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      hoverBorderInput: v instanceof Function ? v(s.hoverBorderInput) : v,
-    }));
+  const setAriaLabel = setKey("ariaLabel");
+  const setAriaPressedMode = setKey("ariaPressedMode");
+  const setAriaBusyMode = setKey("ariaBusyMode");
+  const setMinTouchMode = setKey("minTouchMode");
+  const setMinTouchSizeText = setKey("minTouchSizeText");
 
-  const setActiveEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeEnabled: v instanceof Function ? v(s.activeEnabled) : v,
-    }));
-  const setActiveTranslateYText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeTranslateYText:
-        v instanceof Function ? v(s.activeTranslateYText) : v,
-    }));
-  const setActiveScaleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeScaleText: v instanceof Function ? v(s.activeScaleText) : v,
-    }));
-  const setActiveBgMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeBgMode: v instanceof Function ? v(s.activeBgMode) : v,
-    }));
-  const setActiveBgInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeBgInput: v instanceof Function ? v(s.activeBgInput) : v,
-    }));
-  const setActiveGradAngleText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeGradAngleText: v instanceof Function ? v(s.activeGradAngleText) : v,
-    }));
-  const setActiveGradStartInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeGradStartInput:
-        v instanceof Function ? v(s.activeGradStartInput) : v,
-    }));
-  const setActiveGradMidEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeGradMidEnabled:
-        v instanceof Function ? v(s.activeGradMidEnabled) : v,
-    }));
-  const setActiveGradMidInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeGradMidInput: v instanceof Function ? v(s.activeGradMidInput) : v,
-    }));
-  const setActiveGradEndInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeGradEndInput: v instanceof Function ? v(s.activeGradEndInput) : v,
-    }));
-  const setActiveTextMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeTextMode: v instanceof Function ? v(s.activeTextMode) : v,
-    }));
-  const setActiveTextInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeTextInput: v instanceof Function ? v(s.activeTextInput) : v,
-    }));
-  const setActiveBorderMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeBorderMode: v instanceof Function ? v(s.activeBorderMode) : v,
-    }));
-  const setActiveBorderInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      activeBorderInput: v instanceof Function ? v(s.activeBorderInput) : v,
-    }));
+  const setForceHover = setKey("forceHover");
+  const setForceActive = setKey("forceActive");
+  const setForceFocus = setKey("forceFocus");
 
-  const setFocusRingEnabled = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      focusRingEnabled: v instanceof Function ? v(s.focusRingEnabled) : v,
-    }));
-  const setFocusRingWidthText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      focusRingWidthText: v instanceof Function ? v(s.focusRingWidthText) : v,
-    }));
-  const setFocusRingOffsetText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      focusRingOffsetText: v instanceof Function ? v(s.focusRingOffsetText) : v,
-    }));
-  const setFocusRingInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      focusRingInput: v instanceof Function ? v(s.focusRingInput) : v,
-    }));
-
-  const setTransitionColorDurationText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      transitionColorDurationText:
-        v instanceof Function ? v(s.transitionColorDurationText) : v,
-    }));
-  const setTransitionColorEasing = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      transitionColorEasing:
-        v instanceof Function ? v(s.transitionColorEasing) : v,
-    }));
-  const setTransitionTransformDurationText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      transitionTransformDurationText:
-        v instanceof Function ? v(s.transitionTransformDurationText) : v,
-    }));
-  const setTransitionTransformEasing = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      transitionTransformEasing:
-        v instanceof Function ? v(s.transitionTransformEasing) : v,
-    }));
-
-  const setAriaLabel = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaLabel: v instanceof Function ? v(s.ariaLabel) : v,
-    }));
-  const setAriaPressedMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaPressedMode: v instanceof Function ? v(s.ariaPressedMode) : v,
-    }));
-  const setAriaBusyMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      ariaBusyMode: v instanceof Function ? v(s.ariaBusyMode) : v,
-    }));
-  const setMinTouchMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      minTouchMode: v instanceof Function ? v(s.minTouchMode) : v,
-    }));
-  const setMinTouchSizeText = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      minTouchSizeText: v instanceof Function ? v(s.minTouchSizeText) : v,
-    }));
-
-  const setForceHover = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      forceHover: v instanceof Function ? v(s.forceHover) : v,
-    }));
-  const setForceActive = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      forceActive: v instanceof Function ? v(s.forceActive) : v,
-    }));
-  const setForceFocus = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      forceFocus: v instanceof Function ? v(s.forceFocus) : v,
-    }));
-
-  const setPreviewBgMode = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      previewBgMode: v instanceof Function ? v(s.previewBgMode) : v,
-    }));
-  const setPreviewBgInput = (v: any) =>
-    updateState((s) => ({
-      ...s,
-      previewBgInput: v instanceof Function ? v(s.previewBgInput) : v,
-    }));
+  const setPreviewBgMode = setKey("previewBgMode");
+  const setPreviewBgInput = setKey("previewBgInput");
   const setDownloadFormat = (v: SetStateAction<DownloadFormat>) =>
     updateState((s) => ({
       ...s,
@@ -1542,139 +500,6 @@ export default function ActionButtonPage() {
       ...s,
       downloadName: v instanceof Function ? v(s.downloadName) : v,
     }));
-
-  const handleApplyElevationPreset = (
-    mode: "flat" | "raised" | "lifted" | "inset",
-  ) => {
-    // For bulk updates, we can update multiple fields in one go to keep history clean
-    updateState((s) => {
-      const next = {
-        ...s,
-        elevationPreset: mode,
-        shadowEnabled: true,
-        shadowStackEnabled: false,
-        baseShadowEnabled: false,
-      };
-
-      if (mode === "flat") {
-        Object.assign(next, { shadowEnabled: false, depthText: "0" });
-        if (s.activeEnabled) next.activeTranslateYText = "0";
-      } else if (mode === "raised") {
-        Object.assign(next, {
-          shXText: "0",
-          shYText: "4",
-          shBlurText: "6",
-          shSpreadText: "-1",
-          shOpacityText: "0.1",
-          depthText: "4",
-          baseShadowEnabled: true,
-          baseShadowSizeText: "10",
-        });
-        if (s.activeEnabled) next.activeTranslateYText = "4";
-      } else if (mode === "lifted") {
-        Object.assign(next, {
-          shXText: "0",
-          shYText: "10",
-          shBlurText: "15",
-          shSpreadText: "-3",
-          shOpacityText: "0.15",
-          depthText: "8",
-          baseShadowEnabled: true,
-          baseShadowSizeText: "20",
-        });
-        if (s.activeEnabled) next.activeTranslateYText = "8";
-      } else if (mode === "inset") {
-        Object.assign(next, {
-          depthText: "0",
-          innerShadowEnabled: true,
-          shOpacityText: "0",
-        });
-        if (s.activeEnabled) next.activeTranslateYText = "0";
-      }
-      return next;
-    });
-  };
-
-  const handleApplyMaterialPreset = (
-    mode: "custom" | "plastic" | "matte" | "metal" | "glass",
-  ) => {
-    updateState((s) => {
-      const next = { ...s, materialPreset: mode };
-      if (mode === "custom") return next;
-
-      if (mode === "plastic") {
-        Object.assign(next, {
-          glossEnabled: true,
-          glossOpacityText: "0.4",
-          specularStrengthText: "0.5",
-          roughnessText: "0.1",
-          bevelEnabled: true,
-          bevelSizeText: "3",
-          bevelSoftnessText: "2",
-          innerShadowEnabled: true,
-          backdropBlurEnabled: false,
-          bgInput: "#2563eb",
-          textInput: "#ffffff",
-        });
-      } else if (mode === "matte") {
-        Object.assign(next, {
-          glossEnabled: false,
-          specularStrengthText: "0",
-          roughnessText: "1",
-          bevelEnabled: false,
-          innerShadowEnabled: false,
-          backdropBlurEnabled: false,
-          bgInput: "#2563eb",
-          textInput: "#ffffff",
-        });
-      } else if (mode === "metal") {
-        Object.assign(next, {
-          glossEnabled: true,
-          glossOpacityText: "0.6",
-          specularStrengthText: "0.8",
-          roughnessText: "0.3",
-          bevelEnabled: true,
-          bevelSizeText: "2",
-          bevelSoftnessText: "1",
-          innerShadowEnabled: true,
-          edgeGradientEnabled: true,
-          backdropBlurEnabled: false,
-          bgInput: "#2563eb",
-          textInput: "#ffffff",
-        });
-      } else if (mode === "glass") {
-        Object.assign(next, {
-          glossEnabled: true,
-          glossOpacityText: "0.3",
-          specularStrengthText: "0.4",
-          roughnessText: "0.1",
-          bevelEnabled: true,
-          bevelSizeText: "1",
-          innerShadowEnabled: true,
-          backdropBlurEnabled: true,
-          backdropBlurText: "10",
-          shOpacityText: "0.1",
-          bgInput: "#ffffff55",
-          textInput: "#000000",
-        });
-      }
-      return next;
-    });
-  };
-
-  const filteredSystemFonts = useMemo(() => {
-    const q = fontSearch.trim().toLowerCase();
-    return q
-      ? SYSTEM_FONTS.filter((f) => f.label.toLowerCase().includes(q))
-      : SYSTEM_FONTS;
-  }, [fontSearch]);
-
-  const filteredGoogleFonts = useMemo(() => {
-    const q = fontSearch.trim().toLowerCase();
-    return q
-      ? GOOGLE_FONTS.filter((f) => f.toLowerCase().includes(q))
-      : GOOGLE_FONTS;
-  }, [fontSearch]);
 
   // --- Text Position ---
 
@@ -1708,24 +533,18 @@ export default function ActionButtonPage() {
 
   const fontSizeMin = fontSizeUnit === "rem" ? 0.5 : 8;
   const fontSizeMax = fontSizeUnit === "rem" ? 6 : 96;
-  const fontSizeStep = fontSizeUnit === "rem" ? 0.05 : 1;
   const fontSizeValue = clamp(
     Number(fontSizeText) || 14,
     fontSizeMin,
     fontSizeMax,
   );
-  const fontSizeDisplay = `${fontSizeValue}${fontSizeUnit}`;
-
   const letterSpacingMin = letterSpacingUnit === "em" ? -0.1 : -2;
   const letterSpacingMax = letterSpacingUnit === "em" ? 0.6 : 10;
-  const letterSpacingStep = letterSpacingUnit === "em" ? 0.01 : 0.1;
   const letterSpacingValue = clamp(
     Number(letterSpacingText) || 0,
     letterSpacingMin,
     letterSpacingMax,
   );
-  const letterSpacingDisplay = `${letterSpacingValue}${letterSpacingUnit}`;
-
   const lHeight = Number(lineHeightText) || 1;
   const fontFamily =
     fontBucket === "system"
@@ -1827,10 +646,6 @@ export default function ActionButtonPage() {
     0,
     2000,
   );
-
-  // --- IDs ---
-  const idItalic = "ab-italic";
-  const idUnderline = "ab-underline";
 
   // --- CSS Variable Helper Logic ---
   // Determine Base CSS values
@@ -2456,8 +1271,6 @@ export default function ActionButtonPage() {
       previewBgHex,
       fontStyle,
       textTransform,
-      backdropBlurEnabled,
-      backdropBlurText,
       groupEnabled,
       groupAlign,
       groupGap: groupGapPx,
@@ -2579,8 +1392,6 @@ export default function ActionButtonPage() {
       previewBgHex,
       fontStyle,
       textTransform,
-      backdropBlurEnabled,
-      backdropBlurText,
       groupEnabled,
       groupAlign,
       groupGapPx,
@@ -2589,7 +1400,6 @@ export default function ActionButtonPage() {
       hoverSpringDamping,
       use3DIcon,
       icon3DAnimation,
-      clickEffect,
     ],
   );
 
@@ -2892,6 +1702,8 @@ export default function ActionButtonPage() {
       focusRingWidthText,
       focusRingOffsetText,
       focusRingInput,
+      backdropBlurEnabled,
+      backdropBlurText,
       previewBgHex,
       ariaLabel,
       ariaPressedMode,
@@ -3231,14 +2043,13 @@ export default function ActionButtonPage() {
           setKey={setKey}
           fontSizeMin={fontSizeMin}
           fontSizeMax={fontSizeMax}
-          fontSizeStep={fontSizeStep}
         />
       ),
     },
     {
       id: "effects",
       label: "Effects (New)",
-      content: <ThreeJSSection {...(threeJSSectionProps as any)} />,
+      content: <ThreeJSSection {...threeJSSectionProps} />,
     },
     {
       id: "text-position",
@@ -3385,8 +2196,9 @@ export default function ActionButtonPage() {
   // --- Live Preview Node construction ---
   const livePreviewNode = (
     <LivePreview
+      key={previewResetKey}
       {...previewPayload}
-      clickEffect={clickEffect as any}
+      clickEffect={clickEffect}
       clickParticleCount={clickParticleCount}
       hoverEffect={hoverEffect}
       hoverSpringStiffness={hoverSpringStiffness}

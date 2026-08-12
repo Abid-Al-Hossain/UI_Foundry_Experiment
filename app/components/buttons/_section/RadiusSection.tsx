@@ -4,14 +4,14 @@ import React from "react";
 import { SectionCard, Segmented } from "./ui";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 
-import { ActionButtonState } from "../types";
+import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 
 export default function RadiusSection({
   state,
   setKey,
 }: {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
 }) {
   return (
     <SectionCard

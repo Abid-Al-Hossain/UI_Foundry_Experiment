@@ -2,12 +2,12 @@
 
 import React from "react";
 
-export function SegmentedControl(props: {
+export function SegmentedControl<Value extends string = string>(props: {
   label?: string;
-  value: string;
-  onChange: (v: any) => void;
-  items?: { value: string; label: string }[];
-  options?: { value: string; label: string }[];
+  value: Value;
+  onChange: (value: Value) => void;
+  items?: readonly { value: Value; label: string }[];
+  options?: readonly { value: Value; label: string }[];
 }) {
   const items = props.items ?? props.options ?? [];
   const control = (

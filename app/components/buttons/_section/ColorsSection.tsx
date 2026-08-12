@@ -5,30 +5,18 @@ import { SectionCard } from "./ui";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import GradientControl from "@/app/components/controls/effects/GradientControl";
 
-import { ActionButtonState } from "../types";
+import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 import { PALETTE } from "../_data/buttonConstants";
-import { norm } from "../_utils/colorUtils";
-
-type ButtonVariant = "solid" | "outline" | "ghost";
 
 export default function ColorsSection({
   state,
   setKey,
 }: {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
 }) {
-  // Derived state
   const ghost = state.variant === "ghost";
   const outline = state.variant === "outline";
-
-  // Norms (calculated internally instead of passed)
-  // We can use useMemo if optimization is needed, but for these lightweight ops it's fine
-  // const gradStartNorm = norm(state.gradStartInput); // Not strictly used in UI but available if needed
-  // const gradMidNorm = norm(state.gradMidInput);
-  // const gradEndNorm = norm(state.gradEndInput);
-  // const bgNorm = norm(state.bgInput);
-  // const textNorm = norm(state.textInput);
 
   const presets = [
     { id: "sunset", label: "Sunset", angle: 90, stops: ["#f59e0b", "#ef4444"] },

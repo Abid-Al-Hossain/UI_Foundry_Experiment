@@ -315,6 +315,14 @@ export type ActionButtonState = {
   downloadName: string;
 };
 
+export type ActionButtonFieldSetter = <Key extends keyof ActionButtonState>(
+  key: Key,
+) => (
+  value:
+    | ActionButtonState[Key]
+    | ((current: ActionButtonState[Key]) => ActionButtonState[Key]),
+) => void;
+
 export const INITIAL_STATE: ActionButtonState = {
   // Basics
   label: "Confirm",

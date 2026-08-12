@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Range Slider</div></body></html>`;
 }
 
-export default function sliderGalleryPage() {
+export default function SliderGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

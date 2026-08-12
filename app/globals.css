@@ -121,26 +121,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body,
-header,
-footer,
-main,
-section,
-aside,
-button,
-a,
-div {
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease,
-    color 200ms ease,
-    box-shadow 200ms ease,
-    transform 200ms ease;
-}
-
 .uf-clickable,
 .uf-clickable * {
   cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .uf-clickable input[type="text"],

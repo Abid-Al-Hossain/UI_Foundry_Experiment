@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { type TextareaState } from "../types";
 import {
   resolveTextareaAriaInvalid,
@@ -22,10 +22,6 @@ type SupportingMessage = {
 export default function LivePreview({ state }: { state: TextareaState }) {
   const [value, setValue] = useState(state.defaultValue);
   const [focused, setFocused] = useState(false);
-
-  useEffect(() => {
-    setValue(state.defaultValue);
-  }, [state.defaultValue]);
 
   const floatingActive =
     state.labelPosition === "floating" && (focused || value.length > 0);

@@ -1,189 +1,156 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimationType, Direction, Speed } from "./types";
-import { Theme3DId, THEMES_3D } from "./themes3d";
+import { ANIMATIONS } from "./animations";
+import type { AnimationType, Direction, Speed } from "./types";
+import { type Theme3DId, THEMES_3D } from "./themes3d";
 import { SECTION_LIST } from "../registry/componentRegistry";
+
+type Settings3D = { perspective: number; tiltMax: number; shadowDepth: number };
 
 type TransitionContextValue = {
   animation: AnimationType;
-  setAnimation: (t: AnimationType) => void;
+  setAnimation: (value: AnimationType) => void;
   speed: Speed;
-  setSpeed: (s: Speed) => void;
+  setSpeed: (value: Speed) => void;
   direction: Direction;
   mode3d: Theme3DId;
-  setMode3d: (m: Theme3DId) => void;
-  settings3d: {
-    perspective: number;
-    tiltMax: number;
-    shadowDepth: number;
-  };
-  updateSettings3d: (
-    k: keyof TransitionContextValue["settings3d"],
-    v: number,
-  ) => void;
+  setMode3d: (value: Theme3DId) => void;
+  settings3d: Settings3D;
+  updateSettings3d: (key: keyof Settings3D, value: number) => void;
 };
 
 const TransitionContext = createContext<TransitionContextValue | null>(null);
-
 const STORAGE_KEY = "ui-foundry-motion";
+const DEFAULT_SETTINGS: Settings3D = { perspective: 1200, tiltMax: 5, shadowDepth: 20 };
+const SPEEDS = new Set<Speed>(["slow", "normal", "fast", "sonic"]);
+const MODES_3D = new Set<Theme3DId>(Object.keys(THEMES_3D) as Theme3DId[]);
+const ORDERED_COMPONENTS = SECTION_LIST.flatMap((section) => section.items.map((item) => item.slug));
 
-// Helper to flatten list for index comparison (matches Sidebar order)
-const ORDERED_COMPONENTS = SECTION_LIST.flatMap((s) =>
-  s.items.map((i) => i.slug),
-);
-
-const getDepth = (path: string) => {
+function routeDepth(path: string) {
   const parts = path.split("/").filter(Boolean);
-  if (parts.length === 0) return 0; // Home
-  if (parts.length === 1 && parts[0] === "components") return 1; // Registry Index
-  if (parts.length === 2 && parts[0] === "components") return 2; // Specific Component
-  if (parts.length >= 3) return 3; // Playground / Edit
+  if (!parts.length) return 0;
+  if (parts.length === 1 && parts[0] === "components") return 1;
+  if (parts.length === 2 && parts[0] === "components") return 2;
+  if (parts.length >= 3) return 3;
   return 1;
-};
+}
 
-const getComponentSlug = (path: string) => {
+function componentSlug(path: string) {
   const parts = path.split("/").filter(Boolean);
-  if (parts.length >= 2 && parts[0] === "components") return parts[1];
-  return null;
-};
+  return parts.length >= 2 && parts[0] === "components" ? parts[1] : null;
+}
 
-export function TransitionProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function routeDirection(previousPath: string, nextPath: string): Direction {
+  if (previousPath === nextPath) return "left";
+  const previousDepth = routeDepth(previousPath);
+  const nextDepth = routeDepth(nextPath);
+  if (nextDepth > previousDepth) return "left";
+  if (nextDepth < previousDepth) return "right";
+
+  const previousSlug = componentSlug(previousPath);
+  const nextSlug = componentSlug(nextPath);
+  if (!previousSlug || !nextSlug) return "left";
+  const previousIndex = ORDERED_COMPONENTS.indexOf(previousSlug);
+  const nextIndex = ORDERED_COMPONENTS.indexOf(nextSlug);
+  if (previousIndex < 0 || nextIndex < 0) return "left";
+  return nextIndex > previousIndex ? "down" : "up";
+}
+
+function finiteInRange(value: unknown, fallback: number, min: number, max: number) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, value))
+    : fallback;
+}
+
+function validateSettings(value: unknown): Settings3D {
+  if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
+  const candidate = value as Partial<Settings3D>;
+  return {
+    perspective: finiteInRange(candidate.perspective, DEFAULT_SETTINGS.perspective, 200, 4000),
+    tiltMax: finiteInRange(candidate.tiltMax, DEFAULT_SETTINGS.tiltMax, 0, 45),
+    shadowDepth: finiteInRange(candidate.shadowDepth, DEFAULT_SETTINGS.shadowDepth, 0, 120),
+  };
+}
+
+export function TransitionProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [animation, setAnimation] = useState<AnimationType>("fade");
   const [speed, setSpeed] = useState<Speed>("normal");
   const [mode3d, setMode3d] = useState<Theme3DId>("standard");
+  const [settings3d, setSettings3d] = useState<Settings3D>(DEFAULT_SETTINGS);
+  const [storageReady, setStorageReady] = useState(false);
+  const [route, setRoute] = useState<{ path: string; direction: Direction }>({ path: pathname, direction: "left" });
 
-  // 3D Customization State
-  const [settings3d, setSettings3d] = useState({
-    perspective: 1200,
-    tiltMax: 5,
-    shadowDepth: 20,
-  });
+  if (route.path !== pathname) {
+    setRoute({ path: pathname, direction: routeDirection(route.path, pathname) });
+  }
 
-  // --- Smart Direction Logic (Sync) ---
-  // We use a ref to track the previous path so we can compare synchronously during render
-  const prevPathRef = React.useRef(pathname);
-
-  // Calculate direction immediately
-  const direction = useMemo(() => {
-    const prevPath = prevPathRef.current;
-    if (pathname === prevPath) return "left" as Direction; // Default or no change
-
-    const prevDepth = getDepth(prevPath);
-    const currDepth = getDepth(pathname);
-
-    // 1. Depth Check (Inner / Outer)
-    if (currDepth > prevDepth) return "left"; // Drill down
-    if (currDepth < prevDepth) return "right"; // Drill up
-
-    // 2. Sibling Check (Same Depth)
-    const prevSlug = getComponentSlug(prevPath);
-    const currSlug = getComponentSlug(pathname);
-
-    if (prevSlug && currSlug) {
-      const prevIndex = ORDERED_COMPONENTS.indexOf(prevSlug);
-      const currIndex = ORDERED_COMPONENTS.indexOf(currSlug);
-
-      if (prevIndex !== -1 && currIndex !== -1) {
-        if (currIndex > prevIndex) return "down"; // Next Item
-        return "up"; // Prev Item
-      }
-    }
-    return "left"; // Fallback
-  }, [pathname]);
-
-  // Update history after render
   useEffect(() => {
-    prevPathRef.current = pathname;
-  }, [pathname]);
-
-  // Load Preferences
-  useEffect(() => {
+    let nextAnimation: AnimationType = "fade";
+    let nextSpeed: Speed = "normal";
+    let nextMode: Theme3DId = "standard";
+    let nextSettings = DEFAULT_SETTINGS;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.animation) setAnimation(parsed.animation);
-        if (parsed.speed) setSpeed(parsed.speed);
-        if (parsed.mode3d) setMode3d(parsed.mode3d);
-        if (parsed.settings3d) setSettings3d(parsed.settings3d);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed: unknown = raw ? JSON.parse(raw) : null;
+      if (parsed && typeof parsed === "object") {
+        const candidate = parsed as Record<string, unknown>;
+        if (typeof candidate.animation === "string" && candidate.animation in ANIMATIONS) {
+          nextAnimation = candidate.animation as AnimationType;
+        }
+        if (SPEEDS.has(candidate.speed as Speed)) nextSpeed = candidate.speed as Speed;
+        if (MODES_3D.has(candidate.mode3d as Theme3DId)) nextMode = candidate.mode3d as Theme3DId;
+        nextSettings = validateSettings(candidate.settings3d);
       }
     } catch {
-      // ignore
+      localStorage.removeItem(STORAGE_KEY);
     }
+
+    queueMicrotask(() => {
+      setAnimation(nextAnimation);
+      setSpeed(nextSpeed);
+      setMode3d(nextMode);
+      setSettings3d(nextSettings);
+      setStorageReady(true);
+    });
   }, []);
 
-  // Persist Preferences
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ animation, speed, mode3d, settings3d }),
-    );
-  }, [animation, speed, mode3d, settings3d]);
+    if (!storageReady) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ animation, speed, mode3d, settings3d }));
+  }, [animation, mode3d, settings3d, speed, storageReady]);
 
-  // Apply 3D CSS Variables
   useEffect(() => {
     const root = document.documentElement;
-    const themeDef = THEMES_3D[mode3d];
-
+    const themeDefinition = THEMES_3D[mode3d] ?? THEMES_3D.standard;
     if (mode3d === "standard") {
-      root.style.removeProperty("--ui-perspective");
-      root.style.removeProperty("--ui-tilt-max");
-      root.style.removeProperty("--ui-shadow-depth");
-      root.style.removeProperty("--ui-card-border");
-      // Don't modify body transform-style globally to avoid breaking other stacking
-    } else {
-      root.style.setProperty("--ui-perspective", `${settings3d.perspective}px`);
-      root.style.setProperty("--ui-tilt-max", `${settings3d.tiltMax}deg`);
-      root.style.setProperty(
-        "--ui-shadow-depth",
-        `${settings3d.shadowDepth}px`,
-      );
-      root.style.setProperty("--ui-card-border", themeDef.vars.cardBorder);
+      for (const property of ["--ui-perspective", "--ui-tilt-max", "--ui-shadow-depth", "--ui-card-border"]) {
+        root.style.removeProperty(property);
+      }
+      return;
     }
+    root.style.setProperty("--ui-perspective", `${settings3d.perspective}px`);
+    root.style.setProperty("--ui-tilt-max", `${settings3d.tiltMax}deg`);
+    root.style.setProperty("--ui-shadow-depth", `${settings3d.shadowDepth}px`);
+    root.style.setProperty("--ui-card-border", themeDefinition.vars.cardBorder);
   }, [mode3d, settings3d]);
 
-  const updateSettings3d = (k: keyof typeof settings3d, v: number) => {
-    setSettings3d((prev) => ({ ...prev, [k]: v }));
-  };
+  const updateSettings3d = useCallback((key: keyof Settings3D, value: number) => {
+    setSettings3d((current) => validateSettings({ ...current, [key]: value }));
+  }, []);
 
-  const value = useMemo(
-    () => ({
-      animation,
-      setAnimation,
-      speed,
-      setSpeed,
-      direction,
-      mode3d,
-      setMode3d,
-      settings3d,
-      updateSettings3d,
-    }),
-    [animation, speed, direction, mode3d, settings3d],
+  const value = useMemo<TransitionContextValue>(
+    () => ({ animation, setAnimation, speed, setSpeed, direction: route.direction, mode3d, setMode3d, settings3d, updateSettings3d }),
+    [animation, mode3d, route.direction, settings3d, speed, updateSettings3d],
   );
 
-  return (
-    <TransitionContext.Provider value={value}>
-      {children}
-    </TransitionContext.Provider>
-  );
+  return <TransitionContext.Provider value={value}>{children}</TransitionContext.Provider>;
 }
 
 export function useTransition() {
-  const ctx = useContext(TransitionContext);
-  if (!ctx)
-    throw new Error("useTransition must be used inside TransitionProvider");
-  return ctx;
+  const context = useContext(TransitionContext);
+  if (!context) throw new Error("useTransition must be used inside TransitionProvider");
+  return context;
 }

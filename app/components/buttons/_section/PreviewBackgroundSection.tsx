@@ -23,7 +23,6 @@ export default function PreviewBackgroundSection(props: {
     setBgMode,
     previewBgInput,
     setPreviewBgInput,
-    previewBgNorm,
   } = props;
 
   return (

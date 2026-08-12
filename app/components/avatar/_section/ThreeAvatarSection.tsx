@@ -135,7 +135,7 @@ export default function ThreeAvatarSection(props: {
                   max={5}
                   step={0.5}
                   value={props.orbitSpeed}
-                  onChange={props.setOrbitSpeed}
+                  onChange={(value) => props.setOrbitSpeed(String(value))}
                 />
               </LabeledField>
             </>

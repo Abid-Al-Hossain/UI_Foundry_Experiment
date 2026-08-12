@@ -17,7 +17,7 @@ export default function ContentSection({ state, update }: Props) {
           <InputControl
             type="number"
             value={state.value}
-            onChange={(e) => update("value", Number(e.target.value))}
+            onChange={(e) => update("value", Number(e))}
             min={state.min}
             max={state.max}
           />
@@ -28,13 +28,13 @@ export default function ContentSection({ state, update }: Props) {
             <InputControl
               type="number"
               value={state.min}
-              onChange={(e) => update("min", Number(e.target.value))}
+              onChange={(e) => update("min", Number(e))}
               placeholder="Min"
             />
             <InputControl
               type="number"
               value={state.max}
-              onChange={(e) => update("max", Number(e.target.value))}
+              onChange={(e) => update("max", Number(e))}
               placeholder="Max"
             />
           </div>

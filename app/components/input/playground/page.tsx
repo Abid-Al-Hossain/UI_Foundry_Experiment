@@ -152,7 +152,12 @@ export default function TextInputPlaygroundPage() {
       setPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
       setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      previewNode={
+        <LivePreview
+          key={`${previewResetKey}:${state.defaultValue}:${state.inputType}`}
+          state={state}
+        />
+      }
       code={exportCode.content}
     />
   );

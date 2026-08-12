@@ -186,7 +186,7 @@ export default function LabelsSection({ state, updateLabels }: Props) {
                     <InputControl
                       value={label.customText || ""}
                       onChange={(e) =>
-                        updateLabel(label.id, "customText", e.target.value)
+                        updateLabel(label.id, "customText", e)
                       }
                       placeholder="e.g. Loading..."
                     />

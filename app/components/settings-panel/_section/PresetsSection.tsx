@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
@@ -20,12 +20,7 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
   const source = filtered.length ? filtered : SETTINGSPANEL_PRESETS;
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visible = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
-
-  useEffect(() => {
-    setPage(0);
-  }, [family, query, size]);
-
-  const resetFilters = () => {
+const resetFilters = () => {
     setQuery("");
     setFamily("all");
     setSize("all");
@@ -35,9 +30,9 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
   return (
     <SectionCard title="Presets" subtitle={`${filtered.length} of ${SETTINGSPANEL_PRESETS.length} structured full-state presets.`}>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Input label="Search presets" value={query} onChange={setQuery} />
-        <Select label="Family" value={family} options={families} onChange={setFamily} />
-        <Select label="Size" value={size} options={sizes} onChange={setSize} />
+        <Input label="Search presets" value={query} onChange={(value) => { setQuery(value); setPage(0); }} />
+        <Select label="Family" value={family} options={families} onChange={(value) => { setFamily(value); setPage(0); }} />
+        <Select label="Size" value={size} options={sizes} onChange={(value) => { setSize(value); setPage(0); }} />
       </div>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => onApply(source[Math.floor(Math.random() * source.length)])} className="rounded-xl border px-4 py-3 text-sm font-semibold" style={{ borderColor: "var(--border)", color: "var(--text)" }}>Surprise me</button>

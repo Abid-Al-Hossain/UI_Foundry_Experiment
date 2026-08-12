@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Date Picker</div></body></html>`;
 }
 
-export default function datepickerGalleryPage() {
+export default function DatepickerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

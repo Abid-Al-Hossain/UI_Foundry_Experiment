@@ -2,7 +2,6 @@
 
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import Slider from "@/app/components/controls/input/Slider";
-import Switch from "@/app/components/controls/input/Switch";
 import type { DatePickerStudioState } from "../types";
 
 type Props = {

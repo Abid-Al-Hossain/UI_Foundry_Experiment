@@ -45,7 +45,7 @@ export default function ThreeBadgeSection(props: {
               <LabeledField label="Max Tilt">
                 <Slider
                   value={props.tiltMax}
-                  onChange={(v) => props.setTiltMax(parseFloat(v))}
+                  onChange={props.setTiltMax}
                   min={5}
                   max={45}
                   step={1}
@@ -54,7 +54,7 @@ export default function ThreeBadgeSection(props: {
               <LabeledField label="Glare Opacity">
                 <Slider
                   value={props.glareOpacity}
-                  onChange={(v) => props.setGlareOpacity(parseFloat(v))}
+                  onChange={props.setGlareOpacity}
                   min={0}
                   max={1}
                   step={0.1}
@@ -81,7 +81,7 @@ export default function ThreeBadgeSection(props: {
               <LabeledField label="Z-Translation (px)">
                 <Slider
                   value={props.depth}
-                  onChange={(v) => props.setDepth(parseFloat(v))}
+                  onChange={props.setDepth}
                   min={0}
                   max={100}
                   step={1}

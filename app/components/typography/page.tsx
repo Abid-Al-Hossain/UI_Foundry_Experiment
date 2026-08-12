@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Text / Typography</div></body></html>`;
 }
 
-export default function typographyGalleryPage() {
+export default function TypographyGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

@@ -64,36 +64,73 @@ function panelStyle(state: ModalState): CSSProperties {
 
 export default function LivePreview({ state }: { state: ModalState }) {
   const initialOpen = isInitiallyOpen(state);
-  const [open, setOpen] = useState(initialOpen);
+  const openConfiguration = `${state.previewState}:${state.defaultOpen ?? "auto"}:${state.disabled}`;
+  const [openState, setOpenState] = useState({ configuration: openConfiguration, open: initialOpen });
+  const open = openState.configuration === openConfiguration ? openState.open : initialOpen;
   const [closeHover, setCloseHover] = useState(false);
   const [primaryHover, setPrimaryHover] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const titleId = `${state.id}-title`;
   const descriptionId = `${state.id}-description`;
   const placement = state.placement ?? "center";
 
-  useEffect(() => setOpen(initialOpen), [initialOpen]);
-
   useEffect(() => {
-    if (!open || !state.closeOnEscape) return;
+    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusFirst = () => {
+      const focusable = dialog.querySelectorAll<HTMLElement>(focusableSelector);
+      (focusable[0] ?? dialog).focus();
+    };
+    requestAnimationFrame(focusFirst);
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape" && state.closeOnEscape) {
+        event.preventDefault();
+        setOpenState({ configuration: openConfiguration, open: false });
+        if (state.focusReturn) requestAnimationFrame(() => triggerRef.current?.focus());
+        return;
+      }
+      if (event.key !== "Tab" || !state.modal) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector));
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, state.closeOnEscape]);
+  }, [open, openConfiguration, state.closeOnEscape, state.focusReturn, state.modal]);
+
+  const setModalOpen = (nextOpen: boolean) => {
+    setOpenState({ configuration: openConfiguration, open: nextOpen });
+  };
 
   const closeModal = () => {
-    setOpen(false);
+    setModalOpen(false);
     if (state.focusReturn) requestAnimationFrame(() => triggerRef.current?.focus());
   };
 
   return (
     <div className="relative min-h-[460px] overflow-hidden rounded-[2rem] border p-6" style={{ borderColor: state.border, background: "linear-gradient(135deg, rgba(2,6,23,.94), rgba(30,41,59,.72))" }}>
-      <button ref={triggerRef} type="button" disabled={state.disabled} onClick={() => setOpen(true)} className="rounded-2xl px-4 py-3 text-sm font-semibold shadow-lg" style={{ background: state.accent, color: state.actionText }}>
+      <button ref={triggerRef} type="button" disabled={state.disabled} onClick={() => setModalOpen(true)} className="rounded-2xl px-4 py-3 text-sm font-semibold shadow-lg" style={{ background: state.accent, color: state.actionText }}>
         {state.triggerLabel || "Open modal"}
       </button>
       <p className="mt-4 max-w-md text-sm" style={{ color: state.muted }}>Preview state: {open ? "open" : "closed"}. Escape close is {state.closeOnEscape ? "enabled" : "disabled"}; outside close is {state.closeOnOutside ? "enabled" : "disabled"}.</p>
+      <p aria-live="polite" className="mt-2 text-xs" style={{ color: state.muted }}>{actionMessage}</p>
       {open && (
         <div
           onMouseDown={(event) => {
@@ -112,7 +149,7 @@ export default function LivePreview({ state }: { state: ModalState }) {
 @keyframes modalSlideUp { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
 @keyframes modalSlideDown { from { opacity: 0; transform: translateY(-16px) } to { opacity: 1; transform: translateY(0) } }
 `}</style>
-          <section role="dialog" aria-modal={state.modal} aria-label={state.ariaLabel} aria-labelledby={titleId} aria-describedby={descriptionId} tabIndex={state.tabIndex} style={panelStyle(state)}>
+          <section ref={dialogRef} role="dialog" aria-modal={state.modal ? true : undefined} aria-label={state.ariaLabel} aria-labelledby={titleId} aria-describedby={descriptionId} tabIndex={state.tabIndex} style={panelStyle(state)}>
             <header className="flex items-center justify-between" style={{ padding: state.padding, background: state.headerBg, color: state.headerText, borderBottom: `1px solid ${state.headerBorder}` }}>
               <h3 id={titleId} style={{ margin: 0, fontSize: state.titleSize, fontWeight: state.fontWeight }}>{state.title}</h3>
               <button
@@ -132,11 +169,15 @@ export default function LivePreview({ state }: { state: ModalState }) {
             <div style={{ padding: state.padding, display: "grid", gap: state.gap }}>
               <p id={descriptionId} style={{ margin: 0, color: state.muted, fontSize: state.bodySize }}>{state.description}</p>
               <div style={{ height: 1, background: state.dividerColor }} />
-              <p className="text-xs" style={{ color: state.muted }}>{state.helper} Focus trap is not implemented; focus return is {state.focusReturn ? "enabled" : "disabled"}.</p>
+              <p className="text-xs" style={{ color: state.muted }}>{state.helper} Keyboard focus enters the dialog and {state.modal ? "is contained until dismissal" : "may leave this non-modal dialog"}.</p>
             </div>
             <footer className={state.actionLayout === "column" ? "grid gap-2" : "flex flex-wrap justify-end gap-2"} style={{ padding: state.padding, background: state.footerBg, borderTop: `1px solid ${state.footerBorder}` }}>
               <button
                 type="button"
+                onClick={() => {
+                  setActionMessage("Primary action activated.");
+                  closeModal();
+                }}
                 onMouseEnter={() => setPrimaryHover(true)}
                 onMouseLeave={() => setPrimaryHover(false)}
                 className="rounded-xl px-4 py-2"
@@ -144,7 +185,7 @@ export default function LivePreview({ state }: { state: ModalState }) {
               >
                 {state.label}
               </button>
-              <button type="button" className="rounded-xl border px-4 py-2" style={{ background: state.secondaryBg, color: state.secondaryText, borderColor: state.secondaryBorder }}>Cancel</button>
+              <button type="button" onClick={closeModal} className="rounded-xl border px-4 py-2" style={{ background: state.secondaryBg, color: state.secondaryText, borderColor: state.secondaryBorder }}>Cancel</button>
             </footer>
           </section>
         </div>

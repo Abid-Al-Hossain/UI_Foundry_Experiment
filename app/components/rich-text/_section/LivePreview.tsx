@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import type { RichTextState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -50,11 +50,60 @@ export default function LivePreview({ state }: { state: RichTextState }) {
   const isFocused = state.previewState === "focus" || state.previewState === "active";
   const descriptionId = `${state.id}-description`;
   const countId = `${state.id}-count`;
-  const words = Math.max(1, Math.round(state.characterCount / 6));
+  const initialText = isEmpty
+    ? ""
+    : `${state.label} starts with a ${state.blockType} block and keeps editing affordances visible. ${state.showMarks ? "Formatting preview includes bold, italic, and an inline link." : ""} ${state.showLists ? "Semantic list content and a keyboard-editable surface." : ""}`.trim();
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [metrics, setMetrics] = useState(() => ({
+    characters: initialText.length,
+    words: initialText ? initialText.split(/\s+/).length : 0,
+  }));
+  const [activeFormats, setActiveFormats] = useState<string[]>([]);
   const toolbarButtons = [
     ...(state.showMarks ? ["Bold", "Italic", "Link"] : []),
     ...(state.showLists ? ["Bulleted list", "Numbered list"] : []),
   ];
+
+  const refreshEditorState = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    let text = editor.textContent ?? "";
+    if (state.characterCount > 0 && text.length > state.characterCount) {
+      text = text.slice(0, state.characterCount);
+      editor.textContent = text;
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
+    setMetrics({
+      characters: text.length,
+      words: text.trim() ? text.trim().split(/\s+/).length : 0,
+    });
+    const formats = [
+      document.queryCommandState("bold") ? "Bold" : "",
+      document.queryCommandState("italic") ? "Italic" : "",
+      document.queryCommandState("insertUnorderedList") ? "Bulleted list" : "",
+      document.queryCommandState("insertOrderedList") ? "Numbered list" : "",
+    ].filter(Boolean);
+    setActiveFormats(formats);
+  };
+
+  const runCommand = (button: string) => {
+    editorRef.current?.focus();
+    const commands: Record<string, [string, string?]> = {
+      Bold: ["bold"],
+      Italic: ["italic"],
+      Link: ["createLink", "https://example.com"],
+      "Bulleted list": ["insertUnorderedList"],
+      "Numbered list": ["insertOrderedList"],
+    };
+    const [command, value] = commands[button];
+    document.execCommand(command, false, value);
+    refreshEditorState();
+  };
 
   return (
     <section id={state.id} aria-label={state.ariaLabel} style={shell(state)}>
@@ -67,7 +116,7 @@ export default function LivePreview({ state }: { state: RichTextState }) {
       {state.toolbarMode !== "none" && (
         <div role="toolbar" aria-label={`${state.label} formatting toolbar`} style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {toolbarButtons.map((button) => (
-            <button key={button} type="button" disabled={state.disabled} aria-pressed={button === "Bold" || button === "Bulleted list"} style={{ border: `1px solid ${state.border}`, borderRadius: 999, background: button === "Bold" ? state.accent : "transparent", color: button === "Bold" ? state.background : state.foreground, padding: "7px 11px", fontSize: 12, fontWeight: 700, transition: state.transitionDuration > 0 ? "background 0.15s ease, color 0.15s ease" : "none" }}>
+            <button key={button} type="button" disabled={state.disabled} aria-pressed={activeFormats.includes(button)} onMouseDown={(event) => event.preventDefault()} onClick={() => runCommand(button)} style={{ border: `1px solid ${state.border}`, borderRadius: 999, background: activeFormats.includes(button) ? state.accent : "transparent", color: activeFormats.includes(button) ? state.background : state.foreground, padding: "7px 11px", fontSize: 12, fontWeight: 700, transition: state.transitionDuration > 0 ? "background 0.15s ease, color 0.15s ease" : "none" }}>
               {button}
             </button>
           ))}
@@ -75,19 +124,27 @@ export default function LivePreview({ state }: { state: RichTextState }) {
       )}
 
       <div
+        ref={editorRef}
         role="textbox"
         aria-label={state.ariaLabel}
         aria-describedby={`${descriptionId} ${countId}`}
         aria-multiline="true"
         contentEditable={!state.disabled}
         suppressContentEditableWarning
+        className="uif-rich-editor"
         tabIndex={state.disabled ? -1 : state.tabIndex}
         data-placeholder={state.placeholder}
+        data-empty={metrics.characters === 0}
+        onInput={refreshEditorState}
+        onKeyUp={refreshEditorState}
+        onMouseUp={refreshEditorState}
+        onBeforeInput={(event) => {
+          const inputType = (event.nativeEvent as InputEvent).inputType;
+          if (state.characterCount > 0 && metrics.characters >= state.characterCount && inputType.startsWith("insert")) event.preventDefault();
+        }}
         style={{ minHeight: Math.max(130, state.height - 150), border: `${Math.max(1, state.borderWidth)}px solid ${isFocused ? state.accent : state.border}`, borderRadius: Math.max(12, state.radius - 8), background: "rgba(255,255,255,.06)", outline: isFocused ? `3px solid ${state.accent}33` : "none", padding: Math.max(14, Math.round(state.padding * 0.7)), color: state.foreground, fontSize: state.bodySize, lineHeight: 1.7 }}
       >
-        {isEmpty ? (
-          <span style={{ color: state.muted }}>{state.placeholder}</span>
-        ) : (
+        {!isEmpty && (
           <>
             <p style={{ margin: "0 0 10px" }}><strong>{state.label}</strong> starts with a {state.blockType} block and keeps editing affordances visible.</p>
             {state.showMarks && <p style={{ margin: "0 0 10px" }}>Formatting preview: <strong>bold</strong>, <em>italic</em>, and <a href="#" style={{ color: state.accent, textDecoration: "underline" }}>inline link</a>.</p>}
@@ -95,10 +152,11 @@ export default function LivePreview({ state }: { state: RichTextState }) {
           </>
         )}
       </div>
+      <style>{`.uif-rich-editor[data-empty="true"]::before{content:attr(data-placeholder);color:${state.muted};pointer-events:none}`}</style>
 
       <footer style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, color: state.muted, fontSize: 12 }}>
         <span>{state.helper}</span>
-        <span id={countId} aria-live="polite">{state.characterCount} characters / {words} words</span>
+        <span id={countId} aria-live="polite">{metrics.characters}{state.characterCount > 0 ? ` / ${state.characterCount}` : ""} characters / {metrics.words} words</span>
       </footer>
     </section>
   );

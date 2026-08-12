@@ -157,7 +157,14 @@ export default function RadioPlaygroundPage() {
       setPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
       setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview state={state} resetKey={previewResetKey} canvasBg={previewBgInput} />}
+      previewNode={
+        <LivePreview
+          key={previewResetKey}
+          state={state}
+          resetKey={previewResetKey}
+          canvasBg={previewBgInput}
+        />
+      }
       code={exportCode.content}
     />
   );

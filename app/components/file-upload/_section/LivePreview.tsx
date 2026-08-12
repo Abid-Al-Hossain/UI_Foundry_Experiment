@@ -22,6 +22,27 @@ function buildRadius(state: { radiusLinked: boolean; radius: number; radiusTL: n
     : `${state.radiusTL}px ${state.radiusTR}px ${state.radiusBR}px ${state.radiusBL}px`;
 }
 
+function parseMaxBytes(label: string) {
+  const match = label.match(/([\d.]+)\s*(kb|mb|gb|b)\b/i);
+  if (!match) return Number.POSITIVE_INFINITY;
+  const units = { b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3 } as const;
+  return Number(match[1]) * units[match[2].toLowerCase() as keyof typeof units];
+}
+
+function acceptsFile(file: File, accept: string) {
+  const rules = accept.split(",").map((rule) => rule.trim().toLowerCase()).filter(Boolean);
+  if (!rules.length) return true;
+  const name = file.name.toLowerCase();
+  const type = file.type.toLowerCase();
+  return rules.some((rule) =>
+    rule.startsWith(".")
+      ? name.endsWith(rule)
+      : rule.endsWith("/*")
+        ? type.startsWith(rule.slice(0, -1))
+        : type === rule,
+  );
+}
+
 function shellStyle(state: FileUploadState): CSSProperties {
   const invalid = state.invalid || state.previewState === "invalid";
   return {
@@ -47,21 +68,29 @@ function shellStyle(state: FileUploadState): CSSProperties {
 }
 
 export default function LivePreview({ state }: { state: FileUploadState }) {
-  const invalid = state.invalid || state.previewState === "invalid";
-  const message = invalid ? state.errorText : state.showSuccess ? state.successText : state.showHelper ? state.helper : "";
   const disabled = state.disabled || state.previewState === "disabled";
   const [isHovering, setIsHovering] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [validationMessage, setValidationMessage] = useState("");
+  const invalid = state.invalid || state.previewState === "invalid" || Boolean(validationMessage);
+  const message = validationMessage || (invalid ? state.errorText : state.showSuccess ? state.successText : state.showHelper ? state.helper : "");
   const isLoading = state.previewState === "loading";
   const stopDrag = (event: DragEvent) => {
     event.preventDefault();
     setIsDragActive(false);
   };
-  const selectedFiles = state.value
+  const configuredFiles = state.value
     .split(",")
     .map((file) => file.trim())
     .filter(Boolean);
-  const visibleFiles = selectedFiles.length || state.previewState === "filled" ? selectedFiles.length ? selectedFiles : ["brand-kit.zip"] : [];
+  const visibleFiles = files.length
+    ? files.map((file) => file.name)
+    : configuredFiles.length || state.previewState === "filled"
+      ? configuredFiles.length
+        ? configuredFiles
+        : ["brand-kit.zip"]
+      : [];
   const helperId = `${state.id}-helper`;
   const descriptionId = `${state.id}-description`;
   const statusId = `${state.id}-status`;
@@ -79,6 +108,37 @@ export default function LivePreview({ state }: { state: FileUploadState }) {
       : state.listMode === "rows"
         ? "grid gap-2"
         : "grid gap-2 sm:grid-cols-2";
+
+  const addFiles = (incoming: FileList | File[]) => {
+    if (disabled) return;
+    const candidates = Array.from(incoming);
+    const rejectedType = candidates.find((file) => !acceptsFile(file, state.accept));
+    if (rejectedType) {
+      setValidationMessage(`${rejectedType.name} is not an accepted file type.`);
+      return;
+    }
+    const maxBytes = parseMaxBytes(state.maxSizeLabel);
+    const rejectedSize = candidates.find((file) => file.size > maxBytes);
+    if (rejectedSize) {
+      setValidationMessage(`${rejectedSize.name} exceeds ${state.maxSizeLabel}.`);
+      return;
+    }
+
+    setFiles((current) => {
+      const next = state.multiple ? [...current, ...candidates] : candidates.slice(0, 1);
+      if (next.length > state.maxFileCount) {
+        setValidationMessage(`Select no more than ${state.maxFileCount} file${state.maxFileCount === 1 ? "" : "s"}.`);
+        return current;
+      }
+      setValidationMessage("");
+      return next;
+    });
+  };
+
+  const handleDrop = (event: DragEvent) => {
+    stopDrag(event);
+    addFiles(event.dataTransfer.files);
+  };
 
   return (
     <form style={shellStyle(state)} className="grid content-center" aria-labelledby={`${state.id}-label`} onSubmit={(event) => event.preventDefault()}>
@@ -99,9 +159,30 @@ export default function LivePreview({ state }: { state: FileUploadState }) {
         onDragEnter={(event) => { event.preventDefault(); setIsDragActive(true); }}
         onDragOver={(event) => event.preventDefault()}
         onDragLeave={stopDrag}
-        onDrop={stopDrag}
+        onDrop={handleDrop}
       >
-        <input id={state.id} name={state.name} title={state.title} tabIndex={state.tabIndex} dir={state.dir} lang={state.lang} type="file" accept={state.accept} multiple={state.multiple} capture={state.capture || undefined} required={state.required} disabled={disabled} aria-invalid={invalid || undefined} aria-describedby={describedBy} aria-label={state.ariaLabel || undefined} className={inputClass} />
+        <input
+          id={state.id}
+          name={state.name}
+          title={state.title}
+          tabIndex={state.tabIndex}
+          dir={state.dir}
+          lang={state.lang}
+          type="file"
+          accept={state.accept}
+          multiple={state.multiple}
+          capture={state.capture || undefined}
+          required={state.required}
+          disabled={disabled}
+          aria-invalid={invalid || undefined}
+          aria-describedby={describedBy}
+          aria-label={state.ariaLabel || undefined}
+          className={inputClass}
+          onChange={(event) => {
+            if (event.currentTarget.files) addFiles(event.currentTarget.files);
+            event.currentTarget.value = "";
+          }}
+        />
         {state.dropMode !== "dropzone" && (
           <label htmlFor={state.id} className="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl px-4 py-2 text-sm font-bold" style={{ background: state.accent, color: state.actionText }}>
             Browse files
@@ -114,11 +195,11 @@ export default function LivePreview({ state }: { state: FileUploadState }) {
           </div>
         )}
         <div className={listClass} aria-live="polite">
-          {visibleFiles.length ? visibleFiles.map((file) => (
-            <span key={file} className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm" style={{ borderColor: state.fileListItemBorder, background: state.fileListBg, color: state.foreground }}>
+          {visibleFiles.length ? visibleFiles.map((file, index) => (
+            <span key={`${file}-${index}`} className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm" style={{ borderColor: state.fileListItemBorder, background: state.fileListBg, color: state.foreground }}>
               {file}
               {state.showRemoveAction && (
-                <button type="button" aria-label={`Remove ${file}`} disabled={disabled} className="ml-auto leading-none disabled:opacity-50" style={{ color: state.removeIconColor }}>
+                <button type="button" aria-label={`Remove ${file}`} disabled={disabled} onClick={() => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))} className="ml-auto leading-none disabled:opacity-50" style={{ color: state.removeIconColor }}>
                   ×
                 </button>
               )}
@@ -134,7 +215,7 @@ export default function LivePreview({ state }: { state: FileUploadState }) {
             </label>
           )}
           {state.showRemoveAction && (
-            <button type="button" disabled={disabled || !visibleFiles.length} className="rounded-xl border px-4 py-2 text-sm font-semibold disabled:opacity-50" style={{ borderColor: state.border, color: state.foreground }}>
+            <button type="button" disabled={disabled || !visibleFiles.length} onClick={() => { setFiles([]); setValidationMessage(""); }} className="rounded-xl border px-4 py-2 text-sm font-semibold disabled:opacity-50" style={{ borderColor: state.border, color: state.foreground }}>
               Remove selected
             </button>
           )}

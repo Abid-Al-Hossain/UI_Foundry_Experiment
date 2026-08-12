@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Time Picker</div></body></html>`;
 }
 
-export default function timepickerGalleryPage() {
+export default function TimepickerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

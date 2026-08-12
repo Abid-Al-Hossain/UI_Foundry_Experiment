@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Search Input</div></body></html>`;
 }
 
-export default function searchinputGalleryPage() {
+export default function SearchinputGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

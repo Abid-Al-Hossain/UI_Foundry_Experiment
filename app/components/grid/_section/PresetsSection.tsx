@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
@@ -42,12 +42,7 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
       return haystack.includes(search);
     });
   }, [family, query, size, variant]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [family, query, size, variant]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const visible = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
   const resultLabel = `${filtered.length} ${filtered.length === 1 ? "match" : "matches"}`;
@@ -73,10 +68,10 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
   return (
     <SectionCard title="Presets" subtitle={`48 full-state grid presets. ${resultLabel}.`}>
       <div className="grid gap-3 sm:grid-cols-4" data-audit="preset-filters" data-testid="preset-filters">
-        <Input label="Search presets" value={query} onChange={setQuery} />
-        <Select label="Family" value={family} options={families} onChange={setFamily} />
-        <Select label="Variant" value={variant} options={variants} onChange={setVariant} />
-        <Select label="Size" value={size} options={sizes} onChange={setSize} />
+        <Input label="Search presets" value={query} onChange={(value) => { setQuery(value); setPage(0); }} />
+        <Select label="Family" value={family} options={families} onChange={(value) => { setFamily(value); setPage(0); }} />
+        <Select label="Variant" value={variant} options={variants} onChange={(value) => { setVariant(value); setPage(0); }} />
+        <Select label="Size" value={size} options={sizes} onChange={(value) => { setSize(value); setPage(0); }} />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

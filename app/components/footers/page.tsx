@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Footer</div></body></html>`;
 }
 
-export default function footersGalleryPage() {
+export default function FootersGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

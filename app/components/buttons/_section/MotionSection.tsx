@@ -4,7 +4,11 @@ import React from "react";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import { LabeledField, SectionCard, Segmented } from "./ui";
 
-import { ActionButtonState } from "../types";
+import {
+  ActionButtonState,
+  ActionButtonFieldSetter,
+  TransitionEasing,
+} from "../types";
 
 export type AnimationPreset =
   | "none"
@@ -36,7 +40,7 @@ export default function MotionSection({
   setKey,
 }: {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
 }) {
   const duration = Math.max(800, Number(state.animationDurationText) || 4200);
   const speed = Math.max(25, Number(state.animationSpeedText) || 100);
@@ -56,7 +60,9 @@ export default function MotionSection({
           >
             <select
               value={state.animation}
-              onChange={(e) => setKey("animation")(e.target.value)}
+              onChange={(e) =>
+                setKey("animation")(e.target.value as AnimationPreset)
+              }
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
               style={{
                 borderColor: "var(--border)",
@@ -109,7 +115,9 @@ export default function MotionSection({
           <LabeledField label="Easing">
             <Segmented
               value={state.animationEasing}
-              onChange={(v) => setKey("animationEasing")(v)}
+              onChange={(value: TransitionEasing) =>
+                setKey("animationEasing")(value)
+              }
               items={[
                 { value: "ease", label: "Ease" },
                 { value: "ease-in", label: "Ease in" },
@@ -130,7 +138,9 @@ export default function MotionSection({
           <LabeledField label="Text motion" hint="Animates the button label">
             <select
               value={state.textAnimation}
-              onChange={(e) => setKey("textAnimation")(e.target.value)}
+              onChange={(e) =>
+                setKey("textAnimation")(e.target.value as TextMotionPreset)
+              }
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
               style={{
                 borderColor: "var(--border)",
@@ -171,7 +181,9 @@ export default function MotionSection({
           >
             <select
               value={state.depthAnimation}
-              onChange={(e) => setKey("depthAnimation")(e.target.value)}
+              onChange={(e) =>
+                setKey("depthAnimation")(e.target.value as DepthMotionPreset)
+              }
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none uf-clickable"
               style={{
                 borderColor: "var(--border)",

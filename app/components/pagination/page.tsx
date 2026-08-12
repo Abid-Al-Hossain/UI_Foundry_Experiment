@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Pagination</div></body></html>`;
 }
 
-export default function paginationGalleryPage() {
+export default function PaginationGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

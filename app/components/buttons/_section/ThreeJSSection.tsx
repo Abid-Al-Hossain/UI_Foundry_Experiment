@@ -8,7 +8,6 @@ import {
   ExportWarningBadge,
   Slider,
 } from "./ui";
-import ColorControl from "@/app/components/controls/color/ColorControl";
 import Select from "@/app/components/controls/input/Select";
 
 export type ThreeDIconMode = "none" | "on";
@@ -94,7 +93,7 @@ export default function ThreeJSSection(props: {
               <LabeledField label="Stiffness (Spring)">
                 <Slider
                   value={props.hoverSpringStiffness}
-                  onChange={props.setHoverSpringStiffness}
+                  onChange={(value) => props.setHoverSpringStiffness(String(value))}
                   min={50}
                   max={500}
                   step={10}
@@ -103,7 +102,7 @@ export default function ThreeJSSection(props: {
               <LabeledField label="Damping (Friction)">
                 <Slider
                   value={props.hoverSpringDamping}
-                  onChange={props.setHoverSpringDamping}
+                  onChange={(value) => props.setHoverSpringDamping(String(value))}
                   min={5}
                   max={50}
                   step={1}
@@ -142,7 +141,7 @@ export default function ThreeJSSection(props: {
             <LabeledField label="Particle Count">
               <Slider
                 value={props.clickParticleCount}
-                onChange={props.setClickParticleCount}
+                onChange={(value) => props.setClickParticleCount(String(value))}
                 min={10}
                 max={200}
                 step={10}

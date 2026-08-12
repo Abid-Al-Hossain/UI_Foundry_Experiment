@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Auth Form</div></body></html>`;
 }
 
-export default function authformGalleryPage() {
+export default function AuthformGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

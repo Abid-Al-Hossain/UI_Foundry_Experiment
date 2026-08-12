@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Spacer</div></body></html>`;
 }
 
-export default function spacerGalleryPage() {
+export default function SpacerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

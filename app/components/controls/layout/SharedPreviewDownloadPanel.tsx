@@ -40,6 +40,7 @@ type DirectPreviewDownloadPanelProps = {
   preview: React.ReactNode;
   code: string;
   downloadName: string;
+  setDownloadName: (value: string) => void;
   previewBgMode: PreviewCanvasMode;
   previewBgInput: string;
   onPreviewBgMode: (value: PreviewCanvasMode) => void;
@@ -68,6 +69,7 @@ function DirectPreviewDownloadPanel({
   preview,
   code,
   downloadName,
+  setDownloadName,
   previewBgMode,
   previewBgInput,
   onPreviewBgMode,
@@ -75,12 +77,7 @@ function DirectPreviewDownloadPanel({
 }: DirectPreviewDownloadPanelProps) {
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
   const [isDownloading, setIsDownloading] = useState(false);
-  const [fileName, setFileName] = useState(downloadName);
   const downloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setFileName(downloadName);
-  }, [downloadName]);
 
   useEffect(() => {
     return () => {
@@ -93,9 +90,11 @@ function DirectPreviewDownloadPanel({
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = href;
-    anchor.download = `${fileName || "component"}.jsx`;
+    anchor.download = `${normalizeDownloadBase(downloadName)}.jsx`;
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(href);
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(href), 0);
     setIsDownloading(true);
     if (downloadTimerRef.current !== null) clearTimeout(downloadTimerRef.current);
     downloadTimerRef.current = setTimeout(() => setIsDownloading(false), 1600);
@@ -108,8 +107,8 @@ function DirectPreviewDownloadPanel({
       code={code}
       downloadFormat="react"
       setDownloadFormat={() => undefined}
-      downloadName={fileName}
-      setDownloadName={setFileName}
+      downloadName={downloadName}
+      setDownloadName={setDownloadName}
       handleDownload={handleDownload}
       isDownloading={isDownloading}
       previewContent={
@@ -204,7 +203,7 @@ function IframePreviewDownloadPanel(props: IframePreviewDownloadPanelProps) {
                   "*",
                 );
               }}
-              title="Action Button Preview"
+              title={`${normalizeDownloadBase(downloadName)} preview`}
               sandbox="allow-scripts"
               srcDoc={iframeSrcDoc}
               tabIndex={0}
@@ -283,7 +282,7 @@ function PanelShell(props: {
               format={downloadFormat}
               setFormat={setDownloadFormat}
               fileName={downloadName}
-              setFileName={setDownloadName}
+              setFileName={(value) => setDownloadName(normalizeDownloadBase(value))}
               onDownload={handleDownload}
               isDownloading={isDownloading}
             />
@@ -347,4 +346,17 @@ function PanelShell(props: {
       </div>
     </ScrollArea>
   );
+}
+
+export function normalizeDownloadBase(value: string, fallback = "component") {
+  const normalized = value
+    .trim()
+    .replace(/\.(?:jsx?|tsx?)$/i, "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+    .replace(/^\.+/, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80)
+    .replace(/[. -]+$/g, "");
+  return normalized || fallback;
 }

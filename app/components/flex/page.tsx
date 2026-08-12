@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Flex Wrapper</div></body></html>`;
 }
 
-export default function flexGalleryPage() {
+export default function FlexGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

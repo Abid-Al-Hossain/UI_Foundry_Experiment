@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Badge / Tag</div></body></html>`;
 }
 
-export default function badgeGalleryPage() {
+export default function BadgeGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

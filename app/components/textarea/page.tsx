@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Textarea</div></body></html>`;
 }
 
-export default function textareaGalleryPage() {
+export default function TextareaGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

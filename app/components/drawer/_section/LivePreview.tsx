@@ -82,8 +82,6 @@ export default function LivePreview({ state }: { state: DrawerState }) {
   const descriptionId = `${state.id}-description`;
   const horizontal = state.side === "left" || state.side === "right";
 
-  useEffect(() => setOpen(initialOpen), [initialOpen]);
-
   useEffect(() => {
     if (!open || !state.closeOnEscape) return;
     const onKeyDown = (event: KeyboardEvent) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import type { VideoPlayerState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -33,12 +33,23 @@ function shell(state: VideoPlayerState): CSSProperties {
 
 export default function LivePreview({ state }: { state: VideoPlayerState }) {
   const panel = shell(state);
-  const progressByState: Record<VideoPlayerState["previewState"], number> = { default: 28, hover: 34, focus: 38, active: 55, open: 28, closed: 0, selected: 68, loading: 10, empty: 0, error: 0, success: 100 };
-  const progress = progressByState[state.previewState];
-  const duration = 96;
-  const current = Math.round((duration * progress) / 100);
-  const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  const volume = state.muted ? 0 : 72;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [media, setMedia] = useState({ current: 0, duration: 0, volume: state.muted ? 0 : 1, status: "idle" });
+  const progress = media.duration > 0 ? Math.min(100, (media.current / media.duration) * 100) : 0;
+  const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  };
+  const syncMedia = (status?: string) => {
+    const video = videoRef.current;
+    if (!video) return;
+    setMedia({
+      current: Number.isFinite(video.currentTime) ? video.currentTime : 0,
+      duration: Number.isFinite(video.duration) ? video.duration : 0,
+      volume: video.muted ? 0 : video.volume,
+      status: status ?? (video.paused ? "paused" : "playing"),
+    });
+  };
   const captionsSrc = `data:text/vtt;charset=utf-8,${encodeURIComponent(`WEBVTT\n\n00:00:00.000 --> 00:00:04.000\n${state.label || state.title}\n`)}`;
 
   return <section id={state.id} role={state.role} aria-label={state.ariaLabel} tabIndex={state.tabIndex} style={panel} className="grid content-center gap-4">
@@ -48,7 +59,31 @@ export default function LivePreview({ state }: { state: VideoPlayerState }) {
       <p style={{ color: "color-mix(in oklab, currentColor 70%, transparent)", fontSize: state.bodySize }}>{state.description}</p>
     </div>
     <div className="overflow-hidden rounded-2xl border" style={{ borderColor: state.border, background: state.actionText }}>
-      <video controls src={state.src || undefined} poster={state.poster || undefined} muted={state.muted} loop={state.loop} autoPlay={state.autoplay} preload={state.preload} aria-label={state.ariaLabel} className="block w-full" style={{ aspectRatio: "16 / 9", objectFit: state.objectFit as CSSProperties["objectFit"], accentColor: state.accent }}>
+      <video
+        ref={videoRef}
+        controls={!state.disabled}
+        src={state.src || undefined}
+        poster={state.poster || undefined}
+        muted={state.muted}
+        loop={state.loop}
+        autoPlay={state.autoplay && !state.disabled}
+        preload={state.preload}
+        aria-label={state.ariaLabel}
+        aria-disabled={state.disabled || undefined}
+        tabIndex={state.disabled ? -1 : 0}
+        className="block w-full"
+        style={{ aspectRatio: "16 / 9", objectFit: state.objectFit as CSSProperties["objectFit"], accentColor: state.accent, pointerEvents: state.disabled ? "none" : undefined }}
+        onLoadedMetadata={() => syncMedia("ready")}
+        onDurationChange={() => syncMedia()}
+        onTimeUpdate={() => syncMedia()}
+        onVolumeChange={() => syncMedia()}
+        onPlay={() => syncMedia("playing")}
+        onPause={() => syncMedia("paused")}
+        onWaiting={() => syncMedia("buffering")}
+        onPlaying={() => syncMedia("playing")}
+        onEnded={() => syncMedia("ended")}
+        onError={() => syncMedia("error")}
+      >
         {state.showCaptions && <track kind="captions" srcLang="en" label={state.label || "English captions"} src={captionsSrc} default />}
       </video>
     </div>
@@ -57,13 +92,13 @@ export default function LivePreview({ state }: { state: VideoPlayerState }) {
         <div className="h-full rounded-full" style={{ width: `${progress}%`, background: state.accent, transition: state.transitionDuration > 0 ? "width 0.1s linear" : "none" }} />
       </div>
       <div className="flex justify-between text-xs" style={{ color: "color-mix(in oklab, currentColor 72%, transparent)" }}>
-        <span>{formatTime(current)}</span>
-        <span>{formatTime(duration)}</span>
+        <span>{formatTime(media.current)}</span>
+        <span>{formatTime(media.duration)}</span>
       </div>
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3 text-xs" style={{ color: "color-mix(in oklab, currentColor 74%, transparent)" }}>
-      <span>{state.previewState === "loading" ? "Buffering preview" : state.previewState === "error" ? "Source unavailable" : state.previewState === "success" ? "Finished playback" : `Playback: ${state.previewState}`}</span>
-      <span>Volume {volume}% {state.muted ? "(muted)" : ""}</span>
+      <span>{media.status === "buffering" ? "Buffering" : media.status === "error" ? "Source unavailable" : media.status === "ended" ? "Finished playback" : `Playback: ${media.status}`}</span>
+      <span>Volume {Math.round(media.volume * 100)}% {media.volume === 0 ? "(muted)" : ""}</span>
       <span>{state.showCaptions ? "Captions on" : "Captions off"}</span>
       <span>Fit {state.objectFit}</span>
     </div>

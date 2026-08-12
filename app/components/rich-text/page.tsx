@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Rich Text Editor</div></body></html>`;
 }
 
-export default function richtextGalleryPage() {
+export default function RichtextGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

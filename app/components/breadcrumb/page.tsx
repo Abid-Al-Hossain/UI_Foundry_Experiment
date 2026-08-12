@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Breadcrumb</div></body></html>`;
 }
 
-export default function breadcrumbGalleryPage() {
+export default function BreadcrumbGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

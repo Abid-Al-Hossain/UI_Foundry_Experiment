@@ -35,37 +35,12 @@ export function SectionCard(props: {
   );
 }
 
-export function LabeledField(props: {
-  label: React.ReactNode;
-  children: React.ReactNode;
-  hint?: string;
-}) {
-  const autoId = React.useId();
-  const isEl = React.isValidElement(props.children);
-  const childEl = props.children as React.ReactElement<{ id?: string }>;
-  const fieldId = isEl ? childEl.props.id ?? autoId : undefined;
-  const child = isEl ? React.cloneElement(childEl, { id: fieldId }) : props.children;
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <label htmlFor={fieldId} className="text-sm font-medium" style={{ color: "var(--text)" }}>
-          {props.label}
-        </label>
-        {props.hint ? (
-          <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {props.hint}
-          </span>
-        ) : null}
-      </div>
-      <div className="mt-2">{child}</div>
-    </div>
-  );
-}
+export { LabeledField } from "@/app/components/controls/layout/LabeledField";
 
-export function Segmented(props: {
-  value: string;
-  onChange: (v: string) => void;
-  items: { value: string; label: string }[];
+export function Segmented<Value extends string>(props: {
+  value: Value;
+  onChange: (value: Value) => void;
+  items: readonly { value: Value; label: string }[];
 }) {
   return (
     <div

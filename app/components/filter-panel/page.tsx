@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Filter Panel</div></body></html>`;
 }
 
-export default function filterpanelGalleryPage() {
+export default function FilterpanelGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Grid</div></body></html>`;
 }
 
-export default function gridGalleryPage() {
+export default function GridGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

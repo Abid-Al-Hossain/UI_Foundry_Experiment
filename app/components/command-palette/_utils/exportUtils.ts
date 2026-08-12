@@ -12,7 +12,8 @@ export function buildReactCode(state: CommandPaletteState) {
 
 const state = ${serializedState};
 
-function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : "inherit"; }
+const systemFonts = ${JSON.stringify(["Arial, system-ui","Consolas, \"Liberation Mono\", \"Courier New\", ui-monospace, monospace","\"Courier New\", ui-monospace, monospace","Georgia, ui-serif, serif","Helvetica, Arial, system-ui","Menlo, Monaco, Consolas, \"Liberation Mono\", ui-monospace, monospace","Monaco, Menlo, Consolas, \"Liberation Mono\", ui-monospace, monospace","Roboto, system-ui, -apple-system, Arial","\"Segoe UI\", system-ui, -apple-system, Arial","system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","\"Times New Roman\", Times, ui-serif, serif","ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace","ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif"])};
+function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : (systemFonts[s.systemFontIdx] || "system-ui"); }
 function buildShadow(s) { if (!s.shadowEnabled) return "none"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, "0"); return s.shadowX + "px " + s.shadowY + "px " + s.shadowBlur + "px " + s.shadowSpread + "px " + s.shadowColor + hex; }
 
 const GROUP_LABELS = ["Navigation", "Actions", "Records", "Settings", "Support", "Recent", "Admin", "Shortcuts"];
@@ -36,39 +37,43 @@ function textValue(value, fallback) {
   return value && value.trim() ? value : fallback;
 }
 
-function getCommandPaletteModel(currentState) {
+function getCommandPaletteModel(currentState, queryOverride) {
   const id = cleanId(currentState.id);
   const rawTotal = currentState.emptyState || currentState.previewState === "empty" ? 0 : Math.max(0, Math.floor(currentState.itemCount));
-  const totalOptions = Math.min(rawTotal, Math.max(0, Math.floor(currentState.maxResults)) || rawTotal);
+  const sourceTotal = Math.min(rawTotal, Math.max(0, Math.floor(currentState.maxResults)) || rawTotal);
   const groupCount = currentState.groupsEnabled
-    ? Math.max(1, Math.min(Math.floor(currentState.groupCount), Math.max(totalOptions, 1)))
+    ? Math.max(1, Math.min(Math.floor(currentState.groupCount), Math.max(sourceTotal, 1)))
     : 1;
-  const activeIndex = totalOptions ? Math.max(0, Math.min(Math.floor(currentState.highlightedIndex), totalOptions - 1)) : -1;
   const isLoading = currentState.previewState === "loading";
   const isError = currentState.previewState === "error";
-  const isEmpty = totalOptions === 0;
   const isInitiallyOpen = currentState.previewState !== "closed";
   const label = textValue(currentState.label, "Command");
+  const query = queryOverride ?? currentState.query ?? "";
+  const normalizedQuery = query.trim().toLocaleLowerCase();
   const groups = Array.from({ length: groupCount }, (_, groupIndex) => {
-    const options = Array.from({ length: totalOptions }, (_, index) => index)
+    const groupLabel = !currentState.groupsEnabled ? "All commands" : currentState.recentEnabled && groupIndex === 0 ? "Recent" : GROUP_LABELS[groupIndex % GROUP_LABELS.length];
+    const options = Array.from({ length: sourceTotal }, (_, index) => index)
       .filter((index) => index % groupCount === groupIndex)
       .map((index) => ({
         id: id + "-option-" + index,
+        index,
         label: label + " " + (index + 1),
         helper: COMMAND_HELPERS[index % COMMAND_HELPERS.length],
         shortcut: SHORTCUTS[index % SHORTCUTS.length],
-      }));
+      }))
+      .filter((option) => !normalizedQuery || [option.label, option.helper, option.shortcut, groupLabel].some((value) => value.toLocaleLowerCase().includes(normalizedQuery)));
 
     return {
       id: id + "-group-" + groupIndex,
-      label: !currentState.groupsEnabled
-        ? "All commands"
-        : currentState.recentEnabled && groupIndex === 0
-          ? "Recent"
-          : GROUP_LABELS[groupIndex % GROUP_LABELS.length],
+      label: groupLabel,
       options,
     };
   }).filter((group) => group.options.length > 0);
+  const visibleOptions = groups.flatMap((group) => group.options);
+  const totalOptions = visibleOptions.length;
+  const preferredIndex = Math.max(0, Math.min(Math.floor(currentState.highlightedIndex), Math.max(sourceTotal - 1, 0)));
+  const activeIndex = totalOptions ? (visibleOptions.some((option) => option.index === preferredIndex) ? preferredIndex : visibleOptions[0].index) : -1;
+  const isEmpty = totalOptions === 0;
 
   return {
     baseId: id,
@@ -80,7 +85,7 @@ function getCommandPaletteModel(currentState) {
     triggerId: id + "-trigger",
     inputLabel: textValue(currentState.inputLabel, "Search commands"),
     placeholder: textValue(currentState.placeholder, "Type a command or search route..."),
-    query: currentState.query ?? "",
+    query,
     emptyMessage: textValue(currentState.emptyMessage, "No commands match the current search."),
     loadingMessage: textValue(currentState.loadingMessage, "Loading command results..."),
     errorMessage: textValue(currentState.errorMessage, "Commands could not be loaded."),
@@ -96,42 +101,80 @@ function getCommandPaletteModel(currentState) {
 }
 
 function getShellStyle(currentState) {
+  const radius = currentState.radiusLinked ? currentState.radius + "px" : currentState.radiusTL + "px " + currentState.radiusTR + "px " + currentState.radiusBR + "px " + currentState.radiusBL + "px";
   return {
     width: currentState.width,
     minHeight: currentState.height,
     padding: currentState.padding,
     gap: currentState.gap,
-    borderRadius: currentState.radius,
+    borderRadius: radius,
     border: currentState.borderWidth + "px " + currentState.borderStyle + " " + (currentState.disabled && currentState.disabledUseCustomColors ? currentState.disabledBorder : currentState.border),
-    boxShadow: "0 " + Math.round(currentState.shadow / 3) + "px " + currentState.shadow + "px rgba(0,0,0,.28)",
-    background: currentState.background,
-    color: currentState.foreground,
-    fontFamily: currentState.fontFamily,
-    opacity: currentState.disabled ? (currentState.disabledOpacity ?? 0.5) : 1,
-cursor: currentState.disabled ? currentState.disabledCursor : undefined,
+    boxShadow: buildShadow(currentState),
+    background: currentState.disabled && currentState.disabledUseCustomColors ? currentState.disabledBg : currentState.background,
+    color: currentState.disabled && currentState.disabledUseCustomColors ? currentState.disabledText : currentState.foreground,
+    fontFamily: resolveFont(currentState),
+    fontStyle: currentState.fontStyle,
+    textTransform: currentState.textTransform,
+    textDecoration: currentState.textDecoration,
+    letterSpacing: currentState.letterSpacing + currentState.letterSpacingUnit,
+    lineHeight: currentState.lineHeight,
+    opacity: currentState.disabled ? currentState.disabledOpacity : 1,
+    cursor: currentState.disabled ? currentState.disabledCursor : undefined,
     display: "grid",
+    transition: currentState.transitionDuration > 0 ? "all " + currentState.transitionDuration + "ms " + currentState.transitionEasing : "none",
   };
 }
 
-export default function CommandPaletteComponent() {
-  const model = getCommandPaletteModel(state);
-  const [isOpen, setIsOpen] = React.useState(model.isInitiallyOpen);
-  const [activeIndex, setActiveIndex] = React.useState(model.activeIndex);
-  const [query, setQuery] = React.useState(model.query);
+export default function CommandPaletteComponent({ onCommand }) {
+  const initialModel = getCommandPaletteModel(state);
+  const [isOpen, setIsOpen] = React.useState(initialModel.isInitiallyOpen);
+  const [activeIndex, setActiveIndex] = React.useState(initialModel.activeIndex);
+  const [query, setQuery] = React.useState(initialModel.query);
+  const [debouncedQuery, setDebouncedQuery] = React.useState(initialModel.query);
   const [isSearching, setIsSearching] = React.useState(false);
+  const [announcement, setAnnouncement] = React.useState("");
+  const model = getCommandPaletteModel(state, debouncedQuery);
+  const visibleOptions = model.groups.flatMap((group) => group.options);
   const activeDescendant = isOpen && activeIndex >= 0 ? model.baseId + "-option-" + activeIndex : undefined;
   const describedBy = model.isError ? model.helperId + " " + model.errorId : model.helperId;
 
   React.useEffect(() => {
-    if (state.searchDebounce <= 0) return;
+    if (state.searchDebounce <= 0) {
+      setDebouncedQuery(query);
+      setIsSearching(false);
+      return;
+    }
     setIsSearching(true);
-    const timer = setTimeout(() => setIsSearching(false), state.searchDebounce);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+      setIsSearching(false);
+    }, state.searchDebounce);
     return () => clearTimeout(timer);
   }, [query]);
 
+  React.useEffect(() => { setActiveIndex(model.activeIndex); }, [debouncedQuery, model.activeIndex]);
+
+  React.useEffect(() => {
+    if (!state.keyboardShortcut.toLocaleLowerCase().replaceAll(" ", "").endsWith("+k")) return;
+    const openFromShortcut = (event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLocaleLowerCase() === "k") { event.preventDefault(); setIsOpen(true); } };
+    document.addEventListener("keydown", openFromShortcut);
+    return () => document.removeEventListener("keydown", openFromShortcut);
+  }, []);
+
   const moveActive = (delta) => {
-    if (!model.totalOptions) return;
-    setActiveIndex((current) => (current + delta + model.totalOptions) % model.totalOptions);
+    if (!visibleOptions.length) return;
+    setActiveIndex((current) => {
+      const position = visibleOptions.findIndex((option) => option.index === current);
+      return visibleOptions[(Math.max(position, 0) + delta + visibleOptions.length) % visibleOptions.length].index;
+    });
+  };
+
+  const executeOption = (optionIndex) => {
+    const option = visibleOptions.find((candidate) => candidate.index === optionIndex);
+    if (!option) return;
+    setAnnouncement(option.label + " executed.");
+    onCommand?.(option);
+    setIsOpen(false);
   };
 
   const handleInputKeyDown = (event) => {
@@ -149,7 +192,7 @@ export default function CommandPaletteComponent() {
 
     if (event.key === "Enter" && isOpen && activeIndex >= 0) {
       event.preventDefault();
-      setIsOpen(false);
+      executeOption(activeIndex);
     }
 
     if (event.key === "Escape") {
@@ -167,7 +210,7 @@ export default function CommandPaletteComponent() {
             <p style={{ margin: "4px 0 0", color: state.muted, fontSize: state.bodySize }}>{state.description}</p>
           </div>
           <button id={model.triggerId} type="button" disabled={state.disabled} aria-label={isOpen ? "Close command palette" : "Open command palette"} aria-expanded={isOpen} aria-controls={model.listboxId} onClick={() => setIsOpen((value) => !value)} style={{ borderRadius: 999, border: "1px solid " + state.border, padding: "4px 12px", color: state.accent, background: "transparent", fontSize: 12, fontWeight: 700, transition: state.transitionDuration > 0 ? "all " + state.transitionDuration + "ms " + state.transitionEasing : "none" }}>
-            {isOpen ? "Open" : "Closed"}
+            {isOpen ? "Close" : "Open"}
           </button>
         </div>
 
@@ -194,11 +237,10 @@ export default function CommandPaletteComponent() {
               <div key={group.id} role="group" aria-label={group.label} style={{ display: "grid", gap: 8 }}>
                 <p style={{ margin: 0, paddingInline: 8, color: state.muted, fontSize: 12, textTransform: "uppercase", letterSpacing: ".18em" }}>{group.label}</p>
                 {group.options.map((option) => {
-                  const optionIndex = Number(option.id.split("-").at(-1));
-                  const selected = optionIndex === activeIndex || state.previewState === "selected";
+                  const selected = option.index === activeIndex;
 
                   return (
-                    <div key={option.id} id={option.id} role="option" aria-selected={selected} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, border: "1px solid " + (selected ? state.accent : "transparent"), borderRadius: 18, padding: "12px 16px", background: selected ? state.itemActiveBg : "transparent", color: selected ? state.itemActiveText : undefined, transition: state.transitionDuration > 0 ? "all " + state.transitionDuration + "ms " + state.transitionEasing : "none" }}>
+                    <div key={option.id} id={option.id} role="option" aria-selected={selected} onMouseDown={(event) => event.preventDefault()} onMouseMove={() => setActiveIndex(option.index)} onClick={() => executeOption(option.index)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: "pointer", border: "1px solid " + (selected ? state.accent : "transparent"), borderRadius: 18, padding: "12px 16px", background: selected ? state.itemActiveBg : "transparent", color: selected ? state.itemActiveText : undefined, transition: state.transitionDuration > 0 ? "all " + state.transitionDuration + "ms " + state.transitionEasing : "none" }}>
                       <span>
                         <strong>{option.label}</strong>
                         <small style={{ display: "block", color: selected ? state.itemActiveText : state.muted }}>{option.helper}</small>
@@ -211,6 +253,7 @@ export default function CommandPaletteComponent() {
             ))}
           </div>
         )}
+        <p aria-live="polite" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>{announcement}</p>
       </section>
     </div>
   );

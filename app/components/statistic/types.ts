@@ -1,4 +1,4 @@
-export type SectionId = "presets" | "basics" | "metadata" | "content" | "items" | "behavior" | "layout" | "placement" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "transitions" | "focus-ring" | "states" | "disabled" | "accessibility";
+export type SectionId = "presets" | "basics" | "metadata" | "content" | "behavior" | "sizing" | "colors" | "border" | "radius" | "shadow" | "typography" | "transitions" | "focus-ring" | "states" | "disabled" | "accessibility";
 
 export type StatisticState = {
   title: string;
@@ -125,20 +125,8 @@ export const SECTIONS: Array<{ id: SectionId; label: string }> = [
     "label": "Content"
   },
   {
-    "id": "items",
-    "label": "Items"
-  },
-  {
     "id": "behavior",
     "label": "Behavior"
-  },
-  {
-    "id": "layout",
-    "label": "Layout"
-  },
-  {
-    "id": "placement",
-    "label": "Placement"
   },
   {
     "id": "sizing",

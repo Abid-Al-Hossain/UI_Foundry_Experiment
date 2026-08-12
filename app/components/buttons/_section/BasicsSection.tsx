@@ -3,7 +3,7 @@
 import React from "react";
 import { LabeledField, SectionCard, Segmented } from "./ui";
 
-import { ActionButtonState } from "../types";
+import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 
 export type ButtonVariant = "solid" | "outline" | "ghost";
 
@@ -12,7 +12,7 @@ export default function BasicsSection({
   setKey,
 }: {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
 }) {
   return (
     <SectionCard title="Basics" subtitle="Label, variant, and states.">

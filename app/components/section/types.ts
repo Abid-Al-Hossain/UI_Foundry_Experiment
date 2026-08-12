@@ -1,4 +1,4 @@
-export type SectionId = "presets" | "basics" | "metadata" | "structure" | "layout" | "sizing" | "spacing" | "surface" | "colors" | "border" | "radius" | "shadow" | "typography" | "states" | "accessibility";
+export type SectionId = "presets" | "basics" | "metadata" | "structure" | "layout" | "sizing" | "spacing" | "colors" | "border" | "radius" | "shadow" | "typography" | "states" | "accessibility";
 
 export type SectionState = {
   description: string;
@@ -99,10 +99,6 @@ export const SECTIONS: Array<{ id: SectionId; label: string }> = [
   {
     "id": "spacing",
     "label": "Spacing"
-  },
-  {
-    "id": "surface",
-    "label": "Surface"
   },
   {
     "id": "colors",

@@ -10,7 +10,8 @@ export function buildReactCode(state: LayoutDividerState) {
   return `import * as React from "react";
 
 const state = ${JSON.stringify(state, null, 2)};
-function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : "inherit"; }
+const systemFonts = ${JSON.stringify(["Arial, system-ui","Consolas, \"Liberation Mono\", \"Courier New\", ui-monospace, monospace","\"Courier New\", ui-monospace, monospace","Georgia, ui-serif, serif","Helvetica, Arial, system-ui","Menlo, Monaco, Consolas, \"Liberation Mono\", ui-monospace, monospace","Monaco, Menlo, Consolas, \"Liberation Mono\", ui-monospace, monospace","Roboto, system-ui, -apple-system, Arial","\"Segoe UI\", system-ui, -apple-system, Arial","system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","\"Times New Roman\", Times, ui-serif, serif","ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace","ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif"])};
+function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : (systemFonts[s.systemFontIdx] || "system-ui"); }
 function buildShadow(s) { if (!s.shadowEnabled) return "none"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, "0"); return s.shadowX + "px " + s.shadowY + "px " + s.shadowBlur + "px " + s.shadowSpread + "px " + s.shadowColor + hex; }
 
 
@@ -24,12 +25,17 @@ export default function LayoutDividerComponent() {
     margin: state.margin,
     display: "grid",
     placeItems: "center",
-    borderRadius: state.radius,
-    border: state.borderWidth + "px " + state.borderStyle + " " + (state.disabled && state.disabledUseCustomColors ? state.disabledBorder : state.border),
+    borderRadius: state.radiusLinked ? state.radius : state.radiusTL + "px " + state.radiusTR + "px " + state.radiusBR + "px " + state.radiusBL + "px",
+    border: state.borderWidth + "px " + state.borderStyle + " " + state.border,
     boxShadow: buildShadow(state),
     background: state.background,
     color: state.foreground,
-    fontFamily: state.fontFamily
+    fontFamily: resolveFont(state),
+    fontStyle: state.fontStyle,
+    textTransform: state.textTransform,
+    textDecoration: state.textDecoration,
+    letterSpacing: state.letterSpacing + state.letterSpacingUnit,
+    lineHeight: state.lineHeight
   };
   const lineStyle = {
     width: isVertical ? state.thickness : state.length,

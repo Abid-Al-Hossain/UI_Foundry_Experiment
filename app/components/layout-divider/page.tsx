@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Divider (Layout)</div></body></html>`;
 }
 
-export default function layoutdividerGalleryPage() {
+export default function LayoutdividerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

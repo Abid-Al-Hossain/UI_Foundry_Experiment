@@ -1,126 +1,199 @@
-# 💎 UI Foundry (Pro Edition)
+# UI Foundry
 
-**UI Foundry** is a premium, laboratory-grade UI component platform designed for developers and designers who need high-performance, fully customizable, and production-ready components. 
+UI Foundry is a registry-driven collection of 65 visual component studios built
+with Next.js, React, and TypeScript. Each studio combines structured editing
+controls, full-state presets, a live preview, undo and redo history, and a
+React/JSX export workflow.
 
-Unlike traditional component libraries, UI Foundry provides a **Studio-First workflow**, allowing you to visually refine parameters and export pixel-perfect code in real-time.
+The mother project is the integrated product. The sibling `*-component`
+repositories are self-contained editions of the same studios for independent
+distribution.
 
----
+## Product model
 
-## 🚀 Core Philosophy: "The Component Laboratory"
-The web is full of static UI kits. UI Foundry is built on a different principle: **Total Parameterization**. Every component is treated as a set of variables (state) that can be manipulated through a professional-grade interface.
+Each registered component provides two routes:
 
-1. **Precision Control**: Adjust shadows, 3D tilts, magnetic strengths, and typography scales with granular precision.
-2. **Code Export**: One-click generation of fully typed, modern **React (TSX)** components that mirror the live preview exactly.
-   - _Roadmap:_ HTML/CSS, Tailwind, SCSS/CSS-variables, and Figma design-token export are planned but not yet shipped — the Studio currently exports React/JSX.
+- a gallery page that introduces the component and links to its studio
+- a playground page containing the full editor and output workspace
 
----
+The common editor shell provides:
 
-## 🛠️ The Tech Stack
-Built for speed, scalability, and developer experience:
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Turbopack)
-- **Runtime**: [React 19](https://react.dev/) (Hooks-first, optimized state updates)
-- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/) & [OKLCH Color Space](https://oklch.com/)
-- **Motion**: [Framer Motion](https://www.framer.com/motion/) for complex layout transitions.
-- **3D Engine**: [React Three Fiber](https://r3f.docs.pmnd.rs/) for immersive elements.
-- **State Engine**: Native React State + Undo/Redo historical snapshots.
+- section navigation
+- undo, redo, and reset actions
+- page-owned preview background controls
+- transient preview reset behavior
+- live design and code views
+- export filename editing
+- copy and React/JSX download workflows
+- shared accessibility and contrast guidance
 
----
+Component-specific sections are added only when they belong to the component's
+real rendering, semantic, accessibility, or interaction model.
 
-## 🏗️ Project Architecture
-The project follows a **Registry-Driven Architecture**, making it infinitely extensible:
+## Component catalog
 
-### 📁 Directory Anatomy
-```bash
-/app
-  /components
-    /[component-name]
-      /playground          # The Studio interface
-        /_section          # Modular UI panels (Basics, Effects, etc.)
-        /_utils            # Export and logic utilities
-        page.tsx           # Entry point for the component studio
-      types.ts             # Strict TypeScript interface for the component state
-/components
-  /registry
-    componentRegistry.ts   # Central manifest for the whole system
-  /shared                 # Low-level layout and input building blocks
+The registry currently contains 65 component studios.
+
+### Basic and atomic
+
+Avatar, Badge, Button, Divider, Icon, Image, Progress, Spinner, Typography, and
+Tooltip.
+
+### Input and form
+
+Checkbox, Date Picker, File Upload, OTP Input, Radio, Slider, Search Input,
+Select, Text Input, Textarea, Time Picker, and Toggle.
+
+### Layout
+
+Container, Layout Divider, Flex, Footer, Grid, Header, Navbar, Section, Sidebar,
+and Spacer.
+
+### Data display
+
+Accordion, Card, List, Pagination, Statistic, Table, Tabs, Timeline, and Tree
+View.
+
+### Feedback and status
+
+Alert, Drawer, Empty State, Modal, Popover, Skeleton, and Toast.
+
+### Navigation
+
+Breadcrumb, Dropdown Menu, Mega Menu, Menu, and Stepper.
+
+### Media and interactive
+
+Audio Player, Carousel, Chart, Gallery, Lightbox, and Video Player.
+
+### Advanced
+
+Auth Form, Command Palette, Drag and Drop, Filter Panel, Rich Text Editor, and
+Settings Panel.
+
+The source of truth for names, descriptions, categories, and routes is
+`components/registry/componentRegistry.ts`.
+
+## Architecture
+
+```text
+app/
+  components/
+    controls/                     Shared mother-project editor controls
+    buttons/                      Representative component studio
+      _data/                       Presets and constants
+      _section/                    Editing sections and live preview
+      _utils/                      Export and component-specific logic
+      audit/                       Studio audit route when applicable
+      playground/page.tsx         Full editor route
+      page.tsx                    Gallery route
+      types.ts                    Typed editor state
+components/
+  registry/componentRegistry.ts   Registry for all 65 studios
+  layout/                          Application shell and navigation
+scripts/
+  audit-generated-exports.mjs     React export compilation/render audit
 ```
 
-### 💉 Adding New Components
-To add a new component to the Foundry:
-1. Create the component folder structure in `/app/components`.
-2. Define the `State` interface in `types.ts`.
-3. Register the component in `componentRegistry.ts` under the appropriate category.
-4. The system automatically handles routing, sidebar navigation, and layout.
+All playgrounds use the shared application shell, playground layout, section
+selector, history controls, preview canvas, code presentation, and export panel.
+The component state, presets, native controls, preview anatomy, and export logic
+remain component-specific.
 
----
+## Shared editor contract
 
-## 🗂️ Premium Component Gallery
-The Foundry currently houses **65 high-fidelity components**, each with a full Studio (live preview, presets, undo/redo, and multi-format export):
+Common editing tasks use centralized mother-project implementations, including:
 
-### ⚛️ Basic / Atomic
+- color editing and contrast feedback
+- text inputs, selects, sliders, switches, and segmented controls
+- font-family selection
+- section cards and labeled fields
+- preview backgrounds and output-stage layout
+- design/code switching and code copying
+- filename normalization and React downloads
 
-Avatar · Badge / Tag · Button · Divider · Icon · Image · Progress Bar · Spinner · Text / Typography · Tooltip
+Common page-level state names are kept stable where applicable:
 
-### 🎛️ Input & Form
+- `previewResetKey`
+- `previewBgMode`
+- `previewBgInput`
+- `downloadName`
 
-Checkbox · Date Picker · File Upload · OTP / PIN Input · Radio Button · Range Slider · Search Input · Select / Dropdown · Text Input · Textarea · Time Picker · Toggle / Switch
+Preset systems use structured metadata and full editor state so applying a
+preset changes the complete component rather than only its palette.
 
-### 🧱 Layout
+## Export contract
 
-Container · Divider (Layout) · Flex Wrapper · Footer · Grid · Header · Navbar · Section · Sidebar · Spacer
+React/JSX is the only shipped user-facing export format. The visible code,
+copied code, and downloaded file are generated from the same current export
+payload. Downloaded component files use the `.jsx` extension.
 
-### 📊 Data Display
+The export audit compiles and server-renders every registered export builder to
+catch malformed JSX, invalid React trees, and component-specific export errors.
 
-Accordion · Card · List · Pagination · Statistic · Table · Tabs · Timeline · Tree View
+## Standalone editions
 
-### 🔔 Feedback & Status
+Each sibling `*-component` project is an independent Next.js application with:
 
-Alert · Drawer · Empty State · Modal / Dialog · Popover · Skeleton · Toast
+- its own package manifest and lockfile
+- local copies of shared editor controls
+- local presets, state, preview, and export utilities
+- no runtime import from this mother project
+- no runtime import from another standalone component project
 
-### 🧭 Navigation
+This duplication is intentional. It allows every studio to be distributed on
+its own while preserving a common UI Foundry design language.
 
-Breadcrumb · Dropdown Menu · Mega Menu · Menu · Stepper
+## Technology
 
-### 🎬 Media & Interactive
+- Next.js 16.3.0 with the App Router
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- Framer Motion
+- Lucide React
+- React Three Fiber and Three.js where native to a component
 
-Audio Player · Carousel · Chart · Gallery · Lightbox · Video Player
+## Requirements
 
-### 🧪 Advanced
+- Node.js 20 or newer
+- npm
 
-Auth Form · Command Palette · Drag & Drop · Filter Panel · Rich Text Editor · Settings Panel
+## Local development
 
----
-
-## 📦 Standalone Extraction Engine
-One of the most powerful features of UI Foundry is its **Extraction System**. While components are developed in this "Mother Project," they are designed to be exported as **Standalone Next.js Projects**.
-
-Each standalone export includes:
-- A dedicated, minimal Tailwind setup.
-- Isolated shared infrastructure (hooks/themes).
-- Full "Studio" functionality in a single-purpose project.
-
----
-
-## 🚦 Installation & Setup
-
-### 1. Requirements
-- Node.js 20.x or later (Optimized for React 19)
-- npm or pnpm
-
-### 2. Quick Start
 ```bash
-# Clone the repository
-git clone https://github.com/Abid-Al-Hossain/UI_Foundry_Experiment.git
-
-# Install dependencies
 npm install
-
-# Start the Studio
 npm run dev
 ```
 
----
+Open `http://localhost:3000` and select a component from the registry-driven
+navigation.
 
-## 📜 License & Credits
-Developed by **Abid Al Hossain**. This project is part of a premium UI research experiment.  
-[GitHub Profile](https://github.com/Abid-Al-Hossain) | [Portfolio](https://abidalhossain.com)
+## Verification
+
+Run the compiler, linter, production build, and export audit independently:
+
+```bash
+npm run typecheck
+npm run lint -- --quiet
+npm run build
+npm run audit:exports
+```
+
+A successful production build alone is not treated as proof that editor state,
+accessibility behavior, or generated React output is correct. Those contracts
+are checked separately by static audits and targeted browser smoke tests in the
+workspace.
+
+## Repository
+
+Mother project: `https://github.com/Abid-Al-Hossain/UI_Foundry_Experiment`
+
+Standalone repositories use the `UI_<component>` naming convention under the
+`Abid-Al-Hossain` GitHub account.
+
+## License and author
+
+Developed by Abid Al Hossain as part of the UI Foundry component-studio product
+line. Confirm the intended marketplace and repository license before public
+distribution.

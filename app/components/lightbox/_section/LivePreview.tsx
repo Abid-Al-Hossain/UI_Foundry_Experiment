@@ -17,12 +17,6 @@ function resolveFont(state: { fontBucket: "system" | "google"; googleFontFamily:
     : (SYSTEM_FONTS[state.systemFontIdx]?.css ?? "inherit");
 }
 
-function buildShadow(state: { shadowEnabled: boolean; shadowX: number; shadowY: number; shadowBlur: number; shadowSpread: number; shadowColor: string; shadowOpacity: number }): string {
-  if (!state.shadowEnabled) return "none";
-  const hex = Math.round(state.shadowOpacity * 255).toString(16).padStart(2, "0");
-  return `${state.shadowX}px ${state.shadowY}px ${state.shadowBlur}px ${state.shadowSpread}px ${state.shadowColor}${hex}`;
-}
-
 function buildRadius(state: { radiusLinked: boolean; radius: number; radiusTL: number; radiusTR: number; radiusBR: number; radiusBL: number }): string {
   return state.radiusLinked
     ? `${state.radius}px`
@@ -59,11 +53,6 @@ export default function LivePreview({ state }: { state: LightboxState }) {
   const captionId = `${state.id}-caption`;
   const canMove = items.length > 1;
   const transition = state.transitionDuration > 0 ? "transform 180ms ease, opacity 180ms ease, border-color 180ms ease" : "none";
-
-  useEffect(() => {
-    setActiveIndex(initialIndex);
-    setOpen(state.previewState !== "closed");
-  }, [initialIndex, state.previewState]);
 
   useEffect(() => {
     if (!open) return;

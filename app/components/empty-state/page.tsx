@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Empty State</div></body></html>`;
 }
 
-export default function emptystateGalleryPage() {
+export default function EmptystateGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

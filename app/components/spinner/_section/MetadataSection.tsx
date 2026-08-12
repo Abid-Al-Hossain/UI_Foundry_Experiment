@@ -19,7 +19,7 @@ export default function MetadataSection({ state, update }: Props) {
         <ControlGroup label="ARIA Label">
           <InputControl
             value={state.label}
-            onChange={(e) => update("label", e.target.value)}
+            onChange={(e) => update("label", e)}
             placeholder="e.g. Loading dashboard data"
           />
         </ControlGroup>

@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Checkbox</div></body></html>`;
 }
 
-export default function checkboxGalleryPage() {
+export default function CheckboxGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

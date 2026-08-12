@@ -35,42 +35,7 @@ export function SectionCard(props: {
   );
 }
 
-export function LabeledField(props: {
-  label: React.ReactNode;
-  children: React.ReactNode;
-  hint?: string;
-}) {
-  // Associate the visible label with the contained control for screen readers
-  // (fixes axe `select-name`/`label`): give the field an id and point the
-  // <label htmlFor> at it. Controls that forward `id` to their <input>/<select>
-  // (Select, FilterSelect, raw inputs) get a proper accessible name.
-  const autoId = React.useId();
-  const isEl = React.isValidElement(props.children);
-  const childEl = props.children as React.ReactElement<{ id?: string }>;
-  const fieldId = isEl ? childEl.props.id ?? autoId : undefined;
-  const child = isEl
-    ? React.cloneElement(childEl, { id: fieldId })
-    : props.children;
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <label
-          htmlFor={fieldId}
-          className="text-sm font-medium"
-          style={{ color: "var(--text)" }}
-        >
-          {props.label}
-        </label>
-        {props.hint ? (
-          <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {props.hint}
-          </span>
-        ) : null}
-      </div>
-      <div className="mt-2">{child}</div>
-    </div>
-  );
-}
+export { LabeledField } from "./layout/LabeledField";
 
 import { SegmentedControl } from "./input/SegmentedControl";
 export { SegmentedControl as Segmented };

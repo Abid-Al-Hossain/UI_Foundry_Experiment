@@ -5,12 +5,12 @@ import { SectionCard, Segmented } from "./ui";
 import ShadowLayerControl from "@/app/components/controls/effects/ShadowLayerControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";
 import ColorControl from "@/app/components/controls/color/ColorControl";
-import { ActionButtonState } from "../types";
+import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 import { PALETTE } from "../_data/buttonConstants";
 
 interface ShadowSectionProps {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
   updateState: (fn: (prev: ActionButtonState) => ActionButtonState) => void;
 }
 

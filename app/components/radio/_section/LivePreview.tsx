@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { RadioState } from "../types";
 import { clamp, norm } from "@/app/components/controls/color/colorUtils";
 import { ensureReadable } from "@/app/components/controls/color/wcag";
@@ -6,7 +6,6 @@ import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants
 
 export default function LivePreview({
   state,
-  resetKey = 0,
   canvasBg = "#0b1220",
 }: {
   state: RadioState;
@@ -43,11 +42,6 @@ export default function LivePreview({
     }
     return state.options.find((opt) => !opt.disabled)?.value ?? "";
   }, [state.options, state.selectedValue]);
-
-  useEffect(() => {
-    setHoveredIndex(-1);
-    setFocusedIndex(-1);
-  }, [resetKey]);
 
   return (
     <div

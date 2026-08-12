@@ -23,7 +23,7 @@ export default function BasicsSection(props: {
         <LabeledField label="URL">
           <InputControl
             value={props.src}
-            onChange={(e) => props.setSrc(e.target.value)}
+            onChange={(e) => props.setSrc(e)}
             placeholder="https://..."
           />
         </LabeledField>
@@ -36,7 +36,7 @@ export default function BasicsSection(props: {
         <LabeledField label="srcSet">
           <InputControl
             value={props.srcSet}
-            onChange={(e) => props.setSrcSet(e.target.value)}
+            onChange={(e) => props.setSrcSet(e)}
             placeholder="image-1x.jpg 1x, image-2x.jpg 2x"
           />
         </LabeledField>

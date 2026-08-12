@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
@@ -9,7 +10,7 @@ import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 import { SharedPreviewDownloadPanel } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import { DEFAULT_POPOVER_STATE } from "../_data/PopoverPresets";
+import { DEFAULT_POPOVER_STATE, POPOVER_PRESETS } from "../_data/PopoverPresets";
 import { buildExportPayload } from "../_utils/exportUtils";
 import LivePreview from "../_section/LivePreview";
 import PresetsSection from "../_section/PresetsSection";
@@ -36,20 +37,18 @@ import { SECTIONS, type SectionId, type PopoverStudioState, type StudioPreset } 
 export default function Page() {
   const { state, set: setState, undo, redo, reset, canUndo, canRedo } = useHistoryState<PopoverStudioState>(DEFAULT_POPOVER_STATE);
   const [activeSection, setActiveSection] = useState<SectionId>("presets");
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [downloadName] = useState("popover-component");
+  const activePresetId = useMemo(() => findActivePresetId(state, DEFAULT_POPOVER_STATE, POPOVER_PRESETS), [state]);
+  const [downloadName, setDownloadName] = useState("popover-component");
   const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
   const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const [previewResetKey, setPreviewResetKey] = useState(0);
 
   const update = <K extends keyof PopoverStudioState>(key: K, value: PopoverStudioState[K]) => {
     setState((current) => ({ ...current, [key]: value }));
-    setActivePresetId(null);
   };
 
   const applyPreset = (preset: StudioPreset) => {
     setState({ ...DEFAULT_POPOVER_STATE, ...(preset.state as Partial<PopoverStudioState>) });
-    setActivePresetId(preset.id);
     setPreviewResetKey((value) => value + 1);
   };
 
@@ -83,7 +82,7 @@ export default function Page() {
     <SharedPreviewDownloadPanel
       preview={preview}
       code={exportPayload.content}
-      downloadName={downloadName}
+      downloadName={downloadName} setDownloadName={setDownloadName}
       previewBgMode={previewBgMode}
       previewBgInput={previewBgInput}
       onPreviewBgMode={setPreviewBgMode}

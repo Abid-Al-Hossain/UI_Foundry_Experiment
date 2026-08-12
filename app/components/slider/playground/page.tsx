@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
@@ -9,7 +10,7 @@ import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 import { SharedPreviewDownloadPanel } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import { DEFAULT_SLIDER_STATE } from "../_data/SliderPresets";
+import { DEFAULT_SLIDER_STATE, SLIDER_PRESETS } from "../_data/SliderPresets";
 import { buildExportPayload } from "../_utils/exportUtils";
 import LivePreview from "../_section/LivePreview";
 import PresetsSection from "../_section/PresetsSection";
@@ -17,7 +18,6 @@ import BasicsSection from "../_section/BasicsSection";
 import MetadataSection from "../_section/MetadataSection";
 import FieldSection from "../_section/FieldSection";
 import ValidationSection from "../_section/ValidationSection";
-import BehaviorSection from "../_section/BehaviorSection";
 import LayoutSection from "../_section/LayoutSection";
 import SizingSection from "../_section/SizingSection";
 import ColorsSection from "../_section/ColorsSection";
@@ -34,19 +34,17 @@ import { SECTIONS, type SectionId, type SliderState, type StudioPreset } from ".
 export default function Page() {
   const { state, set: setState, undo, redo, reset, canUndo, canRedo } = useHistoryState<SliderState>(DEFAULT_SLIDER_STATE);
   const [activeSection, setActiveSection] = useState<SectionId>("presets");
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [downloadName] = useState("slider-component");
+  const activePresetId = useMemo(() => findActivePresetId(state, DEFAULT_SLIDER_STATE, SLIDER_PRESETS), [state]);
+  const [downloadName, setDownloadName] = useState("slider-component");
   const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
   const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const [previewResetKey, setPreviewResetKey] = useState(0);
 
   const update = <K extends keyof SliderState>(key: K, value: SliderState[K]) => {
     setState((current) => ({ ...current, [key]: value }));
-    setActivePresetId(null);
   };
   const applyPreset = (preset: StudioPreset) => {
     setState({ ...DEFAULT_SLIDER_STATE, ...(preset.state as Partial<SliderState>) });
-    setActivePresetId(preset.id);
     setPreviewResetKey((value) => value + 1);
   };
 
@@ -60,7 +58,6 @@ export default function Page() {
       {activeSection === "metadata" && <MetadataSection state={state} update={update} />}
       {activeSection === "field" && <FieldSection state={state} update={update} />}
       {activeSection === "validation" && <ValidationSection state={state} update={update} />}
-      {activeSection === "behavior" && <BehaviorSection state={state} update={update} />}
       {activeSection === "layout" && <LayoutSection state={state} update={update} />}
       {activeSection === "sizing" && <SizingSection state={state} update={update} />}
       {activeSection === "colors" && <ColorsSection state={state} update={update} />}
@@ -73,7 +70,7 @@ export default function Page() {
       {activeSection === "disabled" && <DisabledSection state={state} update={update} />}{activeSection === "accessibility" && <AccessibilitySection state={state} update={update} />}
     </>
   );
-  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
+  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} setDownloadName={setDownloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
 
   const handleReset = () => {
     reset();

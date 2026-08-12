@@ -18,7 +18,8 @@ export function buildReactCode(state: DatePickerStudioState) {
   return `import * as React from "react";
 
 const state = ${JSON.stringify(state, null, 2)};
-function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : "inherit"; }
+const systemFonts = ${JSON.stringify(["Arial, system-ui","Consolas, \"Liberation Mono\", \"Courier New\", ui-monospace, monospace","\"Courier New\", ui-monospace, monospace","Georgia, ui-serif, serif","Helvetica, Arial, system-ui","Menlo, Monaco, Consolas, \"Liberation Mono\", ui-monospace, monospace","Monaco, Menlo, Consolas, \"Liberation Mono\", ui-monospace, monospace","Roboto, system-ui, -apple-system, Arial","\"Segoe UI\", system-ui, -apple-system, Arial","system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","\"Times New Roman\", Times, ui-serif, serif","ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace","ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif"])};
+function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : (systemFonts[s.systemFontIdx] || "system-ui"); }
 function buildShadow(s) { if (!s.shadowEnabled) return "none"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, "0"); return s.shadowX + "px " + s.shadowY + "px " + s.shadowBlur + "px " + s.shadowSpread + "px " + s.shadowColor + hex; }
 
 
@@ -56,7 +57,7 @@ export default function DatePickerComponent() {
         gap: state.gap,
         borderRadius: state.radius,
         border: \`\${state.borderWidth}px ${state.borderStyle} \${invalid ? state.errorColor : state.previewState === "focus" ? state.accent : state.border}\`,
-        boxShadow: \`0 \${Math.round(state.shadow / 3)}px \${state.shadow}px rgba(0,0,0,.28)\`,
+        boxShadow: buildShadow(state),
         background: state.background,
         color: state.foreground,
         fontFamily: resolveFont(state),
@@ -75,14 +76,14 @@ export default function DatePickerComponent() {
             <label htmlFor={\`\${state.id}-start\`} style={{ fontSize: 12, color: state.muted }}>From</label>
             <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 16, border: \`1px solid \${invalid ? state.errorColor : state.border}\`, padding: "8px 12px", background: "rgba(255,255,255,.06)" }}>
               {state.showCalendarIcon ? <span aria-hidden="true" style={{ color: state.accent }}>calendar</span> : null}
-              <input id={\`\${state.id}-start\`} name={\`\${state.name}-start\`} type={state.pickerType} value={value} min={normalizeDateValue(state.min, state.pickerType)} max={valueEnd || normalizeDateValue(state.max, state.pickerType)} required={state.required} disabled={disabled} readOnly={state.readOnly} aria-label="Range start date" aria-describedby={helpId} onChange={(event) => setValue(event.target.value)} style={{ width: "100%", minWidth: 0, border: 0, outline: "none", background: "transparent", color: state.foreground, fontSize: state.inputSize }} />
+              <input id={\`\${state.id}-start\`} name={\`\${state.name}-start\`} title={state.title} tabIndex={state.tabIndex} dir={state.dir} lang={state.lang} type={state.pickerType} value={value} min={normalizeDateValue(state.min, state.pickerType)} max={valueEnd || normalizeDateValue(state.max, state.pickerType)} step={state.step} required={state.required} disabled={disabled} readOnly={state.readOnly} autoComplete={state.autocomplete} inputMode={state.inputMode} enterKeyHint={state.enterKeyHint} aria-invalid={invalid || undefined} aria-label={state.ariaLabel ? state.ariaLabel + ", start" : "Range start date"} aria-describedby={helpId} onChange={(event) => setValue(event.target.value)} style={{ width: "100%", minWidth: 0, border: 0, outline: "none", background: "transparent", color: state.foreground, fontSize: state.inputSize }} />
             </div>
           </div>
           <div style={{ display: "grid", gap: 4 }}>
             <label htmlFor={\`\${state.id}-end\`} style={{ fontSize: 12, color: state.muted }}>To</label>
             <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 16, border: \`1px solid \${invalid ? state.errorColor : state.border}\`, padding: "8px 12px", background: "rgba(255,255,255,.06)" }}>
               {state.showCalendarIcon ? <span aria-hidden="true" style={{ color: state.accent }}>calendar</span> : null}
-              <input id={\`\${state.id}-end\`} name={\`\${state.name}-end\`} type={state.pickerType} value={valueEnd} min={value || normalizeDateValue(state.min, state.pickerType)} max={normalizeDateValue(state.max, state.pickerType)} disabled={disabled} readOnly={state.readOnly} aria-label="Range end date" aria-describedby={helpId} onChange={(event) => setValueEnd(event.target.value)} style={{ width: "100%", minWidth: 0, border: 0, outline: "none", background: "transparent", color: state.foreground, fontSize: state.inputSize }} />
+              <input id={\`\${state.id}-end\`} name={\`\${state.name}-end\`} title={state.title} tabIndex={state.tabIndex < 0 ? state.tabIndex : state.tabIndex + 1} dir={state.dir} lang={state.lang} type={state.pickerType} value={valueEnd} min={value || normalizeDateValue(state.min, state.pickerType)} max={normalizeDateValue(state.max, state.pickerType)} step={state.step} required={state.required} disabled={disabled} readOnly={state.readOnly} autoComplete={state.autocomplete} inputMode={state.inputMode} enterKeyHint={state.enterKeyHint} aria-invalid={invalid || undefined} aria-label={state.ariaLabel ? state.ariaLabel + ", end" : "Range end date"} aria-describedby={helpId} onChange={(event) => setValueEnd(event.target.value)} style={{ width: "100%", minWidth: 0, border: 0, outline: "none", background: "transparent", color: state.foreground, fontSize: state.inputSize }} />
             </div>
           </div>
         </div>

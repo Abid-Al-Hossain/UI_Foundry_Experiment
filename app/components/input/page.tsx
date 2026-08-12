@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Text Input</div></body></html>`;
 }
 
-export default function inputGalleryPage() {
+export default function InputGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

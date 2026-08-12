@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Avatar</div></body></html>`;
 }
 
-export default function avatarGalleryPage() {
+export default function AvatarGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

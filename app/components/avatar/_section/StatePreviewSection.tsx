@@ -76,7 +76,7 @@ export default function StatePreviewSection(props: {
           <LabeledField label="Badge Label">
             <InputControl
               value={props.badgeCount}
-              onChange={(e) => props.setBadgeCount(e.target.value)}
+              onChange={(e) => props.setBadgeCount(e)}
               placeholder="e.g. 3, 9+, New"
             />
           </LabeledField>

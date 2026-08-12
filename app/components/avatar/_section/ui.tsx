@@ -35,27 +35,7 @@ export function SectionCard(props: {
   );
 }
 
-export function LabeledField(props: {
-  label: string;
-  children: React.ReactNode;
-  hint?: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <label className="text-sm font-medium" style={{ color: "var(--text)" }}>
-          {props.label}
-        </label>
-        {props.hint ? (
-          <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {props.hint}
-          </span>
-        ) : null}
-      </div>
-      <div className="mt-2">{props.children}</div>
-    </div>
-  );
-}
+export { LabeledField } from "@/app/components/controls/layout/LabeledField";
 
 export function Segmented(props: {
   value: string;

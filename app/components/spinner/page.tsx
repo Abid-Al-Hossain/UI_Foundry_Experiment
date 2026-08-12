@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Spinner</div></body></html>`;
 }
 
-export default function spinnerGalleryPage() {
+export default function SpinnerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

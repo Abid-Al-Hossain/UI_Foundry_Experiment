@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ToggleState } from "../types";
 import {
   getFocusOutline,
@@ -20,7 +20,6 @@ import { ensureReadable } from "@/app/components/controls/color/wcag";
 
 export default function LivePreview({
   state,
-  resetKey = 0,
   canvasBg = "#0b1220",
 }: {
   state: ToggleState;
@@ -35,16 +34,6 @@ export default function LivePreview({
   const helperId = state.helperText ? "toggle-preview-helper" : undefined;
   const errorId = state.errorText ? "toggle-preview-error" : undefined;
   const successId = state.successText ? "toggle-preview-success" : undefined;
-  useEffect(() => {
-    setChecked(state.checked);
-  }, [state.checked]);
-
-  useEffect(() => {
-    setHovered(false);
-    setPressed(false);
-    setFocused(false);
-  }, [resetKey]);
-
   const fontFamily = resolveToggleFontFamily(state);
   const thumbShadow = resolveThumbShadow(state);
   const transition = getToggleTransition(state);

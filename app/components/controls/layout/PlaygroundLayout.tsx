@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/app/components/controls/layout/ScrollArea";
 
 interface PlaygroundLayoutProps {
@@ -8,11 +8,15 @@ interface PlaygroundLayoutProps {
   headerActions?: React.ReactNode;
   controls: React.ReactNode;
   preview: React.ReactNode;
-  // Optional config
   defaultLeftDataW?: number;
   minLeftW?: number;
   maxLeftW?: number;
 }
+
+const RESIZER_WIDTH = 8;
+const COLUMN_GAP = 24;
+const RIGHT_MIN_WIDTH = 360;
+const DESKTOP_MIN_WIDTH = 1024;
 
 export function PlaygroundLayout({
   title,
@@ -25,91 +29,82 @@ export function PlaygroundLayout({
 }: PlaygroundLayoutProps) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   const [leftPanelWidth, setLeftPanelWidth] = useState(defaultLeftDataW);
   const splitRef = useRef<HTMLDivElement>(null);
 
-  // Layout overhead the left panel must leave room for when sizing against the
-  // container: the resizer handle (w-2 = 8px) + the two `gap-6` column gaps
-  // (24px each). Reserve at least this much PLUS the right panel minimum so the
-  // Output panel can never be pushed off-screen / clipped by overflow-hidden.
-  const RESIZER_W = 8;
-  const COLUMN_GAP = 24;
-  const RIGHT_MIN_W = 360;
-  const LAYOUT_OVERHEAD = RESIZER_W + COLUMN_GAP * 2;
-
-  // Clamp the left panel width so it never exceeds maxLeftW and always leaves
-  // the right panel its minimum width within the current container.
-  const clampLeftWidth = (width: number, containerWidth: number) => {
-    const hardMax = containerWidth - RIGHT_MIN_W - LAYOUT_OVERHEAD;
-    const max = Math.max(minLeftW, Math.min(maxLeftW, hardMax));
-    return Math.min(Math.max(width, minLeftW), max);
-  };
-
-  // Responsive & Resize Logic
-  useEffect(() => {
-    const check = () => setIsDesktop(window.innerWidth >= 1024);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  // Re-clamp the left width whenever the container can shrink (window resize or
-  // entering desktop), so the right panel stays fully visible at all times.
-  useEffect(() => {
-    if (!isDesktop) return;
-    const reclamp = () => {
-      const containerWidth = splitRef.current?.getBoundingClientRect().width ?? 0;
-      if (!containerWidth) return;
-      setLeftPanelWidth((prev) =>
-        clampLeftWidth(prev >= minLeftW ? prev : defaultLeftDataW, containerWidth),
-      );
-    };
-    reclamp();
-    window.addEventListener("resize", reclamp);
-    return () => window.removeEventListener("resize", reclamp);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDesktop, minLeftW, maxLeftW, defaultLeftDataW]);
+  const clampLeftWidth = useCallback(
+    (width: number, availableWidth: number) => {
+      const overhead = RESIZER_WIDTH + COLUMN_GAP * 2;
+      const hardMax = availableWidth - RIGHT_MIN_WIDTH - overhead;
+      const maximum = Math.max(minLeftW, Math.min(maxLeftW, hardMax));
+      return Math.min(Math.max(width, minLeftW), maximum);
+    },
+    [maxLeftW, minLeftW],
+  );
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !splitRef.current) return;
-      const splitRect = splitRef.current.getBoundingClientRect();
-      const newWidth = e.clientX - splitRect.left;
-      setLeftPanelWidth(clampLeftWidth(newWidth, splitRect.width));
+    const container = splitRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width;
+      const desktop = width >= DESKTOP_MIN_WIDTH;
+      setContainerWidth(width);
+      setIsDesktop(desktop);
+      if (desktop) {
+        setLeftPanelWidth((current) => clampLeftWidth(current || defaultLeftDataW, width));
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [clampLeftWidth, defaultLeftDataW]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const splitRect = splitRef.current?.getBoundingClientRect();
+      if (!splitRect) return;
+      setLeftPanelWidth(clampLeftWidth(event.clientX - splitRect.left, splitRect.width));
     };
+    const handlePointerUp = () => setIsResizing(false);
 
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.body.style.userSelect = "";
-    };
-
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.userSelect = "none";
-    }
-
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp, { once: true });
+    document.body.style.userSelect = "none";
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
       document.body.style.userSelect = "";
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isResizing, minLeftW, maxLeftW]);
+  }, [clampLeftWidth, isResizing]);
+
+  const separatorMaximum = Math.max(
+    minLeftW,
+    Math.min(maxLeftW, containerWidth - RIGHT_MIN_WIDTH - RESIZER_WIDTH - COLUMN_GAP * 2),
+  );
+
+  const resizeWithKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 48 : 16;
+    let next = leftPanelWidth;
+    if (event.key === "ArrowLeft") next -= step;
+    else if (event.key === "ArrowRight") next += step;
+    else if (event.key === "Home") next = minLeftW;
+    else if (event.key === "End") next = separatorMaximum;
+    else return;
+    event.preventDefault();
+    setLeftPanelWidth(clampLeftWidth(next, containerWidth));
+  };
 
   return (
     <div
       ref={splitRef}
-      className="flex flex-col gap-6 h-full overflow-y-auto lg:min-h-0 lg:flex-row lg:overflow-hidden"
-      style={
-        {
-          "--left-panel-width": `${leftPanelWidth}px`,
-        } as React.CSSProperties
-      }
+      className="flex h-full flex-col gap-6 overflow-y-auto lg:min-h-0 lg:flex-row lg:overflow-hidden"
+      style={{ "--left-panel-width": `${leftPanelWidth}px` } as React.CSSProperties}
     >
-      {/* Left Column: Controls */}
       <ScrollArea
-        className="flex-1 space-y-6 px-4 lg:min-h-0 lg:px-6 lg:pb-10 lg:overscroll-contain lg:h-full"
+        className="flex-1 space-y-6 px-4 lg:h-full lg:min-h-0 lg:overscroll-contain lg:px-6 lg:pb-10"
         style={{
           scrollbarGutter: "stable",
           width: isDesktop ? "var(--left-panel-width, 520px)" : "100%",
@@ -117,40 +112,34 @@ export function PlaygroundLayout({
           flex: "0 0 auto",
         }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between">
-          <h1
-            className="text-2xl font-bold tracking-tight"
-            style={{ color: "var(--text)" }}
-          >
-            {title}
-          </h1>
-          {headerActions && (
-            <div className="flex items-center gap-2">{headerActions}</div>
-          )}
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--text)" }}>{title}</h1>
+          {headerActions ? <div className="flex items-center gap-2">{headerActions}</div> : null}
         </div>
-
-        {/* Controls Content */}
         {controls}
       </ScrollArea>
 
-      {/* Resizer */}
-      <div className="hidden lg:flex lg:items-stretch" aria-hidden="true">
+      <div className="hidden lg:flex lg:items-stretch">
         <div
-          onMouseDown={() => setIsResizing(true)}
-          className="h-full w-2 cursor-col-resize rounded-full transition-colors hover:bg-slate-300 dark:hover:bg-slate-700"
-          style={{
-            background: "color-mix(in oklab, var(--border) 80%, transparent)",
+          role="separator"
+          aria-label="Resize editor and preview panels"
+          aria-orientation="vertical"
+          aria-valuemin={minLeftW}
+          aria-valuemax={Math.round(separatorMaximum)}
+          aria-valuenow={Math.round(leftPanelWidth)}
+          tabIndex={0}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setIsResizing(true);
           }}
-          title="Drag to resize panels"
+          onKeyDown={resizeWithKeyboard}
+          className="h-full w-2 cursor-col-resize rounded-full transition-colors hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] dark:hover:bg-slate-700"
+          style={{ background: "color-mix(in oklab, var(--border) 80%, transparent)" }}
+          title="Drag or use arrow keys to resize panels"
         />
       </div>
 
-      {/* Right Column: Preview */}
-      <div
-        className="flex-1 lg:min-h-0 lg:pb-0 lg:h-full"
-        style={{ minWidth: 360 }}
-      >
+      <div className="flex-1 lg:h-full lg:min-h-0 lg:pb-0" style={{ minWidth: isDesktop ? RIGHT_MIN_WIDTH : 0 }}>
         <div className="h-full w-full">{preview}</div>
       </div>
     </div>

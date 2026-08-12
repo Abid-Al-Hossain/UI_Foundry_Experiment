@@ -10,7 +10,8 @@ export function buildReactCode(state: CarouselState) {
   return `import * as React from "react";
 
 const state = ${JSON.stringify(state, null, 2)};
-function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : "inherit"; }
+const systemFonts = ${JSON.stringify(["Arial, system-ui","Consolas, \"Liberation Mono\", \"Courier New\", ui-monospace, monospace","\"Courier New\", ui-monospace, monospace","Georgia, ui-serif, serif","Helvetica, Arial, system-ui","Menlo, Monaco, Consolas, \"Liberation Mono\", ui-monospace, monospace","Monaco, Menlo, Consolas, \"Liberation Mono\", ui-monospace, monospace","Roboto, system-ui, -apple-system, Arial","\"Segoe UI\", system-ui, -apple-system, Arial","system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","\"Times New Roman\", Times, ui-serif, serif","ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace","ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial","ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif"])};
+function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : (systemFonts[s.systemFontIdx] || "system-ui"); }
 function buildShadow(s) { if (!s.shadowEnabled) return "none"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, "0"); return s.shadowX + "px " + s.shadowY + "px " + s.shadowBlur + "px " + s.shadowSpread + "px " + s.shadowColor + hex; }
 
 
@@ -42,7 +43,9 @@ export default function CarouselComponent() {
   })), [slideCount]);
   const [selectedIndex, setSelectedIndex] = React.useState(() => clampIndex(state.activeIndex, slideCount));
   const [isPaused, setIsPaused] = React.useState(!state.autoplay);
+  const [isHovered, setIsHovered] = React.useState(false);
   const [arrowHover, setArrowHover] = React.useState("");
+  const pointerStart = React.useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const canAutoplay = state.autoplay && !state.disabled && !prefersReducedMotion;
   const selectedSlide = slides[selectedIndex] ?? slides[0];
@@ -53,7 +56,7 @@ export default function CarouselComponent() {
   }, [slideCount]);
 
   React.useEffect(() => {
-    if (!canAutoplay || isPaused) return;
+    if (!canAutoplay || isPaused || (state.pauseOnHover && isHovered)) return;
     const timer = window.setInterval(() => {
       setSelectedIndex((current) => {
         if (current >= slideCount - 1) return state.loop ? 0 : current;
@@ -61,10 +64,25 @@ export default function CarouselComponent() {
       });
     }, Math.max(1000, state.interval));
     return () => window.clearInterval(timer);
-  }, [canAutoplay, isPaused, slideCount]);
+  }, [canAutoplay, isPaused, isHovered, slideCount]);
 
   const goPrevious = () => setSelectedIndex((current) => current === 0 ? (state.loop ? slideCount - 1 : current) : current - 1);
   const goNext = () => setSelectedIndex((current) => current >= slideCount - 1 ? (state.loop ? 0 : current) : current + 1);
+  const beginGesture = (event) => {
+    const enabled = event.pointerType === "touch" ? state.swipeEnabled : state.dragEnabled;
+    if (!enabled || state.disabled) return;
+    pointerStart.current = { id: event.pointerId, x: event.clientX, enabled };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const finishGesture = (event) => {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (!start?.enabled || start.id !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    const delta = event.clientX - start.x;
+    if (Math.abs(delta) < 40) return;
+    if (delta > 0) goPrevious(); else goNext();
+  };
 
   return (
     <section
@@ -73,8 +91,9 @@ export default function CarouselComponent() {
       aria-roledescription="carousel"
       aria-label={state.ariaLabel}
       tabIndex={state.tabIndex}
-      onMouseEnter={() => state.pauseOnHover && setIsPaused(true)}
-      onMouseLeave={() => state.pauseOnHover && setIsPaused(!state.autoplay)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onKeyDown={(event) => { if (state.disabled) return; if (event.key === "ArrowLeft") { event.preventDefault(); goPrevious(); } if (event.key === "ArrowRight") { event.preventDefault(); goNext(); } }}
       style={{
         width: state.width,
         minHeight: state.height,
@@ -98,7 +117,7 @@ cursor: state.disabled ? state.disabledCursor : undefined,
           <p style={{ margin: "8px 0 0", color: state.muted, fontSize: state.bodySize }}>{state.description}</p>
         </header>
 
-        <div aria-live={canAutoplay && !isPaused ? "off" : "polite"} data-swipe={state.swipeEnabled} data-drag={state.dragEnabled} style={{ overflow: "hidden", borderRadius: state.slideRadius }}>
+        <div aria-live={canAutoplay && !isPaused && !(state.pauseOnHover && isHovered) ? "off" : "polite"} data-swipe={state.swipeEnabled} data-drag={state.dragEnabled} onPointerDown={beginGesture} onPointerUp={finishGesture} onPointerCancel={() => { pointerStart.current = null; }} style={{ overflow: "hidden", borderRadius: state.slideRadius, touchAction: state.swipeEnabled ? "pan-y" : "auto", cursor: state.dragEnabled ? "grab" : undefined }}>
           <div style={{ display: "flex", transform: "translateX(-" + selectedIndex * 100 + "%)", transition }}>
             {slides.map((slide, index) => {
               const selected = index === selectedIndex;
@@ -171,7 +190,7 @@ cursor: state.disabled ? state.disabledCursor : undefined,
         </div>
 
         <p aria-live="polite" style={{ margin: 0, color: state.muted, fontSize: 12 }}>
-          {selectedSlide.title} selected. {state.autoplay ? (isPaused || prefersReducedMotion ? "Autoplay paused." : "Autoplay running.") : "Autoplay off."}
+          {selectedSlide.title} selected. {state.autoplay ? (isPaused || prefersReducedMotion || (state.pauseOnHover && isHovered) ? "Autoplay paused." : "Autoplay running.") : "Autoplay off."}
         </p>
       </div>
     </section>

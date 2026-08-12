@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Accordion</div></body></html>`;
 }
 
-export default function accordionGalleryPage() {
+export default function AccordionGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Tooltip</div></body></html>`;
 }
 
-export default function tooltipGalleryPage() {
+export default function TooltipGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

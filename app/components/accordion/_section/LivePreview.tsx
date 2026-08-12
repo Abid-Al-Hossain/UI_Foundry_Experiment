@@ -86,7 +86,12 @@ export default function LivePreview({ state }: { state: AccordionState }) {
   const itemCount = Math.max(1, Math.round(state.itemCount));
   const isMultiple = state.openMode === "multiple";
   const initialOpen = state.previewState === "closed" ? [] : isMultiple ? [0, 1].filter((index) => index < itemCount) : [0];
-  const [openItems, setOpenItems] = useState<number[]>(initialOpen);
+  const openConfiguration = `${itemCount}:${state.openMode}:${state.previewState}`;
+  const [openState, setOpenState] = useState<{ configuration: string; items: number[] }>({
+    configuration: openConfiguration,
+    items: initialOpen,
+  });
+  const openItems = openState.configuration === openConfiguration ? openState.items : initialOpen;
   const [hoverIndex, setHoverIndex] = useState(-1);
   const [focusIndex, setFocusIndex] = useState(-1);
   const headingTag = /^h[1-6]$/.test(state.headingLevel) ? state.headingLevel : "h3";
@@ -94,11 +99,19 @@ export default function LivePreview({ state }: { state: AccordionState }) {
   const toggleItem = (index: number, disabled: boolean) => {
     if (state.disabled || disabled) return;
 
-    setOpenItems((current) => {
+    setOpenState((currentState) => {
+      const current = currentState.configuration === openConfiguration ? currentState.items : initialOpen;
       const isOpen = current.includes(index);
-      if (isMultiple) return isOpen ? current.filter((item) => item !== index) : [...current, index];
-      if (isOpen) return state.collapsible ? [] : current;
-      return [index];
+      const items = isMultiple
+        ? isOpen
+          ? current.filter((item) => item !== index)
+          : [...current, index]
+        : isOpen
+          ? state.collapsible
+            ? []
+            : current
+          : [index];
+      return { configuration: openConfiguration, items };
     });
   };
 

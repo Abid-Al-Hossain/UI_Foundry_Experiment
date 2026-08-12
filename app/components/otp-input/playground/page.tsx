@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
@@ -9,7 +10,7 @@ import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 import { SharedPreviewDownloadPanel } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import { DEFAULT_OTPINPUT_STATE } from "../_data/OtpInputPresets";
+import { DEFAULT_OTPINPUT_STATE, OTPINPUT_PRESETS } from "../_data/OtpInputPresets";
 import { buildExportPayload } from "../_utils/exportUtils";
 import LivePreview from "../_section/LivePreview";
 import PresetsSection from "../_section/PresetsSection";
@@ -34,24 +35,30 @@ import { SECTIONS, type SectionId, type OtpInputState, type StudioPreset } from 
 export default function Page() {
   const { state, set: setState, undo, redo, reset, canUndo, canRedo } = useHistoryState<OtpInputState>(DEFAULT_OTPINPUT_STATE);
   const [activeSection, setActiveSection] = useState<SectionId>("presets");
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [downloadName] = useState("otp-input-component");
+  const activePresetId = useMemo(() => findActivePresetId(state, DEFAULT_OTPINPUT_STATE, OTPINPUT_PRESETS), [state]);
+  const [downloadName, setDownloadName] = useState("otp-input-component");
   const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
   const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const [previewResetKey, setPreviewResetKey] = useState(0);
 
   const update = <K extends keyof OtpInputState>(key: K, value: OtpInputState[K]) => {
     setState((current) => ({ ...current, [key]: value }));
-    setActivePresetId(null);
   };
   const applyPreset = (preset: StudioPreset) => {
     setState({ ...DEFAULT_OTPINPUT_STATE, ...(preset.state as Partial<OtpInputState>) });
-    setActivePresetId(preset.id);
     setPreviewResetKey((value) => value + 1);
   };
 
   const exportPayload = useMemo(() => buildExportPayload(state, downloadName), [downloadName, state]);
-  const preview = useMemo(() => <LivePreview key={previewResetKey} state={state} />, [previewResetKey, state]);
+  const preview = useMemo(
+    () => (
+      <LivePreview
+        key={`${previewResetKey}:${state.value}:${state.characterMode}:${state.digitCount}`}
+        state={state}
+      />
+    ),
+    [previewResetKey, state],
+  );
   const controls = (
     <>
       <SectionSelector sections={SECTIONS} active={activeSection} onChange={setActiveSection} />
@@ -73,7 +80,7 @@ export default function Page() {
       {activeSection === "disabled" && <DisabledSection state={state} update={update} />}{activeSection === "accessibility" && <AccessibilitySection state={state} update={update} />}
     </>
   );
-  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
+  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} setDownloadName={setDownloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
 
   const handleReset = () => {
     reset();

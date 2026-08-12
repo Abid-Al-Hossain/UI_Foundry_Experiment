@@ -100,7 +100,7 @@ export default function LayoutSection({ state, update }: Props) {
         <ControlGroup label="Column Rule">
           <Input
             value={state.columnRule}
-            onChange={(e) => update("columnRule", e.target.value)}
+            onChange={(e) => update("columnRule", e)}
             placeholder="e.g. 1px solid #e2e8f0, or none"
           />
         </ControlGroup>
@@ -129,7 +129,7 @@ export default function LayoutSection({ state, update }: Props) {
         <ControlGroup label="font-feature-settings">
           <Input
             value={state.fontFeatureSettings}
-            onChange={(e) => update("fontFeatureSettings", e.target.value)}
+            onChange={(e) => update("fontFeatureSettings", e)}
             placeholder='e.g. "liga" 1, "kern" 1'
           />
         </ControlGroup>

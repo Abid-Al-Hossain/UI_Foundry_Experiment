@@ -39,7 +39,6 @@ export default function FocusRingSection(props: {
     ringOffset,
     focusRingInput,
     setFocusRingInput,
-    focusRingNorm,
   } = props;
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { DatePickerStudioState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -66,11 +66,6 @@ export default function LivePreview({ state }: { state: DatePickerStudioState })
   const message = invalid ? state.errorText : success ? state.successText : state.showHelper ? state.helper : "";
   const inputBorderColor = invalid ? state.errorColor : state.border;
 
-  useEffect(() => {
-    setValue(normalizeDateValue(state.value, state.pickerType));
-    setValueEnd(normalizeDateValue(state.valueEnd, state.pickerType));
-  }, [state.value, state.valueEnd, state.pickerType]);
-
   const singleInput = (
     <div className="flex items-center gap-2 rounded-2xl border px-3 py-2" style={{ borderColor: inputBorderColor, background: "rgba(255,255,255,.06)" }}>
       {state.showCalendarIcon ? <span aria-hidden="true" style={{ color: state.accent }}>calendar</span> : null}
@@ -116,14 +111,23 @@ export default function LivePreview({ state }: { state: DatePickerStudioState })
           <input
             id={`${state.id}-start`}
             name={`${state.name}-start`}
+            title={state.title}
+            tabIndex={state.tabIndex}
+            dir={state.dir}
+            lang={state.lang}
             type={state.pickerType}
             value={value}
             min={normalizeDateValue(state.min, state.pickerType)}
             max={valueEnd || normalizeDateValue(state.max, state.pickerType)}
+            step={state.step}
             required={state.required}
             disabled={disabled}
             readOnly={state.readOnly}
-            aria-label="Range start date"
+            autoComplete={state.autocomplete}
+            inputMode={state.inputMode}
+            enterKeyHint={state.enterKeyHint}
+            aria-invalid={invalid || undefined}
+            aria-label={state.ariaLabel ? `${state.ariaLabel}, start` : "Range start date"}
             aria-describedby={describedBy}
             className="w-full bg-transparent outline-none"
             style={{ color: state.foreground, fontSize: state.inputSize }}
@@ -138,13 +142,23 @@ export default function LivePreview({ state }: { state: DatePickerStudioState })
           <input
             id={`${state.id}-end`}
             name={`${state.name}-end`}
+            title={state.title}
+            tabIndex={state.tabIndex < 0 ? state.tabIndex : state.tabIndex + 1}
+            dir={state.dir}
+            lang={state.lang}
             type={state.pickerType}
             value={valueEnd}
             min={value || normalizeDateValue(state.min, state.pickerType)}
             max={normalizeDateValue(state.max, state.pickerType)}
+            step={state.step}
+            required={state.required}
             disabled={disabled}
             readOnly={state.readOnly}
-            aria-label="Range end date"
+            autoComplete={state.autocomplete}
+            inputMode={state.inputMode}
+            enterKeyHint={state.enterKeyHint}
+            aria-invalid={invalid || undefined}
+            aria-label={state.ariaLabel ? `${state.ariaLabel}, end` : "Range end date"}
             aria-describedby={describedBy}
             className="w-full bg-transparent outline-none"
             style={{ color: state.foreground, fontSize: state.inputSize }}

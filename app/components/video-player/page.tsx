@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Video Player</div></body></html>`;
 }
 
-export default function videoplayerGalleryPage() {
+export default function VideoplayerGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

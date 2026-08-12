@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Dropdown Menu</div></body></html>`;
 }
 
-export default function dropdownmenuGalleryPage() {
+export default function DropdownmenuGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

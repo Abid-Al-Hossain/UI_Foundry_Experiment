@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Modal / Dialog</div></body></html>`;
 }
 
-export default function modalsGalleryPage() {
+export default function ModalsGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

@@ -1,7 +1,7 @@
-import React, { useId } from "react";
+import React from "react";
 import { SectionCard } from "./ui";
 import TypographyControl from "@/app/components/controls/typography/TypographyControl";
-import { ActionButtonState } from "../types";
+import { ActionButtonState, ActionButtonFieldSetter } from "../types";
 import { SYSTEM_FONTS, GOOGLE_FONTS } from "../_data/buttonConstants";
 
 export default function TypographySection({
@@ -9,23 +9,12 @@ export default function TypographySection({
   setKey,
   fontSizeMin = 8,
   fontSizeMax = 200,
-  fontSizeStep = 1,
-  letterSpacingMin = -5,
-  letterSpacingMax = 20,
-  letterSpacingStep = 0.1,
 }: {
   state: ActionButtonState;
-  setKey: (key: keyof ActionButtonState) => (val: any) => void;
+  setKey: ActionButtonFieldSetter;
   fontSizeMin?: number;
   fontSizeMax?: number;
-  fontSizeStep?: number;
-  letterSpacingMin?: number;
-  letterSpacingMax?: number;
-  letterSpacingStep?: number;
 }) {
-  const idItalic = useId();
-  const idUnderline = useId();
-
   const search = state.fontSearch.toLowerCase();
   const filteredSystemFonts = SYSTEM_FONTS.filter((f) =>
     f.label.toLowerCase().includes(search),
@@ -59,7 +48,9 @@ export default function TypographySection({
         fontSizeMax={fontSizeMax}
         // Weight
         fontWeight={state.fontWeight}
-        setFontWeight={setKey("fontWeight")}
+        setFontWeight={(value) =>
+          setKey("fontWeight")(value as ActionButtonState["fontWeight"])
+        }
         // Decoration
         fontStyle={state.fontStyle}
         setFontStyle={setKey("fontStyle")}

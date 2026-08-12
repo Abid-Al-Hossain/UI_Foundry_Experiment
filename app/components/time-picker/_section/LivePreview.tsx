@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { TimePickerState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -70,10 +70,6 @@ export default function LivePreview({ state }: { state: TimePickerState }) {
   const timezoneId = `${state.id}-timezone`;
   const describedBy = [helpId, state.showTimezone ? timezoneId : ""].filter(Boolean).join(" ");
   const message = invalid ? state.errorText : success ? state.successText : state.showHelper ? state.helper : "";
-
-  useEffect(() => {
-    setValue(normalizeTimeValue(state.value, state.showSeconds));
-  }, [state.value, state.showSeconds]);
 
   return (
     <div style={shellStyle(state)} className="grid content-center">

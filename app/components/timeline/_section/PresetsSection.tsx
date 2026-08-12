@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
@@ -31,12 +31,7 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
   const pageItems = filtered.slice(start, start + PAGE_SIZE);
   const hasFilters = Boolean(query || family !== "all" || size !== "all" || page !== 1);
   const activePreset = activePresetId ? TIMELINE_PRESETS.find((preset) => preset.id === activePresetId) : null;
-
-  useEffect(() => {
-    setPage(1);
-  }, [family, query, size]);
-
-  const resetFilters = () => {
+const resetFilters = () => {
     setQuery("");
     setFamily("all");
     setSize("all");
@@ -47,9 +42,9 @@ export default function PresetsSection({ activePresetId, onApply }: { activePres
     <SectionCard title="Presets" subtitle="48 structured full-state presets.">
       <div data-testid="preset-browser" data-audit="preset-browser" className="grid gap-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Search presets" value={query} onChange={setQuery} data-testid="preset-search" />
-          <Select label="Family" value={family} options={families} onChange={setFamily} />
-          <Select label="Size" value={size} options={sizes} onChange={setSize} />
+          <Input label="Search presets" value={query} onChange={(value) => { setQuery(value); setPage(1); }} data-testid="preset-search" />
+          <Select label="Family" value={family} options={families} onChange={(value) => { setFamily(value); setPage(1); }} />
+          <Select label="Size" value={size} options={sizes} onChange={(value) => { setSize(value); setPage(1); }} />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p data-testid="preset-result-count" data-audit="preset-result-count" className="text-sm" style={{ color: "var(--muted)" }}>

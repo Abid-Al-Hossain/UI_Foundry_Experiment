@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Popover</div></body></html>`;
 }
 
-export default function popoverGalleryPage() {
+export default function PopoverGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

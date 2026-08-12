@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type ClipboardEvent, type ChangeEvent, type KeyboardEvent } from "react";
+import { Fragment, useRef, useState, type CSSProperties, type ClipboardEvent, type ChangeEvent, type KeyboardEvent } from "react";
 import type { OtpInputState } from "../types";
 import { SYSTEM_FONTS } from "@/app/components/controls/typography/fontConstants";
 
@@ -72,10 +72,6 @@ export default function LivePreview({ state }: { state: OtpInputState }) {
   const inputMode = state.characterMode === "numeric" ? "numeric" : state.inputMode;
   const pattern = state.characterMode === "numeric" ? "[0-9]*" : "[A-Za-z0-9]*";
   const describedBy = [descriptionId, helperId, message ? statusId : ""].filter(Boolean).join(" ");
-
-  useEffect(() => {
-    setDigits(createOtpDigits(state.value, state.characterMode, state.digitCount));
-  }, [state.characterMode, state.digitCount, state.value]);
 
   const focusCell = (index: number) => {
     inputRefs.current[index]?.focus();

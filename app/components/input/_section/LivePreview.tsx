@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { TextInputState } from "../types";
 import {
   resolveInputAriaInvalid,
@@ -36,16 +36,6 @@ export default function LivePreview({ state }: { state: TextInputState }) {
   const [value, setValue] = useState(state.defaultValue);
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    setValue(state.defaultValue);
-  }, [state.defaultValue]);
-
-  useEffect(() => {
-    if (state.inputType !== "password") {
-      setRevealed(false);
-    }
-  }, [state.inputType]);
 
   const floatingActive =
     state.labelPosition === "floating" && (focused || value.length > 0);

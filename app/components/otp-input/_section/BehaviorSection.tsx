@@ -3,7 +3,6 @@
 import { SectionCard } from "@/app/components/controls/layout/SectionCard";
 import Input from "@/app/components/controls/input/Input";
 import Select from "@/app/components/controls/input/Select";
-import Switch from "@/app/components/controls/input/Switch";
 import type { OtpInputState } from "../types";
 
 type Props = {

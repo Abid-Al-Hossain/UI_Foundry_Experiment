@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Tree View</div></body></html>`;
 }
 
-export default function treeviewGalleryPage() {
+export default function TreeviewGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

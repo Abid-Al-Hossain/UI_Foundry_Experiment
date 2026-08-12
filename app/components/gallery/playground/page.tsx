@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { findActivePresetId } from "@/app/components/controls/presets/findActivePresetId";
 import ContrastGuard from "@/app/components/controls/color/ContrastGuard";
 import AppShell from "@/components/layout/AppShell";
 import { PlaygroundLayout } from "@/app/components/controls/layout/PlaygroundLayout";
@@ -9,17 +10,15 @@ import UndoRedoButtons from "@/app/components/controls/layout/UndoRedoButtons";
 import SectionSelector from "@/app/components/controls/layout/SectionSelector";
 import { SharedPreviewDownloadPanel } from "@/app/components/controls/layout/SharedPreviewDownloadPanel";
 import type { PreviewCanvasMode } from "@/app/components/controls/layout/PreviewPanel";
-import { DEFAULT_GALLERY_STATE } from "../_data/GalleryPresets";
+import { DEFAULT_GALLERY_STATE, GALLERY_PRESETS } from "../_data/GalleryPresets";
 import { buildExportPayload } from "../_utils/exportUtils";
 import LivePreview from "../_section/LivePreview";
 import PresetsSection from "../_section/PresetsSection";
 import BasicsSection from "../_section/BasicsSection";
 import MetadataSection from "../_section/MetadataSection";
-import ContentSection from "../_section/ContentSection";
 import ItemsSection from "../_section/ItemsSection";
 import BehaviorSection from "../_section/BehaviorSection";
 import LayoutSection from "../_section/LayoutSection";
-import PlacementSection from "../_section/PlacementSection";
 import SizingSection from "../_section/SizingSection";
 import ColorsSection from "../_section/ColorsSection";
 import BorderSection from "../_section/BorderSection";
@@ -36,18 +35,18 @@ import { SECTIONS, type SectionId, type GalleryState, type StudioPreset } from "
 export default function Page() {
   const { state, set: setState, undo, redo, reset, canUndo, canRedo } = useHistoryState<GalleryState>(DEFAULT_GALLERY_STATE);
   const [activeSection, setActiveSection] = useState<SectionId>("presets");
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [downloadName] = useState("gallery-component");
+  const activePresetId = useMemo(() => findActivePresetId(state, DEFAULT_GALLERY_STATE, GALLERY_PRESETS), [state]);
+  const [downloadName, setDownloadName] = useState("gallery-component");
   const [previewBgMode, setPreviewBgMode] = useState<PreviewCanvasMode>("custom");
   const [previewBgInput, setPreviewBgInput] = useState("#0b1220");
   const [previewResetKey, setPreviewResetKey] = useState(0);
-  const update = <K extends keyof GalleryState>(key: K, value: GalleryState[K]) => { setState((current) => ({ ...current, [key]: value })); setActivePresetId(null); };
-  const applyPreset = (preset: StudioPreset) => { setState({ ...DEFAULT_GALLERY_STATE, ...(preset.state as Partial<GalleryState>) }); setActivePresetId(preset.id); setPreviewResetKey((value) => value + 1); };
-  const resetStudio = () => { setState(DEFAULT_GALLERY_STATE); setActivePresetId(null); setPreviewResetKey((value) => value + 1); };
+  const update = <K extends keyof GalleryState>(key: K, value: GalleryState[K]) => { setState((current) => ({ ...current, [key]: value })); };
+  const applyPreset = (preset: StudioPreset) => { setState({ ...DEFAULT_GALLERY_STATE, ...(preset.state as Partial<GalleryState>) }); setPreviewResetKey((value) => value + 1); };
+  const resetStudio = () => { setState(DEFAULT_GALLERY_STATE); setPreviewResetKey((value) => value + 1); };
   const exportPayload = useMemo(() => buildExportPayload(state, downloadName), [downloadName, state]);
   const preview = useMemo(() => <LivePreview key={previewResetKey} state={state} />, [previewResetKey, state]);
-  const controls = <><SectionSelector sections={SECTIONS} active={activeSection} onChange={setActiveSection} />{activeSection === "presets" && <PresetsSection activePresetId={activePresetId} onApply={applyPreset} onReset={resetStudio} />}{activeSection === "basics" && <BasicsSection state={state} update={update} />}{activeSection === "metadata" && <MetadataSection state={state} update={update} />}{activeSection === "content" && <ContentSection state={state} update={update} />}{activeSection === "items" && <ItemsSection state={state} update={update} />}{activeSection === "behavior" && <BehaviorSection state={state} update={update} />}{activeSection === "layout" && <LayoutSection state={state} update={update} />}{activeSection === "placement" && <PlacementSection state={state} update={update} />}{activeSection === "sizing" && <SizingSection state={state} update={update} />}{activeSection === "colors" && <ColorsSection state={state} update={update} />}{activeSection === "border" && <BorderSection state={state} update={update} />}{activeSection === "radius" && <RadiusSection state={state} update={update} />}{activeSection === "shadow" && <ShadowSection state={state} update={update} />}{activeSection === "typography" && <TypographySection state={state} update={update} />}{activeSection === "transitions" && <MotionSection state={state} update={update} />}{activeSection === "focus-ring" && <FocusRingSection state={state} update={update} />}{activeSection === "states" && <StatesSection state={state} update={update} />}{activeSection === "disabled" && <DisabledSection state={state} update={update} />}{activeSection === "accessibility" && <AccessibilitySection state={state} update={update} />}</>;
-  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
+  const controls = <><SectionSelector sections={SECTIONS} active={activeSection} onChange={setActiveSection} />{activeSection === "presets" && <PresetsSection activePresetId={activePresetId} onApply={applyPreset} onReset={resetStudio} />}{activeSection === "basics" && <BasicsSection state={state} update={update} />}{activeSection === "metadata" && <MetadataSection state={state} update={update} />}{activeSection === "items" && <ItemsSection state={state} update={update} />}{activeSection === "behavior" && <BehaviorSection state={state} update={update} />}{activeSection === "layout" && <LayoutSection state={state} update={update} />}{activeSection === "sizing" && <SizingSection state={state} update={update} />}{activeSection === "colors" && <ColorsSection state={state} update={update} />}{activeSection === "border" && <BorderSection state={state} update={update} />}{activeSection === "radius" && <RadiusSection state={state} update={update} />}{activeSection === "shadow" && <ShadowSection state={state} update={update} />}{activeSection === "typography" && <TypographySection state={state} update={update} />}{activeSection === "transitions" && <MotionSection state={state} update={update} />}{activeSection === "focus-ring" && <FocusRingSection state={state} update={update} />}{activeSection === "states" && <StatesSection state={state} update={update} />}{activeSection === "disabled" && <DisabledSection state={state} update={update} />}{activeSection === "accessibility" && <AccessibilitySection state={state} update={update} />}</>;
+  const output = <SharedPreviewDownloadPanel preview={preview} code={exportPayload.content} downloadName={downloadName} setDownloadName={setDownloadName} previewBgMode={previewBgMode} previewBgInput={previewBgInput} onPreviewBgMode={setPreviewBgMode} onPreviewBgInput={setPreviewBgInput} />;
   const handleReset = () => {
     reset();
     setPreviewResetKey((value) => value + 1);

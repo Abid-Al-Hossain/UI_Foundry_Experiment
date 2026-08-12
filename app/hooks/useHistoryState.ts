@@ -1,164 +1,156 @@
-"use strict";
+"use client";
 
-import { useReducer, useCallback, useRef, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
-/**
- * A hook that manages state with undo/redo history.
- * Uses useReducer for predictable state updates.
- */
+const HISTORY_LIMIT = 100;
 
 type HistoryState<T> = {
   past: T[];
   present: T;
   future: T[];
-  lastSaved: T;
+  lastCommitted: T;
+  hasPendingEdit: boolean;
 };
 
 type HistoryAction<T> =
-  | { type: "SET"; payload: T | ((prev: T) => T); isFunction: boolean }
+  | { type: "SET"; payload: T | ((previous: T) => T) }
   | { type: "UNDO" }
   | { type: "REDO" }
-  | { type: "COMMIT" } // Commit current present to history
-  | { type: "RESET"; payload: T }; // Reset to initial state
+  | { type: "COMMIT" }
+  | { type: "RESET"; payload: T };
 
 function createReducer<T>() {
-  return function reducer(
-    state: HistoryState<T>,
-    action: HistoryAction<T>,
-  ): HistoryState<T> {
+  return (state: HistoryState<T>, action: HistoryAction<T>): HistoryState<T> => {
     switch (action.type) {
-      case "SET":
-        // Resolve payload if it's a function
-        const nextPresent = action.isFunction
-          ? (action.payload as (prev: T) => T)(state.present)
-          : (action.payload as T);
+      case "SET": {
+        const nextPresent =
+          typeof action.payload === "function"
+            ? (action.payload as (previous: T) => T)(state.present)
+            : action.payload;
 
-        // Update present without affecting history yet
+        if (Object.is(nextPresent, state.present)) return state;
+
         return {
           ...state,
           present: nextPresent,
+          // A divergent edit invalidates redo immediately, not after debounce.
+          future: [],
+          hasPendingEdit: !Object.is(nextPresent, state.lastCommitted),
         };
+      }
 
-      case "COMMIT":
-        // ... (rest same)
-        // Save lastSaved to past, update lastSaved to current present
-        const presentJson = JSON.stringify(state.present);
-        const lastSavedJson = JSON.stringify(state.lastSaved);
-
-        if (presentJson === lastSavedJson) {
-          return state; // Nothing changed since last save
+      case "COMMIT": {
+        if (!state.hasPendingEdit || Object.is(state.present, state.lastCommitted)) {
+          return { ...state, hasPendingEdit: false };
         }
 
         return {
-          past: [...state.past, state.lastSaved],
+          past: [...state.past, state.lastCommitted].slice(-HISTORY_LIMIT),
           present: state.present,
-          future: [], // Clear future on new action
-          lastSaved: state.present,
+          future: [],
+          lastCommitted: state.present,
+          hasPendingEdit: false,
         };
+      }
 
-      case "UNDO":
+      case "UNDO": {
+        // Undoing during the debounce window restores the last committed state,
+        // rather than skipping over it to an older history entry.
+        if (state.hasPendingEdit) {
+          return {
+            ...state,
+            present: state.lastCommitted,
+            future: [state.present, ...state.future].slice(0, HISTORY_LIMIT),
+            hasPendingEdit: false,
+          };
+        }
+
         if (state.past.length === 0) return state;
         const previous = state.past[state.past.length - 1];
         return {
           past: state.past.slice(0, -1),
           present: previous,
-          future: [state.present, ...state.future],
-          lastSaved: previous,
+          future: [state.present, ...state.future].slice(0, HISTORY_LIMIT),
+          lastCommitted: previous,
+          hasPendingEdit: false,
         };
+      }
 
-      case "REDO":
-        if (state.future.length === 0) return state;
+      case "REDO": {
+        if (state.hasPendingEdit || state.future.length === 0) return state;
         const next = state.future[0];
         return {
-          past: [...state.past, state.present],
+          past: [...state.past, state.present].slice(-HISTORY_LIMIT),
           present: next,
           future: state.future.slice(1),
-          lastSaved: next,
+          lastCommitted: next,
+          hasPendingEdit: false,
         };
+      }
 
       case "RESET":
         return {
           past: [],
           present: action.payload,
           future: [],
-          lastSaved: action.payload,
+          lastCommitted: action.payload,
+          hasPendingEdit: false,
         };
-
-      default:
-        return state;
     }
   };
 }
 
 export function useHistoryState<T>(initialState: T, delayMs = 500) {
   const reducer = useMemo(() => createReducer<T>(), []);
-
   const [historyState, dispatch] = useReducer(reducer, {
     past: [],
     present: initialState,
     future: [],
-    lastSaved: initialState,
+    lastCommitted: initialState,
+    hasPendingEdit: false,
   });
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialStateRef = useRef(initialState);
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const initialStateRef = useRef<T>(initialState);
+  const clearPendingTimer = useCallback(() => {
+    if (!timeoutRef.current) return;
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  }, []);
+
+  useEffect(() => clearPendingTimer, [clearPendingTimer]);
 
   const undo = useCallback(() => {
-    // Clear any pending commit
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingTimer();
     dispatch({ type: "UNDO" });
-  }, []);
+  }, [clearPendingTimer]);
 
   const redo = useCallback(() => {
-    // Clear any pending commit
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingTimer();
     dispatch({ type: "REDO" });
-  }, []);
+  }, [clearPendingTimer]);
 
   const set = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      const isFunc = value instanceof Function;
-
-      dispatch({
-        type: "SET",
-        payload: value,
-        isFunction: isFunc,
-      });
-
-      // Schedule commit after debounce
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
+    (value: T | ((previous: T) => T)) => {
+      dispatch({ type: "SET", payload: value });
+      clearPendingTimer();
       timeoutRef.current = setTimeout(() => {
         dispatch({ type: "COMMIT" });
         timeoutRef.current = null;
       }, delayMs);
     },
-    [delayMs],
+    [clearPendingTimer, delayMs],
   );
 
   const pushSnapshot = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingTimer();
     dispatch({ type: "COMMIT" });
-  }, []);
+  }, [clearPendingTimer]);
 
   const reset = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingTimer();
     dispatch({ type: "RESET", payload: initialStateRef.current });
-  }, []);
+  }, [clearPendingTimer]);
 
   return {
     state: historyState.present,
@@ -166,8 +158,8 @@ export function useHistoryState<T>(initialState: T, delayMs = 500) {
     undo,
     redo,
     reset,
-    canUndo: historyState.past.length > 0,
-    canRedo: historyState.future.length > 0,
+    canUndo: historyState.hasPendingEdit || historyState.past.length > 0,
+    canRedo: !historyState.hasPendingEdit && historyState.future.length > 0,
     pushSnapshot,
   };
 }

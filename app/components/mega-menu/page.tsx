@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Mega Menu</div></body></html>`;
 }
 
-export default function megamenuGalleryPage() {
+export default function MegamenuGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

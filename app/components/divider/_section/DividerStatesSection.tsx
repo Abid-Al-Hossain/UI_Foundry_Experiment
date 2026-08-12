@@ -3,7 +3,6 @@
 import React from "react";
 import { type DividerState } from "../types";
 import { SectionCard as Section } from "@/app/components/controls/layout/SectionCard";
-import { LabeledField as ControlGroup } from "@/app/components/controls/layout/LabeledField";
 import ColorControl from "@/app/components/controls/color/ColorControl";
 import { SegmentedControl } from "@/app/components/controls/input/SegmentedControl";
 import SizeControl from "@/app/components/controls/input/SizeControl";

@@ -29,7 +29,7 @@ export default function ContentSection({
         <LabeledField label="Label">
           <Input
             value={state.label}
-            onChange={(e) => setKey("label")(e.target.value)}
+            onChange={(e) => setKey("label")(e)}
           />
         </LabeledField>
 
@@ -38,7 +38,7 @@ export default function ContentSection({
             <Input
               placeholder="e.g. 5, 99+, New"
               value={state.count}
-              onChange={(e) => setKey("count")(e.target.value)}
+              onChange={(e) => setKey("count")(e)}
             />
           </div>
         </LabeledField>

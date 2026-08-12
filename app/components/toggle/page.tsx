@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Toggle / Switch</div></body></html>`;
 }
 
-export default function toggleGalleryPage() {
+export default function ToggleGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

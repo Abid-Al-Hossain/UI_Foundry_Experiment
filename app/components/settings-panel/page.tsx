@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Settings Panel</div></body></html>`;
 }
 
-export default function settingspanelGalleryPage() {
+export default function SettingspanelGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

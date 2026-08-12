@@ -39,7 +39,7 @@ export default function DividerMetadataSection({ state, setKey }: Props) {
           <ControlGroup label="ARIA Label">
             <InputControl
               value={state.ariaLabel}
-              onChange={(e) => setKey("ariaLabel")(e.target.value)}
+              onChange={(e) => setKey("ariaLabel")(e)}
               placeholder="e.g. Section divider"
             />
           </ControlGroup>

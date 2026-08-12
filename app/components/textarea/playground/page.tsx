@@ -154,7 +154,12 @@ export default function TextareaPlaygroundPage() {
       setPreviewBgMode={setPreviewBgMode}
       previewBgInput={previewBgInput}
       setPreviewBgInput={setPreviewBgInput}
-      previewNode={<LivePreview key={previewResetKey} state={state} />}
+      previewNode={
+        <LivePreview
+          key={`${previewResetKey}:${state.defaultValue}`}
+          state={state}
+        />
+      }
       code={exportCode.content}
     />
   );

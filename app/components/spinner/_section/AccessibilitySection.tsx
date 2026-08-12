@@ -39,7 +39,7 @@ export default function AccessibilitySection({ state, update }: Props) {
         <ControlGroup label="Aria Value Text" hint="Optional progress description, e.g. '40% complete'.">
           <InputControl
             value={state.ariaValueText}
-            onChange={(e) => update("ariaValueText", e.target.value)}
+            onChange={(e) => update("ariaValueText", e)}
             placeholder="e.g. 40% complete"
           />
         </ControlGroup>

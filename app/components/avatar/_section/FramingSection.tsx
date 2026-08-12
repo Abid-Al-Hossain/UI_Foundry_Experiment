@@ -63,7 +63,7 @@ export default function FramingSection({
           <ControlGroup label="Custom Position">
             <InputControl
               value={objectPosition}
-              onChange={(event) => setObjectPosition(event.target.value)}
+              onChange={(event) => setObjectPosition(event)}
               placeholder="center center"
             />
           </ControlGroup>

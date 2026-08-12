@@ -188,7 +188,7 @@ export function buildTextInputExportPayload(params: TextInputExportInput) {
       : "",
     "        <div style={{ position: \"relative\", width: \"100%\" }}>",
     isFloating
-      ? `          <label htmlFor={${toJs(params.id || "text-input-preview")}} style=${floatingLabelStyleObject}>
+      ? `          <label htmlFor={${toJs(params.id || "text-input-preview")}} style={${floatingLabelStyleObject}}>
             {${toJs(params.labelText)}}${params.showRequired ? ` <span style={{ color: ${toJs(params.requiredColor)} }}> *</span>` : ""}
           </label>`
       : "",
@@ -302,7 +302,7 @@ export function buildTextInputExportPayload(params: TextInputExportInput) {
             spellCheck={${params.spellCheck}}
             role={${role}}
             className="uif-text-input"
-            style=${buildInputStyleObject("dynamicPadding")}
+            style={${buildInputStyleObject("dynamicPadding")}}
           />`,
     "        </div>",
     isLeft || isTop ? "      </div>" : "      </div>",

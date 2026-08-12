@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Stepper</div></body></html>`;
 }
 
-export default function stepperGalleryPage() {
+export default function StepperGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

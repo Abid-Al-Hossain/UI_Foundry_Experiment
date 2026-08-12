@@ -207,7 +207,7 @@ export default function LabelsSection({
                   <Input
                     value={label.text || ""}
                     onChange={(e) =>
-                      updateLabel(label.id, { text: e.target.value })
+                      updateLabel(label.id, { text: e })
                     }
                     placeholder="Label text..."
                   />
@@ -231,7 +231,7 @@ export default function LabelsSection({
                   value={String(label.badgeCount || 0)}
                   onChange={(e) =>
                     updateLabel(label.id, {
-                      badgeCount: Number(e.target.value),
+                      badgeCount: Number(e),
                     })
                   }
                   placeholder="0"

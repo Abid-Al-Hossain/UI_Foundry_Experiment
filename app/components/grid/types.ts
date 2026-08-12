@@ -1,4 +1,4 @@
-export type SectionId = "presets" | "basics" | "metadata" | "structure" | "layout" | "sizing" | "spacing" | "surface" | "colors" | "border" | "radius" | "shadow" | "typography" | "states" | "accessibility";
+export type SectionId = "presets" | "basics" | "metadata" | "structure" | "layout" | "sizing" | "spacing" | "colors" | "border" | "radius" | "shadow" | "typography" | "states" | "accessibility";
 
 export type GridElement = "div" | "section" | "main" | "header" | "footer" | "aside" | "nav";
 export type GridRole = "group" | "region" | "main" | "banner" | "contentinfo" | "navigation";
@@ -109,10 +109,6 @@ export const SECTIONS: Array<{ id: SectionId; label: string }> = [
   {
     "id": "spacing",
     "label": "Spacing"
-  },
-  {
-    "id": "surface",
-    "label": "Surface"
   },
   {
     "id": "colors",

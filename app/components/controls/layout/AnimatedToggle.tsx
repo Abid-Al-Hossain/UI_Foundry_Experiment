@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useId } from "react";
 
 interface Option {
   value: string;
@@ -18,8 +19,11 @@ export function AnimatedToggle({
   onChange,
   options,
 }: AnimatedToggleProps) {
+  const layoutId = `toggle-bg-${useId().replace(/:/g, "")}`;
   return (
     <div
+      role="group"
+      aria-label="Choose an option"
       className="flex shrink-0 p-1 rounded-full relative"
       style={{
         background: "color-mix(in oklab, var(--surface) 90%, transparent)",
@@ -41,7 +45,7 @@ export function AnimatedToggle({
         >
           {value === option.value && (
             <motion.div
-              layoutId="toggle-bg"
+              layoutId={layoutId}
               className="absolute inset-0 rounded-full z-[-1] shadow-sm"
               style={{ background: "var(--primary)" }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}

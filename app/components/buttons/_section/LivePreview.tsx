@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   getClickEffectProfile,
   getSafeBurstColors,
@@ -303,29 +303,6 @@ export default function LivePreview(props: LivePreviewProps) {
   const [hoveredIndex, setHoveredIndex] = useState(-1);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-
-  useEffect(() => {
-    setHoveredIndex(-1);
-    setActiveIndex(-1);
-    setFocusedIndex(-1);
-
-    interactionRefs.current.forEach((shell) => {
-      if (shell) shell.style.transform = "";
-    });
-
-    effectHostRefs.current.forEach((host) => {
-      if (host) host.innerHTML = "";
-    });
-    lastPressEffectAtRef.current = [];
-
-    buttonRefs.current.forEach((button) => {
-      if (!button) return;
-      button.style.removeProperty("--x");
-      button.style.removeProperty("--y");
-      button.style.setProperty("--parallax-opacity", "0");
-      button.blur();
-    });
-  }, [props.previewResetKey]);
 
   const align = toStringValue(props.align, "middle-center");
   const width = toCssLength(props.width, "220px");

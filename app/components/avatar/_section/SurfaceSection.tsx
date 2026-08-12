@@ -66,7 +66,7 @@ export default function SurfaceSection(props: {
         <LabeledField label="Shadow">
           <InputControl
             value={props.shadow}
-            onChange={(e) => props.setShadow(e.target.value)}
+            onChange={(e) => props.setShadow(e)}
             placeholder="0 18px 40px rgba(15,23,42,0.18)"
           />
         </LabeledField>

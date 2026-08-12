@@ -60,12 +60,13 @@ export default function SectionSelector<T extends string = string>({
       >
         {title}
       </div>
-      <div className="grid gap-2.5" style={gridStyle}>
+      <div className="grid gap-2.5" style={gridStyle} role="group" aria-label={title}>
         {sections.map((section) => (
           <button
             key={section.id}
             type="button"
             onClick={() => handleSectionChange?.(section.id)}
+            aria-pressed={selectedSection === section.id}
             className="min-h-[52px] w-full rounded-xl border px-3 py-2.5 text-sm font-semibold leading-tight text-center whitespace-normal break-words hyphens-none transition-all uf-clickable"
             style={{
               borderColor: "var(--border)",

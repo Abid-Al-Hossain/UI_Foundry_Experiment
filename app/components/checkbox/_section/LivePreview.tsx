@@ -65,7 +65,6 @@ function CheckmarkSVG({ style: s }: { style: CheckboxState }) {
 
 export default function LivePreview({
   state,
-  resetKey = 0,
   canvasBg = "#0b1220",
 }: {
   state: CheckboxState;
@@ -79,21 +78,8 @@ export default function LivePreview({
   const cbRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setChecked(state.checked);
-  }, [state.checked]);
-
-  useEffect(() => {
-    setIndeterminate(state.indeterminate);
-  }, [state.indeterminate]);
-
-  useEffect(() => {
     if (cbRef.current) cbRef.current.indeterminate = indeterminate;
   }, [indeterminate]);
-
-  useEffect(() => {
-    setHovered(false);
-    setFocused(false);
-  }, [resetKey]);
 
   const isChecked = checked || indeterminate;
   const boxBg = resolveCheckboxBackgroundColor(

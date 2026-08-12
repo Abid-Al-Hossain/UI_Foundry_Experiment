@@ -65,7 +65,7 @@ export default function DividerContentSection({
                 <LabeledField label="Text">
                   <Input
                     value={labelText}
-                    onChange={(e) => setKey("labelText")(e.target.value)}
+                    onChange={(e) => setKey("labelText")(e)}
                   />
                 </LabeledField>
 

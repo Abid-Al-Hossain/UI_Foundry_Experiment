@@ -1,13 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
-import type { ThemeId } from "./themes";
+import { THEMES, type ThemeId } from "./themes";
 
 type ThemeContextValue = {
   theme: ThemeId;
-  setTheme: (t: ThemeId) => void;
+  setTheme: (theme: ThemeId) => void;
   customTheme: ThemeVars;
-  setCustomTheme: (t: ThemeVars) => void;
+  setCustomTheme: (theme: ThemeVars) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -15,6 +15,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "ui-foundry-theme";
 const CUSTOM_STORAGE_KEY = "ui-foundry-custom-theme";
 const DEFAULT_THEME: ThemeId = "navy";
+const THEME_IDS = new Set<ThemeId>(THEMES.map(({ id }) => id));
 
 export type ThemeVars = {
   bg: string;
@@ -24,11 +25,12 @@ export type ThemeVars = {
   muted: string;
   border: string;
   primary: string;
+  onPrimary: string;
   primaryHover: string;
   ring: string;
 };
 
-const DEFAULT_CUSTOM_THEME: ThemeVars = {
+export const DEFAULT_CUSTOM_THEME: ThemeVars = {
   bg: "#070b16",
   surface: "#0c142b",
   card: "#0f1a36",
@@ -36,9 +38,12 @@ const DEFAULT_CUSTOM_THEME: ThemeVars = {
   muted: "#a9b7e6",
   border: "rgba(255, 255, 255, 0.12)",
   primary: "#4f7cff",
+  onPrimary: "#ffffff",
   primaryHover: "#3f6fff",
   ring: "rgba(79, 124, 255, 0.35)",
 };
+
+const THEME_VAR_KEYS = Object.keys(DEFAULT_CUSTOM_THEME) as (keyof ThemeVars)[];
 
 type ThemeSnapshot = {
   theme: ThemeId;
@@ -54,36 +59,52 @@ let cachedSnapshot: ThemeSnapshot = {
 let cachedTheme: ThemeId = DEFAULT_THEME;
 let cachedCustom: ThemeVars = DEFAULT_CUSTOM_THEME;
 
+const isThemeId = (value: unknown): value is ThemeId =>
+  typeof value === "string" && THEME_IDS.has(value as ThemeId);
+
+const isCssColor = (value: unknown): value is string => {
+  if (typeof value !== "string" || value.length === 0 || value.length > 128) return false;
+  if (typeof CSS === "undefined" || typeof CSS.supports !== "function") {
+    return /^(#[\da-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-z]+)$/i.test(value);
+  }
+  return CSS.supports("color", value);
+};
+
+const normalizeCustomTheme = (value: unknown): ThemeVars => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return DEFAULT_CUSTOM_THEME;
+  }
+
+  const input = value as Record<string, unknown>;
+  const normalized = { ...DEFAULT_CUSTOM_THEME };
+  for (const key of THEME_VAR_KEYS) {
+    if (isCssColor(input[key])) normalized[key] = input[key];
+  }
+  return normalized;
+};
+
 const sameCustomTheme = (a: ThemeVars, b: ThemeVars) =>
-  a.bg === b.bg &&
-  a.surface === b.surface &&
-  a.card === b.card &&
-  a.text === b.text &&
-  a.muted === b.muted &&
-  a.border === b.border &&
-  a.primary === b.primary &&
-  a.primaryHover === b.primaryHover &&
-  a.ring === b.ring;
+  THEME_VAR_KEYS.every((key) => a[key] === b[key]);
 
 const getStoredSnapshot = (): ThemeSnapshot => {
-  if (typeof window === "undefined") {
-    return cachedSnapshot;
-  }
+  if (typeof window === "undefined") return cachedSnapshot;
+
   let theme: ThemeId = DEFAULT_THEME;
-  let customTheme: ThemeVars = DEFAULT_CUSTOM_THEME;
+  let customTheme = DEFAULT_CUSTOM_THEME;
   try {
-    const saved = (localStorage.getItem(STORAGE_KEY) as ThemeId | null) ?? DEFAULT_THEME;
-    theme = saved;
+    const savedTheme = localStorage.getItem(STORAGE_KEY);
+    if (isThemeId(savedTheme)) theme = savedTheme;
+
     const savedCustom = localStorage.getItem(CUSTOM_STORAGE_KEY);
-    if (savedCustom) {
-      customTheme = JSON.parse(savedCustom) as ThemeVars;
-    }
+    if (savedCustom) customTheme = normalizeCustomTheme(JSON.parse(savedCustom));
   } catch {
-    // ignore
+    // Invalid or unavailable storage must never prevent the app from rendering.
   }
+
   if (theme === cachedTheme && sameCustomTheme(customTheme, cachedCustom)) {
     return cachedSnapshot;
   }
+
   cachedTheme = theme;
   cachedCustom = customTheme;
   cachedSnapshot = { theme, customTheme };
@@ -94,42 +115,29 @@ const getServerSnapshot = (): ThemeSnapshot => cachedSnapshot;
 
 const subscribe = (callback: () => void) => {
   themeListeners.add(callback);
-  if (typeof window !== "undefined") {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY || event.key === CUSTOM_STORAGE_KEY) {
-        callback();
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => {
-      themeListeners.delete(callback);
-      window.removeEventListener("storage", onStorage);
-    };
+  if (typeof window === "undefined") {
+    return () => themeListeners.delete(callback);
   }
+
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY || event.key === CUSTOM_STORAGE_KEY) callback();
+  };
+  window.addEventListener("storage", onStorage);
   return () => {
     themeListeners.delete(callback);
+    window.removeEventListener("storage", onStorage);
   };
 };
 
 const emitThemeChange = () => {
+  cachedTheme = "" as ThemeId;
   themeListeners.forEach((listener) => listener());
 };
 
 function applyThemeVars(vars?: ThemeVars) {
   const root = document.documentElement;
-  const keys: (keyof ThemeVars)[] = [
-    "bg",
-    "surface",
-    "card",
-    "text",
-    "muted",
-    "border",
-    "primary",
-    "primaryHover",
-    "ring",
-  ];
-  keys.forEach((key) => {
-    const cssKey = `--${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+  THEME_VAR_KEYS.forEach((key) => {
+    const cssKey = `--${key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`;
     if (vars) root.style.setProperty(cssKey, vars[key]);
     else root.style.removeProperty(cssKey);
   });
@@ -140,27 +148,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    if (theme === "custom") {
-      applyThemeVars(customTheme);
-    } else {
-      applyThemeVars();
-    }
+    applyThemeVars(theme === "custom" ? customTheme : undefined);
   }, [theme, customTheme]);
 
-  const setTheme = (t: ThemeId) => {
+  const setTheme = (nextTheme: ThemeId) => {
+    if (!isThemeId(nextTheme)) return;
     try {
-      localStorage.setItem(STORAGE_KEY, t);
+      localStorage.setItem(STORAGE_KEY, nextTheme);
     } catch {
-      // ignore
+      // The in-memory theme still remains usable when storage is unavailable.
     }
     emitThemeChange();
   };
 
-  const setCustomTheme = (t: ThemeVars) => {
+  const setCustomTheme = (nextTheme: ThemeVars) => {
+    const normalized = normalizeCustomTheme(nextTheme);
     try {
-      localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(t));
+      localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(normalized));
     } catch {
-      // ignore
+      // The current render remains usable when storage is unavailable.
     }
     emitThemeChange();
   };
@@ -174,7 +180,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
-  return ctx;
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error("useTheme must be used inside ThemeProvider");
+  return context;
 }

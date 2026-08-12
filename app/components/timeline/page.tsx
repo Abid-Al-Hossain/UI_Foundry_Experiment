@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Timeline</div></body></html>`;
 }
 
-export default function timelineGalleryPage() {
+export default function TimelineGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

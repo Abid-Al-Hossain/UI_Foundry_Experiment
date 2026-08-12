@@ -31,7 +31,7 @@ export default function SizingSection(props: {
           <LabeledField label="Aspect Ratio">
             <InputControl
               value={props.aspectRatio}
-              onChange={(e) => props.setAspectRatio(e.target.value)}
+              onChange={(e) => props.setAspectRatio(e)}
               placeholder="1 / 1"
             />
           </LabeledField>

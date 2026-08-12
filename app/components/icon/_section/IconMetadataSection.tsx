@@ -26,7 +26,7 @@ export default function IconMetadataSection({
               value={state.ariaLabel}
               onChange={(value) =>
                 setKey("ariaLabel")(
-                  typeof value === "string" ? value : value.target.value,
+                  typeof value === "string" ? value : value,
                 )
               }
               placeholder="e.g. Settings icon"

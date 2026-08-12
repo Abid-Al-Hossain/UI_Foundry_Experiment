@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Lightbox</div></body></html>`;
 }
 
-export default function lightboxGalleryPage() {
+export default function LightboxGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

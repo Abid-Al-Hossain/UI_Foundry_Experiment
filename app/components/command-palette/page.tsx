@@ -10,7 +10,7 @@ function buildMiniPreview() {
 </head><body><div class="card">Command Palette</div></body></html>`;
 }
 
-export default function commandpaletteGalleryPage() {
+export default function CommandpaletteGalleryPage() {
   const srcDoc = useMemo(() => buildMiniPreview(), []);
   return (
     <GalleryPageTemplate

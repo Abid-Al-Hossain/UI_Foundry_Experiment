@@ -34,7 +34,7 @@ export default function BadgeMetadataSection({
           <ControlGroup label="ARIA Label">
             <InputControl
               value={ariaLabel}
-              onChange={(e) => setAriaLabel(e.target.value)}
+              onChange={(e) => setAriaLabel(e)}
               placeholder="e.g. New notifications: 3"
             />
           </ControlGroup>
